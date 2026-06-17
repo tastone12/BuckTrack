@@ -125,7 +125,7 @@
   .btn-secondary:hover { background: rgba(255,255,255,0.18); color: #fff; }
 
   /* MAIN LAYOUT */
-  .app { display: flex; flex: 1; overflow: hidden; }
+  .app { display: flex; flex: 1; overflow: hidden; position: relative; }
 
   /* SIDEBAR */
   .sidebar { display: none; }
@@ -210,11 +210,11 @@
   .cam-count { font-size: 11px; color: var(--text-3); }
 
   /* MAIN CONTENT */
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
 
   /* VIEWS */
-  .view { display: none; flex: 1; overflow: hidden; flex-direction: column; }
-  .view.active { display: flex; }
+  .view { display: none !important; flex: 1; overflow: hidden; flex-direction: column; }
+  .view.active { display: flex !important; }
 
   /* MAP VIEW */
   .map-container {
@@ -916,6 +916,37 @@
   .dash-empty-icon { font-size:36px; opacity:0.35; }
   .dash-empty-title { font-size:15px; font-weight:700; color:var(--text-2); }
   .dash-empty-sub { font-size:12px; color:var(--text-3); line-height:1.5; max-width:280px; }
+  /* ── SETTINGS ───────────────────────────────────────── */
+  .settings-wrap { max-width: 860px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+  .settings-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow); }
+  .settings-section-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+  .settings-section-sub { font-size: 12px; color: var(--text-3); margin-bottom: 14px; }
+  .settings-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .settings-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; }
+  .settings-item-icon { font-size: 18px; flex-shrink: 0; }
+  .settings-item-info { flex: 1; min-width: 0; }
+  .settings-item-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .settings-item-meta { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+  .settings-item-del { background: none; border: 1px solid var(--red-border); color: var(--red); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 4px; cursor: pointer; flex-shrink: 0; transition: all 0.12s; }
+  .settings-item-del:hover { background: var(--red-light); }
+  .settings-add-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .settings-input { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: 'Inter', sans-serif; font-size: 13px; padding: 8px 11px; transition: all 0.12s; }
+  .settings-input:focus { outline: none; border-color: var(--green-mid); box-shadow: 0 0 0 3px rgba(45,122,58,0.12); background: var(--surface); }
+  .settings-add-btn { background: var(--green-mid); color: #fff; border: none; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap; transition: background 0.15s; flex-shrink: 0; }
+  .settings-add-btn:hover { background: var(--green); }
+  .settings-fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .settings-field { display: flex; flex-direction: column; gap: 5px; }
+  .settings-label { font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-3); }
+  .settings-save-btn { background: var(--green-mid); color: #fff; border: none; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; padding: 8px 20px; border-radius: var(--radius-sm); cursor: pointer; transition: background 0.15s; }
+  .settings-save-btn:hover { background: var(--green); }
+  .settings-action-btn { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: var(--radius-sm); cursor: pointer; border: none; transition: all 0.15s; }
+  .settings-action-btn.green { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
+  .settings-action-btn.green:hover { background: var(--green-mid); color: #fff; }
+  .settings-action-btn.slate { background: #eef0f4; color: var(--camo-slate); border: 1px solid #c8cdd8; }
+  .settings-action-btn.slate:hover { background: var(--camo-slate); color: #fff; }
+  .settings-action-btn.red { background: var(--red-light); color: var(--red); border: 1px solid var(--red-border); }
+  .settings-action-btn.red:hover { background: var(--red); color: #fff; }
+  .settings-cam-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
 </style>
 </head>
@@ -935,6 +966,7 @@
     <button onclick="switchView('log')">Sighting Log</button>
     <button onclick="switchView('patterns')">Patterns</button>
     <button onclick="switchView('ai')">✦ AI Analyst</button>
+    <button onclick="switchView('settings')">⚙ Settings</button>
   </nav>
   <div class="header-actions">
     <button class="btn-secondary" onclick="openModal('camModal')">+ Camera</button>
@@ -949,7 +981,7 @@
   <div class="main">
 
     <!-- DASHBOARD VIEW -->
-    <div class="view active" id="view-dashboard">
+    <div class="view active" id="view-dashboard" style="display:flex">
       <div class="dashboard" id="dashboardContainer">
         <div class="dash-empty">
           <div class="dash-empty-icon">🦌</div>
@@ -984,7 +1016,7 @@
     </div>
 
     <!-- LOG VIEW -->
-    <div class="view" id="view-log">
+    <div class="view" id="view-log" style="display:none">
       <div class="stats-bar" id="statsBar">
         <div class="stat-item"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Total Sightings</div></div>
         <div class="stat-item"><div class="stat-value" id="statBucks">0</div><div class="stat-label">Bucks Tracked</div></div>
@@ -1017,7 +1049,7 @@
               <th>Camera</th>
               <th>Temp</th>
               <th>Wind</th>
-              <th>Pressure</th>
+              <th>Pressure (inHg)</th>
               <th>Rut Stage</th>
               <th>Notes</th>
             </tr>
@@ -1030,7 +1062,7 @@
     </div>
 
     <!-- PATTERNS VIEW -->
-    <div class="view" id="view-patterns">
+    <div class="view" id="view-patterns" style="display:none">
       <div class="stats-bar">
         <div class="stat-item"><div class="stat-value" id="pStatPeakHour">—</div><div class="stat-label">Peak Hour</div></div>
         <div class="stat-item"><div class="stat-value" id="pStatTopCam">—</div><div class="stat-label">Hottest Camera</div></div>
@@ -1043,7 +1075,7 @@
     </div>
 
     <!-- AI ANALYST VIEW -->
-    <div class="view" id="view-ai">
+    <div class="view" id="view-ai" style="display:none">
       <div class="ai-view">
         <!-- Chat column -->
         <div class="ai-chat-col">
@@ -1096,6 +1128,93 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ========== SETTINGS VIEW ========== -->
+<div class="view" id="view-settings" style="display:none;flex:1;overflow-y:auto;background:var(--bg);">
+  <div class="settings-wrap">
+
+    <!-- Bucks -->
+    <div class="settings-section">
+      <div class="settings-section-title">🦌 Buck Profiles</div>
+      <div class="settings-section-sub">Add, edit, or remove bucks that appear in the sighting log dropdown.</div>
+      <div id="settingsBuckList" class="settings-list"></div>
+      <div class="settings-add-row">
+        <input type="text" id="newBuckName" placeholder="Nickname (e.g. Splitbrow)" class="settings-input">
+        <input type="text" id="newBuckEmoji" placeholder="🦌" maxlength="4" class="settings-input" style="width:60px;text-align:center;font-size:18px;">
+        <select id="newBuckAge" class="settings-input" style="width:100px;">
+          <option value="">Age?</option>
+          <option value="1.5">1.5 yr</option>
+          <option value="2.5">2.5 yr</option>
+          <option value="3.5">3.5 yr</option>
+          <option value="4.5">4.5 yr</option>
+          <option value="5.5+">5.5+ yr</option>
+        </select>
+        <input type="text" id="newBuckFeatures" placeholder="Identifying features (optional)" class="settings-input" style="flex:1;">
+        <button class="settings-add-btn" onclick="settingsAddBuck()">+ Add Buck</button>
+      </div>
+    </div>
+
+    <!-- Cameras -->
+    <div class="settings-section">
+      <div class="settings-section-title">📷 Cameras</div>
+      <div class="settings-section-sub">Add, edit, or remove camera locations.</div>
+      <div id="settingsCamList" class="settings-list"></div>
+      <div class="settings-add-row">
+        <input type="text" id="newCamName" placeholder="Camera name / location" class="settings-input" style="flex:1;">
+        <select id="newCamColor" class="settings-input" style="width:110px;">
+          <option value="#2d7a3a">Green</option>
+          <option value="#a03030">Red</option>
+          <option value="#4a5a6a">Slate</option>
+          <option value="#7a4e2a">Brown</option>
+          <option value="#c8b882">Tan</option>
+          <option value="#6d28d9">Purple</option>
+        </select>
+        <select id="newCamType" class="settings-input" style="width:110px;">
+          <option value="cellular">Cellular</option>
+          <option value="sd">SD Card</option>
+        </select>
+        <button class="settings-add-btn" onclick="settingsAddCamera()">+ Add Camera</button>
+      </div>
+    </div>
+
+    <!-- Property -->
+    <div class="settings-section">
+      <div class="settings-section-title">⚙ Property Settings</div>
+      <div class="settings-section-sub">Configure your property name and weather coordinates.</div>
+      <div class="settings-fields-grid">
+        <div class="settings-field">
+          <label class="settings-label">Property Name</label>
+          <input type="text" id="setPropName" class="settings-input" placeholder="e.g. Cable 40">
+        </div>
+        <div class="settings-field">
+          <label class="settings-label">Hunter Tag</label>
+          <input type="text" id="setHunterTag" class="settings-input" placeholder="e.g. T-Stone">
+        </div>
+        <div class="settings-field">
+          <label class="settings-label">Weather Latitude</label>
+          <input type="number" id="setLat" class="settings-input" step="0.0001" placeholder="46.2504">
+        </div>
+        <div class="settings-field">
+          <label class="settings-label">Weather Longitude</label>
+          <input type="number" id="setLon" class="settings-input" step="0.0001" placeholder="-91.07529">
+        </div>
+      </div>
+      <button class="settings-save-btn" onclick="savePropertySettings()">Save Property Settings</button>
+    </div>
+
+    <!-- Data -->
+    <div class="settings-section">
+      <div class="settings-section-title">💾 Data Management</div>
+      <div class="settings-section-sub">Export, backup, or reset your tracking data.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="settings-action-btn green" onclick="exportCSV()">⬇ Export Sightings to CSV</button>
+        <button class="settings-action-btn slate" onclick="backupData()">⬇ Backup All Data (JSON)</button>
+        <button class="settings-action-btn red" onclick="clearAllData()">✕ Clear All Data</button>
       </div>
     </div>
 
@@ -1209,11 +1328,11 @@
       <div class="form-row-2">
         <div>
           <label>Date</label>
-          <input type="date" id="sightDate">
+          <input type="date" id="sightDate" onchange="fetchWeather()">
         </div>
         <div>
           <label>Time</label>
-          <input type="time" id="sightTime">
+          <input type="time" id="sightTime" onchange="fetchWeather()">
         </div>
       </div>
       <div class="form-row-2">
@@ -1256,8 +1375,8 @@
           <input type="number" id="sightWindSpeed" placeholder="Auto-filled" min="0" max="60">
         </div>
         <div>
-          <label>Barometric Pressure (hPa)</label>
-          <input type="number" id="sightPressure" placeholder="Auto-filled" min="950" max="1060" step="0.1">
+          <label>Barometric Pressure (inHg)</label>
+          <input type="number" id="sightPressure" placeholder="Auto-filled" min="27" max="32" step="0.01">
         </div>
       </div>
       <div class="form-row-2">
@@ -1322,15 +1441,24 @@ function load() {
 // NAV
 // ============================================================
 function switchView(v) {
-  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(el => {
+    el.classList.remove('active');
+    el.style.display = 'none';
+  });
   document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
-  document.getElementById('view-' + v).classList.add('active');
-  document.querySelectorAll('nav button')[['dashboard','map','log','patterns','ai'].indexOf(v)].classList.add('active');
+  const viewEl = document.getElementById('view-' + v);
+  if (viewEl) {
+    viewEl.classList.add('active');
+    viewEl.style.display = (v === 'settings') ? 'block' : 'flex';
+  }
+  const navIdx = ['dashboard','map','log','patterns','ai','settings'].indexOf(v);
+  if (navIdx >= 0) document.querySelectorAll('nav button')[navIdx].classList.add('active');
   if (v === 'log') { renderLog(); updateStats(); }
   if (v === 'patterns') renderPatterns();
   if (v === 'map') renderMapPins();
   if (v === 'ai') updateAiBadge();
   if (v === 'dashboard') renderDashboard();
+  if (v === 'settings') renderSettings();
 }
 
 // ============================================================
@@ -1614,37 +1742,75 @@ function openModal(id) {
 async function fetchWeather() {
   const statusEl = document.getElementById('weatherStatus');
   if (!statusEl) return;
-  statusEl.textContent = '⏳ Fetching current conditions...';
+
+  const dateVal = document.getElementById('sightDate').value;
+  const timeVal = document.getElementById('sightTime').value;
+
+  if (!dateVal || !timeVal) {
+    statusEl.textContent = '📅 Enter a date and time above to auto-fill weather conditions.';
+    statusEl.style.color = 'var(--text-3)';
+    return;
+  }
+
+  const lat = (state.propertySettings && state.propertySettings.lat) || 46.2504;
+  const lon = (state.propertySettings && state.propertySettings.lon) || -91.07529;
+
+  // Determine if sighting is in the past or current hour
+  const sightingDt = new Date(`${dateVal}T${timeVal}:00`);
+  const now = new Date();
+  const diffMs = now - sightingDt;
+  const diffHours = diffMs / 3600000;
+
+  statusEl.textContent = `⏳ Fetching conditions for ${dateVal} at ${formatTime(timeVal)}...`;
   statusEl.style.color = 'var(--text-3)';
 
   try {
-    // Get location
-    // Property coordinates — 46.2504, -91.07529 (Cable, WI)
-    const lat = 46.2504;
-    const lon = -91.07529;
+    let c;
 
-    // Open-Meteo — free, no key required
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,wind_direction_10m,surface_pressure&temperature_unit=fahrenheit&wind_speed_unit=mph&pressure_msl=hPa&timezone=auto`;
-    const resp = await fetch(url);
-    const data = await resp.json();
-    const c = data.current;
+    if (diffHours < 1) {
+      // Current conditions (sighting within last hour)
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,wind_direction_10m,surface_pressure&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Chicago`;
+      const resp = await fetch(url);
+      const data = await resp.json();
+      c = {
+        temperature_2m: data.current.temperature_2m,
+        wind_speed_10m: data.current.wind_speed_10m,
+        wind_direction_10m: data.current.wind_direction_10m,
+        surface_pressure: data.current.surface_pressure
+      };
+    } else {
+      // Historical — Open-Meteo Archive API, hourly resolution
+      const sightHour = timeVal.slice(0,5); // HH:MM
+      const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${dateVal}&end_date=${dateVal}&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,surface_pressure&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Chicago`;
+      const resp = await fetch(url);
+      const data = await resp.json();
 
-    // Wind direction: degrees → compass
-    const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
-    const compassDir = dirs[Math.round(c.wind_direction_10m / 22.5) % 16];
-    // Simplify to 8-point for the dropdown
+      // Find the closest hour index
+      const targetHour = parseInt(timeVal.split(':')[0]);
+      const idx = targetHour; // hourly array index 0-23 matches hour of day
+      c = {
+        temperature_2m: data.hourly.temperature_2m[idx],
+        wind_speed_10m: data.hourly.wind_speed_10m[idx],
+        wind_direction_10m: data.hourly.wind_direction_10m[idx],
+        surface_pressure: data.hourly.surface_pressure[idx]
+      };
+    }
+
+    // Wind degrees → 8-point compass
     const eightPt = ['N','NE','E','SE','S','SW','W','NW'];
     const nearest8 = eightPt.reduce((best, d) => {
       const toAngle = a => ({ N:0,NE:45,E:90,SE:135,S:180,SW:225,W:270,NW:315 })[a];
       const diff = a => Math.abs(((c.wind_direction_10m - toAngle(a)) + 540) % 360 - 180);
       return diff(d) < diff(best) ? d : best;
     }, 'N');
+    // 16-point for display
+    const dirs16 = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+    const compassDir = dirs16[Math.round(c.wind_direction_10m / 22.5) % 16];
 
     const temp = Math.round(c.temperature_2m);
     const windSpd = Math.round(c.wind_speed_10m);
-    const pressure = Math.round(c.surface_pressure * 10) / 10;
+    const pressure = Math.round(c.surface_pressure * 0.02953 * 100) / 100;
 
-    // Auto-fill form fields
     document.getElementById('sightTemp').value = temp;
     document.getElementById('sightWind').value = nearest8;
     document.getElementById('sightWindSpeed').value = windSpd;
@@ -1652,10 +1818,12 @@ async function fetchWeather() {
       document.getElementById('sightPressure').value = pressure;
     }
 
-    statusEl.innerHTML = `✅ Auto-filled: <strong>${temp}°F · ${compassDir} ${windSpd}mph · ${pressure} hPa</strong> <span style="color:var(--text-3);font-size:10px;">(edit if needed)</span>`;
+    const source = diffHours < 1 ? 'current' : `${dateVal} ${formatTime(timeVal)}`;
+    statusEl.innerHTML = `✅ <strong>${temp}°F · ${compassDir} ${windSpd}mph · ${pressure}${pressure} inHg</strong> <span style="color:var(--text-3);font-size:10px;">— conditions at ${source} · edit if needed</span>`;
     statusEl.style.color = 'var(--green)';
+
   } catch (err) {
-    statusEl.textContent = '⚠️ Could not fetch weather from Open-Meteo — enter conditions manually.';
+    statusEl.textContent = '⚠️ Could not fetch weather — check your connection or enter manually.';
     statusEl.style.color = 'var(--text-3)';
   }
 }
@@ -1871,7 +2039,7 @@ function renderLog() {
       <td><div class="td-cam">${cam?`<div class="td-dot" style="background:${cam.color}"></div>${cam.name}`:'Unknown'}</div></td>
       <td class="td-mono">${s.temp?s.temp+'°F':'—'}</td>
       <td class="td-mono">${[s.windDir,s.windSpeed?s.windSpeed+'mph':''].filter(Boolean).join(' ')||'—'}</td>
-      <td class="td-mono">${s.pressure?s.pressure+' hPa':'—'}</td>
+      <td class="td-mono">${s.pressure?s.pressure+'${pressure} inHg':'—'}</td>
       <td>${rutBadge}</td>
       <td style="font-size:12px;color:var(--text-2);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.notes||'—'}</td>
     </tr>`;
@@ -2188,6 +2356,138 @@ async function sendAiMessage() {
   document.getElementById('aiMessages').scrollTop = 99999;
 }
 
+// ============================================================
+// SETTINGS
+// ============================================================
+function renderSettings() {
+  const ps = state.propertySettings || {};
+  if (ps.name) document.getElementById('setPropName').value = ps.name;
+  if (ps.hunter) document.getElementById('setHunterTag').value = ps.hunter;
+  document.getElementById('setLat').value = ps.lat || 46.2504;
+  document.getElementById('setLon').value = ps.lon || -91.07529;
+
+  const buckList = document.getElementById('settingsBuckList');
+  buckList.innerHTML = state.bucks.length === 0
+    ? '<div style="color:var(--text-3);font-size:12px;padding:4px;">No bucks yet — add one below.</div>'
+    : state.bucks.map(b => {
+        const cnt = state.sightings.filter(s=>s.buckId===b.id).length;
+        return `<div class="settings-item">
+          <div class="settings-item-icon">${b.emoji||'🦌'}</div>
+          <div class="settings-item-info">
+            <div class="settings-item-name">${b.name}</div>
+            <div class="settings-item-meta">${b.age?b.age+' yr · ':''}${cnt} sightings${b.features?' · '+b.features:''}</div>
+          </div>
+          <button class="settings-item-del" onclick="deleteBuck('${b.id}')">Remove</button>
+        </div>`;
+      }).join('');
+
+  const camList = document.getElementById('settingsCamList');
+  camList.innerHTML = state.cameras.length === 0
+    ? '<div style="color:var(--text-3);font-size:12px;padding:4px;">No cameras yet — add one below.</div>'
+    : state.cameras.map(c => {
+        const cnt = state.sightings.filter(s=>s.camId===c.id).length;
+        return `<div class="settings-item">
+          <div class="settings-cam-dot" style="background:${c.color}"></div>
+          <div class="settings-item-info">
+            <div class="settings-item-name">${c.name}</div>
+            <div class="settings-item-meta">${c.type} · ${cnt} sightings</div>
+          </div>
+          <button class="settings-item-del" onclick="deleteCamera('${c.id}')">Remove</button>
+        </div>`;
+      }).join('');
+}
+
+function settingsAddBuck() {
+  const name = document.getElementById('newBuckName').value.trim();
+  if (!name) { alert('Enter a buck name.'); return; }
+  state.bucks.push({
+    id: 'buck_' + Date.now(),
+    name,
+    emoji: document.getElementById('newBuckEmoji').value.trim() || '🦌',
+    age: document.getElementById('newBuckAge').value,
+    features: document.getElementById('newBuckFeatures').value.trim()
+  });
+  save();
+  ['newBuckName','newBuckEmoji','newBuckFeatures'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('newBuckAge').value = '';
+  renderSettings();
+  renderDashboard();
+}
+
+function settingsAddCamera() {
+  const name = document.getElementById('newCamName').value.trim();
+  if (!name) { alert('Enter a camera name.'); return; }
+  state.cameras.push({
+    id: 'cam_' + Date.now(),
+    name,
+    color: document.getElementById('newCamColor').value,
+    type: document.getElementById('newCamType').value,
+    notes: '', x: null, y: null
+  });
+  save();
+  document.getElementById('newCamName').value = '';
+  renderSettings();
+  renderDashboard();
+}
+
+function deleteBuck(id) {
+  const buck = state.bucks.find(b=>b.id===id);
+  const cnt = state.sightings.filter(s=>s.buckId===id).length;
+  if (!confirm(`Remove "${buck?.name}"?${cnt>0?' This buck has '+cnt+' sighting(s) — those records remain.':''}`)) return;
+  state.bucks = state.bucks.filter(b=>b.id!==id);
+  save(); renderSettings(); renderDashboard();
+}
+
+function deleteCamera(id) {
+  const cam = state.cameras.find(c=>c.id===id);
+  const cnt = state.sightings.filter(s=>s.camId===id).length;
+  if (!confirm(`Remove "${cam?.name}"?${cnt>0?' This camera has '+cnt+' sighting(s) — those records remain.':''}`)) return;
+  state.cameras = state.cameras.filter(c=>c.id!==id);
+  save(); renderSettings(); renderDashboard(); renderMapPins();
+}
+
+function savePropertySettings() {
+  if (!state.propertySettings) state.propertySettings = {};
+  state.propertySettings.name = document.getElementById('setPropName').value.trim();
+  state.propertySettings.hunter = document.getElementById('setHunterTag').value.trim();
+  state.propertySettings.lat = parseFloat(document.getElementById('setLat').value) || 46.2504;
+  state.propertySettings.lon = parseFloat(document.getElementById('setLon').value) || -91.07529;
+  save();
+  const btn = document.querySelector('.settings-save-btn');
+  btn.textContent = '✅ Saved!';
+  setTimeout(() => btn.textContent = 'Save Property Settings', 2000);
+}
+
+function exportCSV() {
+  const headers = ['Date','Time','Buck','Camera','Temp (F)','Wind Dir','Wind Speed (mph)','Pressure (inHg)','Rut Stage','Notes'];
+  const rows = state.sightings.map(s => {
+    const buck = state.bucks.find(b=>b.id===s.buckId)?.name||'Unknown';
+    const cam = state.cameras.find(c=>c.id===s.camId)?.name||'Unknown';
+    return [s.date,s.time,buck,cam,s.temp,s.windDir,s.windSpeed,s.pressure,s.rut,`"${(s.notes||'').replace(/"/g,'""')}"`].join(',');
+  });
+  const csv = [headers.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+  a.download = 'bucktrack-sightings.csv';
+  a.click();
+}
+
+function backupData() {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(state,null,2)], {type:'application/json'}));
+  a.download = 'bucktrack-backup.json';
+  a.click();
+}
+
+function clearAllData() {
+  if (!confirm('⚠️ Delete ALL cameras, bucks, sightings, and settings?')) return;
+  if (!confirm('Last chance — cannot be undone. Continue?')) return;
+  state = { cameras:[], bucks:[], sightings:[], mapDataUrl:null, placingCamId:null, selectedBuckId:null, propertySettings:{} };
+  save(); renderSettings(); renderDashboard();
+}
+
+// also use saved coords in fetchWeather if set
+const _origFetchWeather = fetchWeather;
 
 load();
 renderSidebar();
@@ -2197,8 +2497,6 @@ updateAiBadge();
 renderDashboard();
 if (state.mapDataUrl) showMap();
 
-// If map changes, re-render pins
-const origShowMap = showMap;
 window.addEventListener('resize', renderMapPins);
 </script>
 </body>
