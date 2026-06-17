@@ -989,13 +989,13 @@
   <div style="display:flex;align-items:center;gap:10px;">
     <div style="display:flex;align-items:center;gap:7px;">
       <span style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.55);">Season</span>
-      <select id="globalSeasonFilter" onchange="onFilterChange()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;font-family:Inter,sans-serif;font-size:12px;font-weight:600;padding:5px 10px;border-radius:5px;cursor:pointer;min-width:130px;">
+      <select id="globalSeasonFilter" onchange="onFilterChange()" style="background:var(--nav);border:1px solid rgba(255,255,255,0.2);color:#fff;font-family:Inter,sans-serif;font-size:12px;font-weight:600;padding:5px 10px;border-radius:5px;cursor:pointer;min-width:130px;">
         <option value="">All Seasons</option>
       </select>
     </div>
     <div style="display:flex;align-items:center;gap:7px;">
       <span style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.55);">Year</span>
-      <select id="globalYearFilter" onchange="onFilterChange()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;font-family:Inter,sans-serif;font-size:12px;font-weight:600;padding:5px 10px;border-radius:5px;cursor:pointer;min-width:100px;">
+      <select id="globalYearFilter" onchange="onFilterChange()" style="background:var(--nav);border:1px solid rgba(255,255,255,0.2);color:#fff;font-family:Inter,sans-serif;font-size:12px;font-weight:600;padding:5px 10px;border-radius:5px;cursor:pointer;min-width:100px;">
         <option value="">All Years</option>
       </select>
     </div>
@@ -1166,33 +1166,13 @@
       </div>
     </div>
 
+    <!-- SETTINGS VIEW -->
+    <div class="view" id="view-settings" style="display:none;flex:1;overflow-y:auto;background:var(--bg);">
+      <div class="settings-wrap" id="settingsWrapInner"></div>
+    </div>
+
   </div>
 </div>
-
-<!-- ========== SETTINGS VIEW ========== -->
-<div class="view" id="view-settings" style="display:none;flex:1;overflow-y:auto;background:var(--bg);">
-  <div class="settings-wrap">
-
-    <!-- Bucks -->
-    <div class="settings-section">
-      <div class="settings-section-title">🦌 Buck Profiles</div>
-      <div class="settings-section-sub">Add, edit, or remove bucks that appear in the sighting log dropdown.</div>
-      <div id="settingsBuckList" class="settings-list"></div>
-      <div class="settings-add-row">
-        <input type="text" id="newBuckName" placeholder="Nickname (e.g. Splitbrow)" class="settings-input">
-        <input type="text" id="newBuckEmoji" placeholder="🦌" maxlength="4" class="settings-input" style="width:60px;text-align:center;font-size:18px;">
-        <select id="newBuckAge" class="settings-input" style="width:100px;">
-          <option value="">Age?</option>
-          <option value="1.5">1.5 yr</option>
-          <option value="2.5">2.5 yr</option>
-          <option value="3.5">3.5 yr</option>
-          <option value="4.5">4.5 yr</option>
-          <option value="5.5+">5.5+ yr</option>
-        </select>
-        <input type="text" id="newBuckFeatures" placeholder="Identifying features (optional)" class="settings-input" style="flex:1;">
-        <button class="settings-add-btn" onclick="settingsAddBuck()">+ Add Buck</button>
-      </div>
-    </div>
 
     <!-- Cameras -->
     <div class="settings-section">
@@ -1470,6 +1450,7 @@ function load() {
 // NAV
 // ============================================================
 function switchView(v) {
+  sessionStorage.setItem('bucktrack_view', v);
   document.querySelectorAll('.view').forEach(el => {
     el.classList.remove('active');
     el.style.display = 'none';
@@ -1480,9 +1461,10 @@ function switchView(v) {
   const viewEl = document.getElementById('view-' + v);
   if (viewEl) {
     viewEl.classList.add('active');
-    viewEl.style.display = (v === 'settings') ? 'block' : 'flex';
+    viewEl.style.display = 'flex';
+    viewEl.style.flexDirection = 'column';
     viewEl.style.height = '100%';
-    viewEl.style.overflow = v === 'dashboard' || v === 'settings' ? 'auto' : 'hidden';
+    viewEl.style.overflow = (v === 'dashboard' || v === 'settings') ? 'auto' : 'hidden';
   }
   const navIdx = ['dashboard','map','log','patterns','ai','settings'].indexOf(v);
   if (navIdx >= 0) document.querySelectorAll('nav button')[navIdx].classList.add('active');
@@ -2459,6 +2441,7 @@ async function sendAiMessage() {
 // SIGHTING FORM — DYNAMIC RENDER
 // ============================================================
 function renderSightingForm() {
+  ensureFieldSettings();
   const fs = state.fieldSettings || {};
   const builtins = fs.builtins || {};
   const custom = fs.custom || [];
@@ -2768,11 +2751,94 @@ function deleteCustomField(id) {
 // SETTINGS
 // ============================================================
 function renderSettings() {
+  // Build settings HTML into the inner wrapper
+  const wrap = document.getElementById('settingsWrapInner');
+  if (wrap) {
+    wrap.innerHTML = `
+    <!-- Bucks -->
+    <div class="settings-section">
+      <div class="settings-section-title">🦌 Buck Profiles</div>
+      <div class="settings-section-sub">Add, edit, or remove bucks that appear in the sighting log dropdown.</div>
+      <div id="settingsBuckList" class="settings-list"></div>
+      <div class="settings-add-row">
+        <input type="text" id="newBuckName" placeholder="Nickname (e.g. Splitbrow)" class="settings-input">
+        <input type="text" id="newBuckEmoji" placeholder="🦌" maxlength="4" class="settings-input" style="width:60px;text-align:center;font-size:18px;">
+        <select id="newBuckAge" class="settings-input" style="width:100px;"><option value="">Age?</option><option value="1.5">1.5 yr</option><option value="2.5">2.5 yr</option><option value="3.5">3.5 yr</option><option value="4.5">4.5 yr</option><option value="5.5+">5.5+ yr</option></select>
+        <input type="text" id="newBuckFeatures" placeholder="Identifying features (optional)" class="settings-input" style="flex:1;">
+        <button class="settings-add-btn" onclick="settingsAddBuck()">+ Add Buck</button>
+      </div>
+    </div>
+    <!-- Cameras -->
+    <div class="settings-section">
+      <div class="settings-section-title">📷 Cameras</div>
+      <div class="settings-section-sub">Add, edit, or remove camera locations.</div>
+      <div id="settingsCamList" class="settings-list"></div>
+      <div class="settings-add-row">
+        <input type="text" id="newCamName" placeholder="Camera name / location" class="settings-input" style="flex:1;">
+        <select id="newCamColor" class="settings-input" style="width:110px;"><option value="#2d7a3a">Green</option><option value="#a03030">Red</option><option value="#4a5a6a">Slate</option><option value="#7a4e2a">Brown</option><option value="#c8b882">Tan</option><option value="#6d28d9">Purple</option></select>
+        <select id="newCamType" class="settings-input" style="width:110px;"><option value="cellular">Cellular</option><option value="sd">SD Card</option></select>
+        <button class="settings-add-btn" onclick="settingsAddCamera()">+ Add Camera</button>
+      </div>
+    </div>
+    <!-- Property -->
+    <div class="settings-section">
+      <div class="settings-section-title">⚙ Property Settings</div>
+      <div class="settings-section-sub">Configure your property name and weather coordinates.</div>
+      <div class="settings-fields-grid">
+        <div class="settings-field"><label class="settings-label">Property Name</label><input type="text" id="setPropName" class="settings-input" placeholder="e.g. Cable 40"></div>
+        <div class="settings-field"><label class="settings-label">Hunter Tag</label><input type="text" id="setHunterTag" class="settings-input" placeholder="e.g. T-Stone"></div>
+        <div class="settings-field"><label class="settings-label">Weather Latitude</label><input type="number" id="setLat" class="settings-input" step="0.0001" placeholder="46.2504"></div>
+        <div class="settings-field"><label class="settings-label">Weather Longitude</label><input type="number" id="setLon" class="settings-input" step="0.0001" placeholder="-91.07529"></div>
+      </div>
+      <button class="settings-save-btn" onclick="savePropertySettings()">Save Property Settings</button>
+    </div>
+    <!-- Data -->
+    <div class="settings-section">
+      <div class="settings-section-title">💾 Data Management</div>
+      <div class="settings-section-sub">Export, backup, or reset your tracking data.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="settings-action-btn green" onclick="exportCSV()">⬇ Export Sightings to CSV</button>
+        <button class="settings-action-btn slate" onclick="backupData()">⬇ Backup All Data (JSON)</button>
+        <button class="settings-action-btn red" onclick="clearAllData()">✕ Clear All Data</button>
+      </div>
+    </div>
+    <!-- Sighting Form Fields -->
+    <div class="settings-section">
+      <div class="settings-section-title">📋 Sighting Form Fields</div>
+      <div class="settings-section-sub">Toggle built-in fields on or off, edit their options, and add your own custom fields.</div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px;">Built-in Fields</div>
+      <div id="builtinFieldsList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px;"></div>
+      <div id="seasonEditor" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:10px;display:none;">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">Edit "Season" Options</div>
+        <div style="font-size:11px;color:var(--text-3);margin-bottom:10px;">These options appear in the Log Sighting form and the global Season filter.</div>
+        <div id="seasonOptionsList" style="display:flex;flex-direction:column;gap:5px;margin-bottom:10px;"></div>
+        <div style="display:flex;gap:8px;"><input type="text" id="newSeasonOption" class="settings-input" placeholder="New season" style="flex:1;"><button class="settings-add-btn" onclick="addFieldOption('season','newSeasonOption','seasonOptionsList')">+ Add</button></div>
+      </div>
+      <div id="rutStageEditor" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:18px;display:none;">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">Edit "Rut Stage" Options</div>
+        <div style="font-size:11px;color:var(--text-3);margin-bottom:10px;">Rename, reorder, or replace rut stage options.</div>
+        <div id="rutOptionsList" style="display:flex;flex-direction:column;gap:5px;margin-bottom:10px;"></div>
+        <div style="display:flex;gap:8px;"><input type="text" id="newRutOption" class="settings-input" placeholder="New option" style="flex:1;"><button class="settings-add-btn" onclick="addFieldOption('rut','newRutOption','rutOptionsList')">+ Add</button></div>
+      </div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px;">Custom Fields</div>
+      <div id="customFieldsList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;">Add Custom Field</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+          <input type="text" id="newFieldLabel" class="settings-input" placeholder="Field label" style="flex:1;min-width:180px;">
+          <select id="newFieldType" class="settings-input" style="width:130px;" onchange="document.getElementById('dropdownOptionsWrap').style.display=this.value==='dropdown'?'block':'none'"><option value="dropdown">Dropdown</option><option value="text">Text Input</option><option value="number">Number</option><option value="toggle">Yes / No</option></select>
+        </div>
+        <div id="dropdownOptionsWrap"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">Dropdown options (one per line):</div><textarea id="newFieldOptions" class="settings-input" rows="3" placeholder="Light&#10;Moderate&#10;Heavy" style="width:100%;font-size:12px;"></textarea></div>
+        <div style="display:flex;justify-content:flex-end;margin-top:10px;"><button class="settings-add-btn" onclick="addCustomField()">+ Add Field</button></div>
+      </div>
+    </div>`;
+  }
+
   const ps = state.propertySettings || {};
-  if (ps.name) document.getElementById('setPropName').value = ps.name;
-  if (ps.hunter) document.getElementById('setHunterTag').value = ps.hunter;
-  document.getElementById('setLat').value = ps.lat || 46.2504;
-  document.getElementById('setLon').value = ps.lon || -91.07529;
+  if (ps.name && document.getElementById('setPropName')) document.getElementById('setPropName').value = ps.name;
+  if (ps.hunter && document.getElementById('setHunterTag')) document.getElementById('setHunterTag').value = ps.hunter;
+  if (document.getElementById('setLat')) document.getElementById('setLat').value = ps.lat || 46.2504;
+  if (document.getElementById('setLon')) document.getElementById('setLon').value = ps.lon || -91.07529;
   renderFieldSettings();
 
   const buckList = document.getElementById('settingsBuckList');
@@ -2907,9 +2973,12 @@ renderSidebar();
 populateSightingDropdowns();
 updateStats();
 updateAiBadge();
-renderDashboard();
-if (state.mapDataUrl) showMap();
 
+// Restore last active view or default to dashboard
+const lastView = sessionStorage.getItem('bucktrack_view') || 'dashboard';
+switchView(lastView);
+
+if (state.mapDataUrl) showMap();
 window.addEventListener('resize', renderMapPins);
 </script>
 </body>
