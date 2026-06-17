@@ -4,31 +4,45 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Buck Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bark: #0d1a0f;
-    --soil: #152318;
-    --moss: #1e3d24;
-    --sage: #3d6644;
-    --field: #6a9b72;
-    --straw: #95c49e;
-    --dawn: #d4edd7;
-    --fog: #eaf4eb;
-    --amber: #b03030;
-    --blood: #7a1a1a;
-    --sky: #c0594a;
-    --panel: rgba(13,26,15,0.96);
-    --border: rgba(106,155,114,0.22);
-    --radius: 4px;
+    --bg: #e8e4d8;
+    --surface: #f2efe6;
+    --surface2: #e4e0d4;
+    --nav: #1a2e1c;
+    --nav-text: rgba(255,255,255,0.7);
+    --nav-active: #ffffff;
+    --green: #3a5c2a;
+    --green-mid: #4a7a35;
+    --green-light: #d4e8c8;
+    --green-border: #a8c890;
+    --camo-tan: #c8b882;
+    --camo-olive: #6b7a3a;
+    --camo-brown: #7a4e2a;
+    --camo-slate: #4a5a6a;
+    --camo-dark: #2a3a2a;
+    --red: #8b2020;
+    --red-mid: #a03030;
+    --red-light: #f0d8d8;
+    --red-border: #c89090;
+    --text: #1a1a0e;
+    --text-2: #3a4a2a;
+    --text-3: #6a7a5a;
+    --border: #c8c4a8;
+    --border-strong: #a8a48a;
+    --shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.14), 0 2px 6px rgba(0,0,0,0.08);
+    --radius: 8px;
+    --radius-sm: 5px;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    background: var(--bark);
-    color: var(--dawn);
-    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
     font-size: 14px;
     height: 100vh;
     overflow: hidden;
@@ -43,154 +57,157 @@
     justify-content: space-between;
     padding: 0 24px;
     height: 52px;
-    background: var(--soil);
-    border-bottom: 1px solid var(--border);
+    background: var(--nav);
     flex-shrink: 0;
     z-index: 100;
+    border-bottom: 2px solid rgba(255,255,255,0.06);
   }
   .logo {
-    font-family: 'Playfair Display', serif;
-    font-size: 20px;
-    font-weight: 900;
-    letter-spacing: 0.05em;
-    color: var(--straw);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
-  .logo span { color: var(--amber); }
-  nav { display: flex; gap: 4px; }
+  .logo-icon {
+    width: 28px; height: 28px;
+    background: var(--green-mid);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .logo-sub { font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.75); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 1px; }
+  nav { display: flex; gap: 2px; }
   nav button {
     background: none;
-    border: 1px solid transparent;
-    color: var(--field);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    border: none;
+    color: var(--nav-text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
     padding: 6px 14px;
     cursor: pointer;
-    border-radius: var(--radius);
+    border-radius: 6px;
     transition: all 0.15s;
   }
-  nav button:hover { color: var(--dawn); border-color: var(--border); }
-  nav button.active { background: var(--moss); color: var(--dawn); border-color: var(--sage); }
-  .header-actions { display: flex; gap: 8px; }
+  nav button:hover { color: #fff; background: rgba(255,255,255,0.08); }
+  nav button.active { background: rgba(255,255,255,0.15); color: #fff; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
   .btn-primary {
-    background: var(--amber);
-    color: var(--bark);
+    background: var(--red-mid);
+    color: #fff;
     border: none;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 8px 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 16px;
     cursor: pointer;
-    border-radius: var(--radius);
+    border-radius: var(--radius-sm);
     transition: all 0.15s;
+    white-space: nowrap;
   }
-  .btn-primary:hover { background: var(--straw); }
+  .btn-primary:hover { background: var(--red); }
   .btn-secondary {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--field);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 7px 14px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.85);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 14px;
     cursor: pointer;
-    border-radius: var(--radius);
+    border-radius: var(--radius-sm);
     transition: all 0.15s;
+    white-space: nowrap;
   }
-  .btn-secondary:hover { border-color: var(--field); color: var(--dawn); }
+  .btn-secondary:hover { background: rgba(255,255,255,0.18); color: #fff; }
 
   /* MAIN LAYOUT */
   .app { display: flex; flex: 1; overflow: hidden; }
 
   /* SIDEBAR */
-  .sidebar {
-    width: 280px;
-    background: var(--soil);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-  .sidebar-section { padding: 16px; border-bottom: 1px solid var(--border); }
+  .sidebar { display: none; }
+  .sidebar-section { padding: 14px 14px 10px; border-bottom: 1px solid var(--border); }
   .sidebar-label {
-    font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
-    letter-spacing: 0.12em;
+    font-weight: 600;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--sage);
-    margin-bottom: 10px;
+    color: var(--text-3);
+    margin-bottom: 8px;
   }
-  .sidebar-scroll { flex: 1; overflow-y: auto; padding: 12px; }
+  .sidebar-scroll { flex: 1; overflow-y: auto; padding: 10px; }
   .sidebar-scroll::-webkit-scrollbar { width: 3px; }
-  .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
-  .sidebar-scroll::-webkit-scrollbar-thumb { background: var(--sage); border-radius: 2px; }
+  .sidebar-scroll::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
 
   /* BUCK CARDS */
   .buck-card {
-    background: rgba(255,255,255,0.04);
+    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 10px 12px;
-    margin-bottom: 6px;
+    border-radius: var(--radius-sm);
+    padding: 9px 11px;
+    margin-bottom: 5px;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.12s;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 9px;
+    box-shadow: var(--shadow);
   }
-  .buck-card:hover { background: rgba(255,255,255,0.08); border-color: var(--sage); }
-  .buck-card.selected { background: rgba(176,48,48,0.12); border-color: var(--amber); }
+  .buck-card:hover { border-color: var(--green-border); background: var(--green-light); }
+  .buck-card.selected { border-color: var(--green-mid); background: var(--green-light); box-shadow: 0 0 0 2px rgba(45,122,58,0.15); }
   .buck-avatar {
-    width: 32px; height: 32px;
-    background: var(--moss);
+    width: 30px; height: 30px;
+    background: var(--green-light);
+    border: 1px solid var(--green-border);
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 14px; flex-shrink: 0;
+    font-size: 13px; flex-shrink: 0;
   }
   .buck-info { flex: 1; min-width: 0; }
   .buck-name {
-    font-family: 'Playfair Display', serif;
-    font-size: 14px;
-    color: var(--dawn);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .buck-meta {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    color: var(--sage);
+    font-size: 11px;
+    color: var(--text-3);
     margin-top: 1px;
   }
   .buck-count {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    color: var(--amber);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--green-mid);
     flex-shrink: 0;
+    background: var(--green-light);
+    border: 1px solid var(--green-border);
+    border-radius: 10px;
+    padding: 1px 7px;
   }
 
   /* CAMERA BADGES */
-  .cam-list { display: flex; flex-direction: column; gap: 4px; }
+  .cam-list { display: flex; flex-direction: column; gap: 3px; }
   .cam-badge {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 10px;
-    background: rgba(255,255,255,0.03);
+    padding: 6px 9px;
+    background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.12s;
   }
-  .cam-badge:hover { background: rgba(255,255,255,0.07); }
+  .cam-badge:hover { background: var(--green-light); border-color: var(--green-border); }
   .cam-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .cam-name { font-size: 12px; color: var(--dawn); flex: 1; }
-  .cam-count { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--sage); }
+  .cam-name { font-size: 12px; font-weight: 500; color: var(--text); flex: 1; }
+  .cam-count { font-size: 11px; color: var(--text-3); }
 
   /* MAIN CONTENT */
   .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -204,7 +221,7 @@
     flex: 1;
     position: relative;
     overflow: hidden;
-    background: #0f0c06;
+    background: #e8ece6;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -213,46 +230,46 @@
     position: absolute;
     inset: 0;
     background:
-      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(106,155,114,0.07) 39px, rgba(106,155,114,0.07) 40px),
-      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(106,155,114,0.07) 39px, rgba(106,155,114,0.07) 40px);
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(31,92,42,0.06) 39px, rgba(31,92,42,0.06) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(31,92,42,0.06) 39px, rgba(31,92,42,0.06) 40px);
   }
   #propertyMap {
     position: relative;
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
-    opacity: 0.85;
     display: none;
+    border-radius: 4px;
+    box-shadow: var(--shadow-md);
   }
   .map-upload-prompt {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
     text-align: center;
     z-index: 2;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 40px 48px;
+    box-shadow: var(--shadow-md);
   }
-  .map-upload-icon { font-size: 48px; opacity: 0.4; }
-  .map-upload-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 22px;
-    color: var(--straw);
-  }
-  .map-upload-sub { color: var(--sage); font-size: 13px; max-width: 280px; line-height: 1.5; }
+  .map-upload-icon { font-size: 40px; opacity: 0.5; }
+  .map-upload-title { font-size: 18px; font-weight: 700; color: var(--text); }
+  .map-upload-sub { color: var(--text-3); font-size: 13px; max-width: 260px; line-height: 1.55; }
   .map-upload-label {
-    background: var(--amber);
-    color: var(--bark);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 10px 20px;
-    border-radius: var(--radius);
+    background: var(--green-mid);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 20px;
+    border-radius: var(--radius-sm);
     cursor: pointer;
     transition: all 0.15s;
   }
-  .map-upload-label:hover { background: var(--straw); }
+  .map-upload-label:hover { background: var(--green); }
   #mapFileInput { display: none; }
 
   /* CAMERA PINS on map */
@@ -278,25 +295,21 @@
     border-radius: 50% 50% 50% 0;
     transform: rotate(-45deg);
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-    border: 2px solid rgba(255,255,255,0.3);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    border: 2px solid rgba(255,255,255,0.6);
   }
-  .cam-pin-inner {
-    transform: rotate(45deg);
-    font-size: 11px;
-    color: white;
-  }
+  .cam-pin-inner { transform: rotate(45deg); font-size: 11px; }
   .cam-pin-label {
     margin-top: 6px;
-    background: rgba(20,14,6,0.85);
+    background: rgba(255,255,255,0.95);
     border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 2px 6px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
-    color: var(--dawn);
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text);
     white-space: nowrap;
-    backdrop-filter: blur(4px);
+    box-shadow: var(--shadow);
   }
 
   /* MAP CONTROLS */
@@ -311,81 +324,81 @@
   }
   .map-ctrl-btn {
     width: 36px; height: 36px;
-    background: var(--panel);
+    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--field);
+    border-radius: var(--radius-sm);
+    color: var(--text-2);
     font-size: 16px;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     transition: all 0.15s;
-    backdrop-filter: blur(8px);
+    box-shadow: var(--shadow);
   }
-  .map-ctrl-btn:hover { border-color: var(--sage); color: var(--dawn); }
-  .map-ctrl-btn.active { background: var(--moss); border-color: var(--sage); color: var(--dawn); }
+  .map-ctrl-btn:hover { border-color: var(--green-border); color: var(--green); }
+  .map-ctrl-btn.active { background: var(--green-mid); border-color: var(--green); color: #fff; }
 
   /* LOG VIEW */
   .log-toolbar {
-    padding: 12px 20px;
+    padding: 10px 20px;
     border-bottom: 1px solid var(--border);
     display: flex;
-    gap: 10px;
+    gap: 8px;
     align-items: center;
-    background: var(--soil);
+    background: var(--surface);
     flex-shrink: 0;
   }
   .filter-select {
-    background: rgba(255,255,255,0.05);
+    background: var(--bg);
     border: 1px solid var(--border);
-    color: var(--dawn);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
     padding: 6px 10px;
-    border-radius: var(--radius);
+    border-radius: var(--radius-sm);
     cursor: pointer;
   }
-  .filter-select:focus { outline: none; border-color: var(--sage); }
-  .log-table-wrap { flex: 1; overflow-y: auto; }
-  .log-table-wrap::-webkit-scrollbar { width: 3px; }
-  .log-table-wrap::-webkit-scrollbar-thumb { background: var(--sage); }
-  table { width: 100%; border-collapse: collapse; }
+  .filter-select:focus { outline: none; border-color: var(--green-mid); box-shadow: 0 0 0 2px rgba(45,122,58,0.15); }
+  .log-table-wrap { flex: 1; overflow-y: auto; background: var(--bg); }
+  .log-table-wrap::-webkit-scrollbar { width: 4px; }
+  .log-table-wrap::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); }
   thead { position: sticky; top: 0; z-index: 5; }
   th {
-    background: var(--soil);
+    background: var(--surface);
     border-bottom: 1px solid var(--border);
     padding: 10px 16px;
     text-align: left;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.1em;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--sage);
-    font-weight: 400;
+    color: var(--text-3);
   }
   td {
-    padding: 10px 16px;
-    border-bottom: 1px solid rgba(169,149,106,0.1);
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--border);
     font-size: 13px;
-    color: var(--dawn);
+    color: var(--text);
   }
-  tr:hover td { background: rgba(255,255,255,0.03); }
-  .td-buck { font-family: 'Playfair Display', serif; font-size: 14px; }
-  .td-mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--field); }
+  tr:hover td { background: var(--green-light); }
+  .td-buck { font-size: 13px; font-weight: 600; color: var(--text); }
+  .td-mono { font-size: 12px; color: var(--text-2); font-variant-numeric: tabular-nums; }
   .td-cam { display: flex; align-items: center; gap: 6px; }
   .td-dot { width: 7px; height: 7px; border-radius: 50%; }
   .rut-badge {
     display: inline-block;
-    padding: 2px 8px;
+    padding: 2px 9px;
     border-radius: 10px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.05em;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
   }
-  .rut-pre { background: rgba(149,196,158,0.15); color: var(--straw); }
-  .rut-seek { background: rgba(176,48,48,0.2); color: #e07070; }
-  .rut-peak { background: rgba(122,26,26,0.3); color: #e05a44; }
-  .rut-lock { background: rgba(30,61,36,0.4); color: var(--field); }
-  .rut-post { background: rgba(21,35,24,0.5); color: var(--sage); }
+  .rut-pre { background: var(--green-light); color: var(--green); border: 1px solid var(--green-border); }
+  .rut-seek { background: #fff7ed; color: #b45309; border: 1px solid #fcd9a0; }
+  .rut-peak { background: var(--red-light); color: var(--red); border: 1px solid var(--red-border); }
+  .rut-lock { background: #f3f0ff; color: #6d28d9; border: 1px solid #ddd6fe; }
+  .rut-post { background: var(--surface2); color: var(--text-3); border: 1px solid var(--border); }
 
   /* PATTERNS VIEW */
   .patterns-grid {
@@ -394,101 +407,89 @@
     padding: 20px;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    gap: 14px;
     align-content: start;
+    background: var(--bg);
   }
-  .patterns-grid::-webkit-scrollbar { width: 3px; }
-  .patterns-grid::-webkit-scrollbar-thumb { background: var(--sage); }
+  .patterns-grid::-webkit-scrollbar { width: 4px; }
+  .patterns-grid::-webkit-scrollbar-thumb { background: var(--border-strong); }
   .pattern-card {
-    background: var(--soil);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 20px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
   }
   .pattern-card-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 16px;
-    color: var(--straw);
-    margin-bottom: 4px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 2px;
   }
   .pattern-card-sub {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    color: var(--sage);
-    letter-spacing: 0.08em;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-3);
+    letter-spacing: 0.04em;
     text-transform: uppercase;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
-  /* Hour chart */
   .hour-bars { display: flex; gap: 2px; align-items: flex-end; height: 60px; }
   .hour-bar {
     flex: 1;
-    background: var(--moss);
+    background: var(--green-light);
     border-radius: 2px 2px 0 0;
     transition: background 0.2s;
-    position: relative;
+    border: 1px solid var(--green-border);
+    border-bottom: none;
   }
-  .hour-bar:hover { background: var(--amber); }
-  .hour-bar.peak { background: var(--amber); }
+  .hour-bar:hover { background: var(--green-mid); }
+  .hour-bar.peak { background: var(--green-mid); border-color: var(--green); }
   .hour-labels {
     display: flex;
     justify-content: space-between;
-    margin-top: 4px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 8px;
-    color: var(--sage);
+    margin-top: 5px;
+    font-size: 10px;
+    color: var(--text-3);
   }
-  /* Wind rose simple */
-  .wind-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .wind-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .wind-item {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px;
-    background: rgba(255,255,255,0.03);
-    border-radius: var(--radius);
+    padding: 5px 8px;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
   }
-  .wind-dir { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--straw); width: 24px; }
-  .wind-bar-wrap { flex: 1; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; }
-  .wind-bar-fill { height: 100%; background: var(--field); border-radius: 2px; }
-  .wind-pct { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--sage); }
-  /* Top cams */
+  .wind-dir { font-size: 12px; font-weight: 700; color: var(--green); width: 24px; }
+  .wind-bar-wrap { flex: 1; height: 4px; background: var(--border); border-radius: 2px; }
+  .wind-bar-fill { height: 100%; background: var(--green-mid); border-radius: 2px; }
+  .wind-pct { font-size: 11px; color: var(--text-3); }
   .top-cam-item {
     display: flex; align-items: center; gap: 10px;
     padding: 8px 0;
-    border-bottom: 1px solid rgba(169,149,106,0.1);
+    border-bottom: 1px solid var(--border);
   }
   .top-cam-rank {
-    font-family: 'Playfair Display', serif;
-    font-size: 20px;
-    color: var(--border);
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--border-strong);
     width: 24px;
     flex-shrink: 0;
   }
   .top-cam-info { flex: 1; }
-  .top-cam-name { font-size: 13px; color: var(--dawn); }
-  .top-cam-count { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--sage); }
-  .top-cam-bar-wrap { width: 80px; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; }
-  .top-cam-bar-fill { height: 100%; border-radius: 2px; }
-
-  /* Temp scatter simple */
-  .temp-dots { display: flex; flex-wrap: wrap; gap: 4px; align-items: flex-end; height: 80px; position: relative; }
-  .temp-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--amber);
-    opacity: 0.7;
-    position: absolute;
-    transition: opacity 0.2s;
-  }
-  .temp-dot:hover { opacity: 1; }
+  .top-cam-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .top-cam-count { font-size: 11px; color: var(--text-3); margin-top: 1px; }
+  .top-cam-bar-wrap { width: 80px; height: 5px; background: var(--border); border-radius: 3px; }
+  .top-cam-bar-fill { height: 100%; border-radius: 3px; }
 
   /* MODAL */
   .modal-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.7);
+    background: rgba(17,28,18,0.45);
     z-index: 1000;
     align-items: center;
     justify-content: center;
@@ -496,17 +497,17 @@
   }
   .modal-overlay.open { display: flex; }
   .modal {
-    background: var(--soil);
+    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 12px;
     width: 480px;
     max-width: 95vw;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.18);
   }
-  .modal::-webkit-scrollbar { width: 3px; }
-  .modal::-webkit-scrollbar-thumb { background: var(--sage); }
+  .modal::-webkit-scrollbar { width: 4px; }
+  .modal::-webkit-scrollbar-thumb { background: var(--border-strong); }
   .modal-header {
     padding: 20px 24px 16px;
     border-bottom: 1px solid var(--border);
@@ -514,85 +515,100 @@
     align-items: center;
     justify-content: space-between;
   }
-  .modal-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 18px;
-    color: var(--straw);
-  }
+  .modal-title { font-size: 16px; font-weight: 700; color: var(--text); }
   .modal-close {
     background: none;
     border: none;
-    color: var(--sage);
-    font-size: 20px;
+    color: var(--text-3);
+    font-size: 18px;
     cursor: pointer;
     line-height: 1;
-    padding: 2px;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.12s;
   }
-  .modal-close:hover { color: var(--dawn); }
+  .modal-close:hover { background: var(--surface2); color: var(--text); }
   .modal-body { padding: 20px 24px; }
-  .form-row { margin-bottom: 16px; }
-  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .form-row { margin-bottom: 14px; }
+  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
   label {
     display: block;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.1em;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: var(--sage);
-    margin-bottom: 6px;
+    color: var(--text-3);
+    margin-bottom: 5px;
   }
   input, select, textarea {
     width: 100%;
-    background: rgba(255,255,255,0.05);
+    background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--dawn);
-    font-family: 'IBM Plex Sans', sans-serif;
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
     font-size: 13px;
-    padding: 8px 12px;
-    transition: border-color 0.15s;
+    padding: 8px 11px;
+    transition: all 0.12s;
   }
   input:focus, select:focus, textarea:focus {
     outline: none;
-    border-color: var(--amber);
+    border-color: var(--green-mid);
+    box-shadow: 0 0 0 3px rgba(45,122,58,0.12);
+    background: var(--surface);
   }
-  select option { background: var(--soil); }
+  select option { background: var(--surface); }
   textarea { resize: vertical; min-height: 64px; }
   .modal-footer {
-    padding: 16px 24px;
+    padding: 14px 24px;
     border-top: 1px solid var(--border);
     display: flex;
     justify-content: flex-end;
     gap: 8px;
+    background: var(--surface2);
+    border-radius: 0 0 12px 12px;
   }
+  .modal-footer .btn-secondary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 16px;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all 0.12s;
+  }
+  .modal-footer .btn-secondary:hover { border-color: var(--border-strong); color: var(--text); }
 
   /* STATS BAR */
   .stats-bar {
     display: flex;
-    gap: 0;
     border-bottom: 1px solid var(--border);
-    background: var(--soil);
+    background: var(--surface);
     flex-shrink: 0;
   }
   .stat-item {
-    padding: 10px 20px;
+    padding: 12px 20px;
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 2px;
   }
   .stat-value {
-    font-family: 'Playfair Display', serif;
-    font-size: 20px;
-    color: var(--straw);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
     line-height: 1;
+    font-variant-numeric: tabular-nums;
   }
   .stat-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.1em;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
     text-transform: uppercase;
-    color: var(--sage);
+    color: var(--text-3);
   }
 
   /* EMPTY STATE */
@@ -601,60 +617,53 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
     padding: 60px;
-    color: var(--sage);
     text-align: center;
     flex: 1;
   }
-  .empty-icon { font-size: 36px; opacity: 0.4; }
-  .empty-text { font-family: 'Playfair Display', serif; font-size: 16px; color: var(--field); }
-  .empty-sub { font-size: 12px; line-height: 1.5; max-width: 240px; }
+  .empty-icon { font-size: 32px; opacity: 0.35; }
+  .empty-text { font-size: 15px; font-weight: 600; color: var(--text-2); }
+  .empty-sub { font-size: 12px; line-height: 1.55; max-width: 240px; color: var(--text-3); }
 
-  /* ADD CAM MODE hint */
+  /* MODE HINT */
   .mode-hint {
     position: absolute;
     bottom: 16px;
     left: 50%;
     transform: translateX(-50%);
-    background: var(--panel);
-    border: 1px solid var(--amber);
+    background: var(--green);
     border-radius: 20px;
     padding: 8px 20px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    color: #e07070;
-    letter-spacing: 0.05em;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
     z-index: 20;
     display: none;
+    box-shadow: var(--shadow-md);
     animation: pulse 2s infinite;
   }
   @keyframes pulse {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
+    50% { opacity: 0.7; }
   }
 
   .no-data-msg {
     padding: 40px;
     text-align: center;
-    color: var(--sage);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px;
+    color: var(--text-3);
+    font-size: 13px;
   }
 
   /* AI ANALYST VIEW */
-  .ai-view {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-    gap: 0;
-  }
+  .ai-view { display: flex; flex: 1; overflow: hidden; }
   .ai-chat-col {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     border-right: 1px solid var(--border);
+    background: var(--bg);
   }
   .ai-sidebar-col {
     width: 260px;
@@ -662,56 +671,52 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: var(--soil);
+    background: var(--surface);
+    border-left: 1px solid var(--border);
   }
   .ai-sidebar-head {
-    padding: 14px 16px 10px;
+    padding: 13px 14px 10px;
     border-bottom: 1px solid var(--border);
-    font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
-    letter-spacing: 0.12em;
+    font-weight: 700;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--sage);
+    color: var(--text-3);
   }
-  .ai-suggestions {
-    flex: 1;
-    overflow-y: auto;
-    padding: 10px;
-  }
+  .ai-suggestions { flex: 1; overflow-y: auto; padding: 10px; }
   .ai-suggestions::-webkit-scrollbar { width: 3px; }
-  .ai-suggestions::-webkit-scrollbar-thumb { background: var(--sage); }
-  .ai-suggest-group { margin-bottom: 14px; }
+  .ai-suggestions::-webkit-scrollbar-thumb { background: var(--border-strong); }
+  .ai-suggest-group { margin-bottom: 12px; }
   .ai-suggest-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
-    letter-spacing: 0.1em;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
     text-transform: uppercase;
-    color: var(--moss);
+    color: var(--green);
     margin-bottom: 5px;
-    padding: 0 4px;
+    padding: 0 2px;
   }
   .ai-suggest-btn {
     display: block;
     width: 100%;
-    background: rgba(255,255,255,0.03);
+    background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--field);
-    font-family: 'IBM Plex Sans', sans-serif;
+    border-radius: var(--radius-sm);
+    color: var(--text-2);
+    font-family: 'Inter', sans-serif;
     font-size: 12px;
-    line-height: 1.4;
+    line-height: 1.45;
     text-align: left;
-    padding: 8px 10px;
+    padding: 7px 10px;
     cursor: pointer;
     margin-bottom: 4px;
-    transition: all 0.15s;
+    transition: all 0.12s;
   }
   .ai-suggest-btn:hover {
-    background: rgba(176,48,48,0.1);
-    border-color: rgba(176,48,48,0.35);
-    color: var(--dawn);
+    background: var(--green-light);
+    border-color: var(--green-border);
+    color: var(--green);
   }
-  /* Chat messages */
   .ai-messages {
     flex: 1;
     overflow-y: auto;
@@ -720,13 +725,9 @@
     flex-direction: column;
     gap: 16px;
   }
-  .ai-messages::-webkit-scrollbar { width: 3px; }
-  .ai-messages::-webkit-scrollbar-thumb { background: var(--sage); }
-  .msg {
-    display: flex;
-    gap: 10px;
-    max-width: 100%;
-  }
+  .ai-messages::-webkit-scrollbar { width: 4px; }
+  .ai-messages::-webkit-scrollbar-thumb { background: var(--border-strong); }
+  .msg { display: flex; gap: 10px; max-width: 100%; }
   .msg-avatar {
     width: 28px; height: 28px;
     border-radius: 50%;
@@ -735,45 +736,41 @@
     font-size: 13px;
     margin-top: 2px;
   }
-  .msg-avatar.user { background: var(--moss); }
-  .msg-avatar.ai { background: rgba(212,130,26,0.2); border: 1px solid rgba(212,130,26,0.3); }
-  .msg-bubble {
-    flex: 1;
-    min-width: 0;
-  }
+  .msg-avatar.user { background: var(--green-light); border: 1px solid var(--green-border); }
+  .msg-avatar.ai { background: var(--nav); border: 1px solid rgba(255,255,255,0.1); }
+  .msg-bubble { flex: 1; min-width: 0; }
   .msg-sender {
-    font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
-    letter-spacing: 0.08em;
+    font-weight: 700;
+    letter-spacing: 0.07em;
     text-transform: uppercase;
     margin-bottom: 5px;
   }
-  .msg-sender.user { color: var(--sage); }
-  .msg-sender.ai { color: var(--amber); }
+  .msg-sender.user { color: var(--text-3); }
+  .msg-sender.ai { color: var(--green); }
   .msg-text {
-    background: rgba(255,255,255,0.04);
+    background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 2px 8px 8px 8px;
+    border-radius: 3px 10px 10px 10px;
     padding: 12px 14px;
     font-size: 13px;
     line-height: 1.65;
-    color: var(--dawn);
+    color: var(--text);
     white-space: pre-wrap;
     word-break: break-word;
+    box-shadow: var(--shadow);
   }
   .msg.user .msg-text {
-    background: rgba(30,61,36,0.3);
-    border-color: rgba(61,102,68,0.35);
-    border-radius: 8px 2px 8px 8px;
-    color: var(--dawn);
+    background: var(--green-light);
+    border-color: var(--green-border);
+    border-radius: 10px 3px 10px 10px;
   }
-  .msg-text strong { color: var(--straw); }
-  .msg-text em { color: var(--field); font-style: normal; }
-  /* typing indicator */
+  .msg-text strong { color: var(--green); font-weight: 700; }
+  .msg-text em { color: var(--text-2); font-style: normal; }
   .typing-dot {
     display: inline-block;
     width: 6px; height: 6px;
-    background: var(--amber);
+    background: var(--green-mid);
     border-radius: 50%;
     animation: typingBounce 1.2s infinite;
     margin-right: 3px;
@@ -784,45 +781,43 @@
     0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
     40% { transform: translateY(-6px); opacity: 1; }
   }
-  /* Input area */
   .ai-input-area {
-    padding: 14px 20px;
+    padding: 12px 16px;
     border-top: 1px solid var(--border);
-    background: var(--soil);
+    background: var(--surface);
     display: flex;
-    gap: 10px;
+    gap: 8px;
     align-items: flex-end;
   }
   .ai-input {
     flex: 1;
-    background: rgba(255,255,255,0.05);
+    background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--dawn);
-    font-family: 'IBM Plex Sans', sans-serif;
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
     font-size: 13px;
-    padding: 10px 14px;
+    padding: 9px 12px;
     resize: none;
-    min-height: 42px;
+    min-height: 40px;
     max-height: 120px;
     line-height: 1.5;
-    transition: border-color 0.15s;
+    transition: all 0.12s;
   }
-  .ai-input:focus { outline: none; border-color: var(--amber); }
+  .ai-input:focus { outline: none; border-color: var(--green-mid); box-shadow: 0 0 0 3px rgba(45,122,58,0.12); background: var(--surface); }
   .ai-send-btn {
-    background: var(--amber);
+    background: var(--green-mid);
     border: none;
-    border-radius: var(--radius);
-    color: var(--bark);
-    font-size: 16px;
-    width: 42px;
-    height: 42px;
+    border-radius: var(--radius-sm);
+    color: #fff;
+    font-size: 15px;
+    width: 40px; height: 40px;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
     transition: background 0.15s;
   }
-  .ai-send-btn:hover { background: var(--straw); }
+  .ai-send-btn:hover { background: var(--green); }
   .ai-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .ai-welcome {
     display: flex;
@@ -834,37 +829,112 @@
     gap: 12px;
     padding: 40px;
   }
-  .ai-welcome-icon { font-size: 40px; opacity: 0.5; }
-  .ai-welcome-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 20px;
-    color: var(--straw);
-  }
-  .ai-welcome-sub { color: var(--sage); font-size: 13px; line-height: 1.6; max-width: 320px; }
+  .ai-welcome-icon { font-size: 40px; opacity: 0.4; }
+  .ai-welcome-title { font-size: 20px; font-weight: 700; color: var(--text); }
+  .ai-welcome-sub { color: var(--text-3); font-size: 13px; line-height: 1.6; max-width: 320px; }
   .ai-data-badge {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    background: rgba(30,61,36,0.5);
-    border: 1px solid var(--sage);
+    gap: 6px;
+    background: var(--green-light);
+    border: 1px solid var(--green-border);
     border-radius: 12px;
-    padding: 4px 12px;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    color: var(--field);
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--green);
   }
-  .ai-data-badge span { color: var(--straw); }
+  .ai-data-badge span { color: var(--green); }
+
+  /* ── DASHBOARD ───────────────────────────────────────── */
+  .dashboard { flex:1; overflow-y:auto; padding:20px 24px; background:var(--bg); display:flex; flex-direction:column; gap:16px; }
+  .dashboard::-webkit-scrollbar { width:4px; }
+  .dashboard::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:2px; }
+  .dash-conditions { display:flex; gap:8px; align-items:center; background:var(--camo-dark); border-radius:var(--radius); padding:10px 16px; flex-wrap:wrap; border:2px solid rgba(255,255,255,0.07); }
+  .dash-conditions-label { font-size:10px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--camo-tan); margin-right:4px; }
+  .dash-cond-item { display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.08); border-radius:6px; padding:5px 12px; font-size:13px; font-weight:600; color:#fff; border:1px solid rgba(255,255,255,0.12); cursor:pointer; transition:background 0.15s; }
+  .dash-cond-item:hover { background:rgba(255,255,255,0.15); }
+  .dash-cond-sub { font-size:10px; font-weight:400; color:rgba(255,255,255,0.5); margin-left:2px; }
+  .dash-cond-sep { width:1px; height:22px; background:rgba(255,255,255,0.15); }
+  .dash-kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .kpi-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+  .kpi-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+  .kpi-card.green::before { background:var(--green-mid); }
+  .kpi-card.red::before { background:var(--red-mid); }
+  .kpi-card.tan::before { background:var(--camo-brown); }
+  .kpi-card.slate::before { background:var(--camo-slate); }
+  .kpi-label { font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-3); margin-bottom:5px; }
+  .kpi-value { font-size:28px; font-weight:800; color:var(--text); line-height:1; font-variant-numeric:tabular-nums; }
+  .kpi-sub { font-size:11px; color:var(--text-3); margin-top:4px; }
+  .dash-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  .dash-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; box-shadow:var(--shadow); }
+  .dash-card.span2 { grid-column:span 2; }
+  .dash-card-title { font-size:13px; font-weight:700; color:var(--text); margin-bottom:2px; }
+  .dash-card-sub { font-size:10px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-3); margin-bottom:10px; }
+  .dash-hour-bars { display:flex; gap:2px; align-items:flex-end; height:64px; margin-bottom:5px; }
+  .dash-hour-bar { flex:1; background:var(--green-light); border:1px solid var(--green-border); border-bottom:none; border-radius:2px 2px 0 0; min-height:2px; transition:background 0.15s; }
+  .dash-hour-bar:hover { background:var(--green-mid); }
+  .dash-hour-bar.peak { background:var(--red-mid); border-color:var(--red); }
+  .dash-hour-bar.high { background:var(--green-mid); border-color:var(--green); }
+  .dash-hour-labels { display:flex; justify-content:space-between; font-size:9px; color:var(--text-3); font-weight:600; }
+  .buck-status-item { display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--bg); border:1px solid var(--border); border-radius:6px; cursor:pointer; transition:all 0.12s; margin-bottom:6px; }
+  .buck-status-item:hover { background:var(--green-light); border-color:var(--green-border); }
+  .buck-status-avatar { width:30px; height:30px; background:var(--green-light); border:1px solid var(--green-border); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+  .buck-status-name { font-size:13px; font-weight:700; color:var(--text); }
+  .buck-status-detail { font-size:11px; color:var(--text-3); margin-top:1px; }
+  .buck-status-count { font-size:16px; font-weight:800; color:var(--green-mid); }
+  .buck-status-last { font-size:10px; color:var(--text-3); text-align:right; }
+  .buck-days { display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; margin-top:2px; }
+  .buck-days.fresh { background:var(--green-light); color:var(--green); border:1px solid var(--green-border); }
+  .buck-days.stale { background:#fff7ed; color:#b45309; border:1px solid #fcd9a0; }
+  .buck-days.cold { background:var(--red-light); color:var(--red); border:1px solid var(--red-border); }
+  .cam-board-item { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid var(--border); }
+  .cam-board-item:last-child { border-bottom:none; }
+  .cam-board-rank { font-size:15px; font-weight:800; color:var(--border-strong); width:18px; flex-shrink:0; }
+  .cam-board-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .cam-board-name { font-size:13px; font-weight:600; color:var(--text); flex:1; }
+  .cam-board-bar-wrap { width:60px; height:5px; background:var(--border); border-radius:3px; }
+  .cam-board-bar-fill { height:100%; border-radius:3px; }
+  .cam-board-count { font-size:13px; font-weight:700; color:var(--text); margin-left:4px; }
+  .feed-item { display:flex; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); }
+  .feed-item:last-child { border-bottom:none; }
+  .feed-dot { width:7px; height:7px; border-radius:50%; background:var(--green-mid); flex-shrink:0; margin-top:4px; }
+  .feed-dot.rut { background:var(--red-mid); }
+  .feed-title { font-size:12px; font-weight:600; color:var(--text); }
+  .feed-detail { font-size:11px; color:var(--text-3); margin-top:1px; }
+  .feed-time { font-size:11px; color:var(--text-3); flex-shrink:0; text-align:right; white-space:nowrap; }
+  .pattern-alert { background:linear-gradient(135deg, var(--camo-dark) 0%, #2a3818 100%); border:1px solid rgba(255,255,255,0.1); border-radius:var(--radius); padding:14px 16px; color:#fff; display:flex; align-items:flex-start; gap:12px; }
+  .pattern-alert-icon { font-size:20px; flex-shrink:0; }
+  .pattern-alert-title { font-size:12px; font-weight:700; color:var(--camo-tan); margin-bottom:3px; }
+  .pattern-alert-text { font-size:12px; color:rgba(255,255,255,0.75); line-height:1.5; }
+  .wind-mini-item { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+  .wind-mini-dir { font-size:12px; font-weight:700; color:var(--green); width:26px; }
+  .wind-mini-bar-wrap { flex:1; height:5px; background:var(--border); border-radius:3px; }
+  .wind-mini-bar { height:100%; background:var(--green-mid); border-radius:3px; }
+  .wind-mini-count { font-size:11px; color:var(--text-3); width:18px; text-align:right; }
+  .dash-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:48px; background:var(--surface); border:1px dashed var(--border-strong); border-radius:var(--radius); text-align:center; }
+  .dash-empty-icon { font-size:36px; opacity:0.35; }
+  .dash-empty-title { font-size:15px; font-weight:700; color:var(--text-2); }
+  .dash-empty-sub { font-size:12px; color:var(--text-3); line-height:1.5; max-width:280px; }
+
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">BUCK<span>TRACK</span></div>
+  <div class="logo">
+    <div class="logo-icon">🦌</div>
+    <div>
+      BuckTrack
+      <div class="logo-sub">By T-Stone</div>
+    </div>
+  </div>
   <nav>
-    <button class="active" onclick="switchView('map')">📍 Map</button>
-    <button onclick="switchView('log')">📋 Sighting Log</button>
-    <button onclick="switchView('patterns')">📈 Patterns</button>
-    <button onclick="switchView('ai')" style="border-color:rgba(176,48,48,0.4);color:#e07070">🤖 AI Analyst</button>
+    <button class="active" onclick="switchView('dashboard')">Dashboard</button>
+    <button onclick="switchView('map')">Map</button>
+    <button onclick="switchView('log')">Sighting Log</button>
+    <button onclick="switchView('patterns')">Patterns</button>
+    <button onclick="switchView('ai')">✦ AI Analyst</button>
   </nav>
   <div class="header-actions">
     <button class="btn-secondary" onclick="openModal('camModal')">+ Camera</button>
@@ -874,22 +944,20 @@
 </header>
 
 <div class="app">
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="sidebar-section">
-      <div class="sidebar-label">Cameras (<span id="camCountSidebar">0</span>)</div>
-      <div class="cam-list" id="camList">
-        <div style="color:var(--sage);font-size:12px;padding:4px 0;">No cameras yet. Add your first camera →</div>
+
+  <!-- MAIN (no sidebar) -->
+  <div class="main">
+
+    <!-- DASHBOARD VIEW -->
+    <div class="view active" id="view-dashboard">
+      <div class="dashboard" id="dashboardContainer">
+        <div class="dash-empty">
+          <div class="dash-empty-icon">🦌</div>
+          <div class="dash-empty-title">Welcome to BuckTrack</div>
+          <div class="dash-empty-sub">Add cameras, create buck profiles, and log your first sighting — your dashboard will come alive with movement patterns and insights.</div>
+        </div>
       </div>
     </div>
-    <div class="sidebar-label" style="padding:14px 16px 6px;">Bucks (<span id="buckCountSidebar">0</span>)</div>
-    <div class="sidebar-scroll" id="buckList">
-      <div style="color:var(--sage);font-size:12px;padding:4px;">No bucks yet. Add a buck profile →</div>
-    </div>
-  </div>
-
-  <!-- MAIN -->
-  <div class="main">
 
     <!-- MAP VIEW -->
     <div class="view active" id="view-map">
@@ -938,7 +1006,7 @@
           <option value="lock">Lock-Down</option>
           <option value="post">Post-Rut</option>
         </select>
-        <button class="btn-secondary" onclick="renderLog()" style="margin-left:auto;">Refresh</button>
+        <button style="margin-left:auto;background:var(--green-mid);color:#fff;border:none;font-size:12px;font-weight:600;padding:6px 14px;border-radius:5px;cursor:pointer;" onclick="renderLog()">Refresh</button>
       </div>
       <div class="log-table-wrap">
         <table>
@@ -949,12 +1017,13 @@
               <th>Camera</th>
               <th>Temp</th>
               <th>Wind</th>
+              <th>Pressure</th>
               <th>Rut Stage</th>
               <th>Notes</th>
             </tr>
           </thead>
           <tbody id="logTableBody">
-            <tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🦌</div><div class="empty-text">No sightings logged yet</div><div class="empty-sub">Start by adding cameras and buck profiles, then log your first sighting.</div></div></td></tr>
+            <tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🦌</div><div class="empty-text">No sightings logged yet</div><div class="empty-sub">Start by adding cameras and buck profiles, then log your first sighting.</div></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -1071,7 +1140,7 @@
         <label>Notes (habitat, facing direction, etc.)</label>
         <textarea id="camNotes" placeholder="e.g. Facing NW toward oak flat, 200yd from stand..."></textarea>
       </div>
-      <div style="background:rgba(212,130,26,0.08);border:1px solid rgba(212,130,26,0.2);border-radius:4px;padding:10px 12px;font-size:12px;color:var(--field);line-height:1.5;">
+      <div style="background:var(--green-light);border:1px solid var(--green-border);border-radius:6px;padding:10px 12px;font-size:12px;color:var(--green);line-height:1.5;">
         💡 After adding, go to the Map view and click 📷 to pin this camera on your property map.
       </div>
     </div>
@@ -1135,6 +1204,8 @@
       <button class="modal-close" onclick="closeModal('sightingModal')">✕</button>
     </div>
     <div class="modal-body">
+      <!-- Weather auto-fill status -->
+      <div id="weatherStatus" style="font-size:12px;color:var(--text-3);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin-bottom:14px;min-height:32px;line-height:1.4;"></div>
       <div class="form-row-2">
         <div>
           <label>Date</label>
@@ -1162,7 +1233,7 @@
       <div class="form-row-2">
         <div>
           <label>Temperature (°F)</label>
-          <input type="number" id="sightTemp" placeholder="e.g. 42" min="-20" max="110">
+          <input type="number" id="sightTemp" placeholder="Auto-filled" min="-20" max="110">
         </div>
         <div>
           <label>Wind Direction</label>
@@ -1182,8 +1253,14 @@
       <div class="form-row-2">
         <div>
           <label>Wind Speed (mph)</label>
-          <input type="number" id="sightWindSpeed" placeholder="e.g. 8" min="0" max="60">
+          <input type="number" id="sightWindSpeed" placeholder="Auto-filled" min="0" max="60">
         </div>
+        <div>
+          <label>Barometric Pressure (hPa)</label>
+          <input type="number" id="sightPressure" placeholder="Auto-filled" min="950" max="1060" step="0.1">
+        </div>
+      </div>
+      <div class="form-row-2">
         <div>
           <label>Rut Stage</label>
           <select id="sightRut">
@@ -1194,6 +1271,10 @@
             <option value="lock">Lock-Down</option>
             <option value="post">Post-Rut</option>
           </select>
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button onclick="fetchWeather()" style="width:100%;background:var(--green-light);border:1px solid var(--green-border);color:var(--green);font-size:12px;font-weight:600;padding:8px;border-radius:5px;cursor:pointer;">↺ Refresh Weather</button>
         </div>
       </div>
       <div class="form-row">
@@ -1244,26 +1325,343 @@ function switchView(v) {
   document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
   document.getElementById('view-' + v).classList.add('active');
-  document.querySelectorAll('nav button')[['map','log','patterns','ai'].indexOf(v)].classList.add('active');
+  document.querySelectorAll('nav button')[['dashboard','map','log','patterns','ai'].indexOf(v)].classList.add('active');
   if (v === 'log') { renderLog(); updateStats(); }
   if (v === 'patterns') renderPatterns();
   if (v === 'map') renderMapPins();
   if (v === 'ai') updateAiBadge();
+  if (v === 'dashboard') renderDashboard();
 }
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard() {
+  const container = document.getElementById('dashboardContainer');
+  const hasSightings = state.sightings.length > 0;
+  const hasBucks = state.bucks.length > 0;
+  const hasCams = state.cameras.length > 0;
+
+  if (!hasSightings && !hasBucks && !hasCams) {
+    container.innerHTML = `<div class="dash-empty">
+      <div class="dash-empty-icon">🦌</div>
+      <div class="dash-empty-title">Welcome to BuckTrack</div>
+      <div class="dash-empty-sub">Add cameras, create buck profiles, and log your first sighting — your dashboard will come alive with movement patterns and insights.</div>
+    </div>`;
+    return;
+  }
+
+  // ── KPIs ──────────────────────────────────────────────────────
+  const totalSightings = state.sightings.length;
+  const activeBucks = state.bucks.length;
+  const activeCams = state.cameras.length;
+
+  // Days since last sighting
+  let daysSinceLast = '—';
+  let lastSightingStr = 'No sightings yet';
+  if (hasSightings) {
+    const sorted = [...state.sightings].sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
+    const lastDate = new Date(sorted[0].date);
+    const diffMs = new Date() - lastDate;
+    const diffDays = Math.floor(diffMs / 86400000);
+    daysSinceLast = diffDays === 0 ? 'Today' : diffDays + 'd ago';
+    const lastBuck = state.bucks.find(b => b.id === sorted[0].buckId);
+    const lastCam = state.cameras.find(c => c.id === sorted[0].camId);
+    lastSightingStr = `${lastBuck?.name||'Unknown'} @ ${lastCam?.name||'Unknown'}`;
+  }
+
+  // Peak movement hour
+  const hourCounts = new Array(24).fill(0);
+  state.sightings.forEach(s => { if (s.time) hourCounts[parseInt(s.time)]++; });
+  const peakHourIdx = hourCounts.indexOf(Math.max(...hourCounts));
+  const peakHourStr = hasSightings && hourCounts[peakHourIdx] > 0 ? formatTime(peakHourIdx+':00') : '—';
+
+  // Hottest camera
+  const camCounts = {};
+  state.sightings.forEach(s => { camCounts[s.camId] = (camCounts[s.camId]||0)+1; });
+  const topCamEntry = Object.entries(camCounts).sort((a,b)=>b[1]-a[1])[0];
+  const topCam = topCamEntry ? state.cameras.find(c=>c.id===topCamEntry[0]) : null;
+  const topCamStr = topCam ? topCam.name : '—';
+
+  // ── Hour bars ──────────────────────────────────────────────────
+  const maxH = Math.max(...hourCounts, 1);
+  const hourBars = hourCounts.map((c,i) => {
+    const pct = Math.round((c/maxH)*100);
+    const isPeak = c === Math.max(...hourCounts) && c > 0;
+    const isHigh = !isPeak && pct > 50;
+    return `<div class="dash-hour-bar ${isPeak?'peak':isHigh?'high':''}" style="height:${Math.max(pct,2)}%" title="${formatTime(i+':00')}: ${c} sightings"></div>`;
+  }).join('');
+
+  // ── Buck status cards ──────────────────────────────────────────
+  const buckCards = state.bucks.length === 0
+    ? '<div style="color:var(--text-3);font-size:12px;padding:8px 0;">No bucks added yet.</div>'
+    : state.bucks.map(b => {
+        const bSights = state.sightings.filter(s=>s.buckId===b.id);
+        const lastS = bSights.sort((a,z)=>(z.date+z.time).localeCompare(a.date+a.time))[0];
+        let daysAgo = '—', daysClass = 'stale';
+        if (lastS) {
+          const diff = Math.floor((new Date() - new Date(lastS.date)) / 86400000);
+          daysAgo = diff === 0 ? 'Today' : diff+'d ago';
+          daysClass = diff <= 3 ? 'fresh' : diff <= 10 ? 'stale' : 'cold';
+        }
+        const topBuckCam = (() => {
+          const bc = {};
+          bSights.forEach(s => { bc[s.camId]=(bc[s.camId]||0)+1; });
+          const top = Object.entries(bc).sort((a,z)=>z[1]-a[1])[0];
+          return top ? state.cameras.find(c=>c.id===top[0])?.name : '—';
+        })();
+        return `<div class="buck-status-item">
+          <div class="buck-status-avatar">${b.emoji||'🦌'}</div>
+          <div style="flex:1;min-width:0">
+            <div class="buck-status-name">${b.name}</div>
+            <div class="buck-status-detail">${b.age?b.age+' yr · ':''}Best cam: ${topBuckCam||'—'}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div class="buck-status-count">${bSights.length}</div>
+            <div class="buck-status-last">${lastS?lastS.date:'Never'}</div>
+            <div class="buck-days ${daysClass}">${daysAgo}</div>
+          </div>
+        </div>`;
+      }).join('');
+
+  // ── Camera leaderboard ─────────────────────────────────────────
+  const topCams = Object.entries(camCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxCC = topCams[0]?.[1]||1;
+  const camBoard = topCams.length === 0
+    ? '<div style="color:var(--text-3);font-size:12px;padding:8px 0;">No sightings logged yet.</div>'
+    : topCams.map(([id,cnt],i) => {
+        const cam = state.cameras.find(c=>c.id===id);
+        return `<div class="cam-board-item">
+          <div class="cam-board-rank">${i+1}</div>
+          <div class="cam-board-dot" style="background:${cam?.color||'var(--green-mid)'}"></div>
+          <div class="cam-board-name">${cam?.name||'Unknown'}</div>
+          <div class="cam-board-bar-wrap"><div class="cam-board-bar-fill" style="width:${Math.round(cnt/maxCC*100)}%;background:${cam?.color||'var(--green-mid)'}"></div></div>
+          <div class="cam-board-count">${cnt}</div>
+        </div>`;
+      }).join('');
+
+  // ── Recent sightings feed ──────────────────────────────────────
+  const recent = [...state.sightings].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)).slice(0,6);
+  const feed = recent.length === 0
+    ? '<div style="color:var(--text-3);font-size:12px;padding:8px 0;">No sightings yet.</div>'
+    : recent.map(s => {
+        const buck = state.bucks.find(b=>b.id===s.buckId);
+        const cam = state.cameras.find(c=>c.id===s.camId);
+        const isRut = ['peak','seek'].includes(s.rut);
+        return `<div class="feed-item">
+          <div class="feed-dot ${isRut?'rut':''}"></div>
+          <div style="flex:1;min-width:0">
+            <div class="feed-title">${buck?.emoji||'🦌'} ${buck?.name||'Unknown Buck'}</div>
+            <div class="feed-detail">${cam?.name||'Unknown Cam'}${s.temp?' · '+s.temp+'°F':''}${s.windDir?' · '+s.windDir:''}${s.rut?' · '+RUT_LABELS[s.rut]:''}</div>
+          </div>
+          <div class="feed-time">${s.date}<br>${s.time?formatTime(s.time):''}</div>
+        </div>`;
+      }).join('');
+
+  // ── Wind breakdown ─────────────────────────────────────────────
+  const windC = {};
+  state.sightings.forEach(s => { if(s.windDir) windC[s.windDir]=(windC[s.windDir]||0)+1; });
+  const dirs = ['N','NE','E','SE','S','SW','W','NW'];
+  const maxW = Math.max(...Object.values(windC),1);
+  const windMini = dirs.filter(d=>windC[d]).sort((a,b)=>windC[b]-windC[a]).slice(0,6).map(d =>
+    `<div class="wind-mini-item">
+      <div class="wind-mini-dir">${d}</div>
+      <div class="wind-mini-bar-wrap"><div class="wind-mini-bar" style="width:${Math.round(windC[d]/maxW*100)}%"></div></div>
+      <div class="wind-mini-count">${windC[d]}</div>
+    </div>`).join('') || '<div style="color:var(--text-3);font-size:12px;">No wind data yet.</div>';
+
+  // ── Pattern alert (simple heuristic) ──────────────────────────
+  let alertTitle = '📡 Keep logging data';
+  let alertText = 'The more sightings you log, the sharper your pattern insights become. Aim for 20+ entries to start seeing reliable trends.';
+  if (hasSightings && state.sightings.length >= 5) {
+    const dawn = hourCounts.slice(5,9).reduce((a,b)=>a+b,0);
+    const dusk = hourCounts.slice(17,21).reduce((a,b)=>a+b,0);
+    const mid = hourCounts.slice(10,15).reduce((a,b)=>a+b,0);
+    if (mid > dawn && mid > dusk) {
+      alertTitle = '⚠️ Possible Pressure Alert';
+      alertText = 'Your data shows unusual midday movement. This can indicate hunting pressure pushing deer off their normal dawn/dusk patterns. Consider backing off certain stands.';
+    } else if (peakHourIdx >= 5 && peakHourIdx <= 8) {
+      alertTitle = '🌅 Classic Dawn Pattern Detected';
+      alertText = `Peak movement is at ${peakHourStr}. These deer are on a textbook dawn pattern — plan to be in your stand by ${formatTime((peakHourIdx-1)+':00')} at the latest.`;
+    } else if (peakHourIdx >= 17 && peakHourIdx <= 19) {
+      alertTitle = '🌇 Evening Feed Pattern';
+      alertText = `Bucks are most active around ${peakHourStr}. Set up near food sources in the evening. Wind and thermals will be critical — check direction before entry.`;
+    } else if (peakHourIdx >= 20 || peakHourIdx <= 4) {
+      alertTitle = '🌙 Nocturnal Tendency Alert';
+      alertText = 'Your biggest movement window is after dark. These bucks may be pressured or simply mature. Consider mobile hunting setups closer to bedding to catch them on their feet.';
+    }
+  }
+
+  // ── Rut breakdown ──────────────────────────────────────────────
+  const rutC = {};
+  state.sightings.forEach(s => { if(s.rut) rutC[s.rut]=(rutC[s.rut]||0)+1; });
+  const rutOrder = ['pre','seek','peak','lock','post'];
+  const rutTotal = Object.values(rutC).reduce((a,b)=>a+b,0)||1;
+  const rutBars = rutOrder.map(r => {
+    const c = rutC[r]||0;
+    const pct = Math.round(c/rutTotal*100);
+    const colors = {pre:'var(--green-mid)',seek:'#b45309',peak:'var(--red-mid)',lock:'#6d28d9',post:'var(--text-3)'};
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
+      <div style="font-size:10px;font-weight:700;color:var(--text-3);width:60px;text-align:right">${RUT_LABELS[r]}</div>
+      <div style="flex:1;height:6px;background:var(--border);border-radius:3px">
+        <div style="width:${pct}%;height:100%;background:${colors[r]};border-radius:3px"></div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--text);width:16px">${c}</div>
+    </div>`;
+  }).join('');
+
+  container.innerHTML = `
+    <!-- KPIs -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+      <div class="kpi-card green">
+        <div class="kpi-label">Total Sightings</div>
+        <div class="kpi-value">${totalSightings}</div>
+        <div class="kpi-sub">${hasSightings ? lastSightingStr : 'No sightings yet'}</div>
+      </div>
+      <div class="kpi-card slate">
+        <div class="kpi-label">Bucks Tracked</div>
+        <div class="kpi-value">${activeBucks}</div>
+        <div class="kpi-sub">${activeCams} cameras active</div>
+      </div>
+      <div class="kpi-card tan">
+        <div class="kpi-label">Peak Movement</div>
+        <div class="kpi-value" style="font-size:20px;margin-top:4px">${peakHourStr}</div>
+        <div class="kpi-sub">Hour of peak activity</div>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-label">Hottest Camera</div>
+        <div class="kpi-value" style="font-size:16px;margin-top:6px;line-height:1.2">${topCamStr}</div>
+        <div class="kpi-sub">${topCamEntry?topCamEntry[1]+' sightings':'—'}</div>
+      </div>
+    </div>
+
+    <!-- Pattern alert -->
+    <div class="pattern-alert">
+      <div class="pattern-alert-icon">🎯</div>
+      <div>
+        <div class="pattern-alert-title">${alertTitle}</div>
+        <div class="pattern-alert-text">${alertText}</div>
+      </div>
+    </div>
+
+    <!-- Main grid -->
+    <div class="dash-grid">
+      <!-- Hour chart -->
+      <div class="dash-card span2">
+        <div class="dash-card-title">Movement by Hour</div>
+        <div class="dash-card-sub">All sightings · 24-hour view · Red = peak</div>
+        <div class="dash-hour-bars">${hourBars}</div>
+        <div class="dash-hour-labels"><span>12AM</span><span>3AM</span><span>6AM</span><span>9AM</span><span>12PM</span><span>3PM</span><span>6PM</span><span>9PM</span><span>11PM</span></div>
+      </div>
+
+      <!-- Wind breakdown -->
+      <div class="dash-card">
+        <div class="dash-card-title">Wind at Sighting</div>
+        <div class="dash-card-sub">Direction frequency</div>
+        ${windMini}
+      </div>
+
+      <!-- Buck status -->
+      <div class="dash-card span2">
+        <div class="dash-card-title">Buck Status</div>
+        <div class="dash-card-sub">Activity · Last seen · Trend</div>
+        ${buckCards}
+      </div>
+
+      <!-- Camera leaderboard -->
+      <div class="dash-card">
+        <div class="dash-card-title">Camera Leaderboard</div>
+        <div class="dash-card-sub">By sighting count</div>
+        ${camBoard}
+      </div>
+
+      <!-- Rut breakdown -->
+      <div class="dash-card">
+        <div class="dash-card-title">Rut Stage Breakdown</div>
+        <div class="dash-card-sub">Sightings by phase</div>
+        ${rutBars || '<div style="color:var(--text-3);font-size:12px;">No rut stage data logged.</div>'}
+      </div>
+
+      <!-- Recent feed -->
+      <div class="dash-card span2">
+        <div class="dash-card-title">Recent Sightings</div>
+        <div class="dash-card-sub">Last 6 entries</div>
+        ${feed}
+      </div>
+    </div>
+  `;
+}
+
 
 // ============================================================
 // MODALS
 // ============================================================
 function openModal(id) {
-  if (id === 'sightingModal') populateSightingDropdowns();
-  document.getElementById(id).classList.add('open');
-  // default date/time
   if (id === 'sightingModal') {
+    populateSightingDropdowns();
+    document.getElementById(id).classList.add('open');
+    const now = new Date();
     if (!document.getElementById('sightDate').value) {
-      const now = new Date();
       document.getElementById('sightDate').value = now.toISOString().split('T')[0];
       document.getElementById('sightTime').value = now.toTimeString().slice(0,5);
     }
+    fetchWeather();
+    return;
+  }
+  document.getElementById(id).classList.add('open');
+}
+
+async function fetchWeather() {
+  const statusEl = document.getElementById('weatherStatus');
+  if (!statusEl) return;
+  statusEl.textContent = '⏳ Fetching current conditions...';
+  statusEl.style.color = 'var(--text-3)';
+
+  try {
+    // Get location
+    const pos = await new Promise((res, rej) =>
+      navigator.geolocation.getCurrentPosition(res, rej, { timeout: 6000 })
+    );
+    const { latitude: lat, longitude: lon } = pos.coords;
+
+    // Open-Meteo — free, no key required
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,wind_direction_10m,surface_pressure&temperature_unit=fahrenheit&wind_speed_unit=mph&pressure_msl=hPa&timezone=auto`;
+    const resp = await fetch(url);
+    const data = await resp.json();
+    const c = data.current;
+
+    // Wind direction: degrees → compass
+    const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+    const compassDir = dirs[Math.round(c.wind_direction_10m / 22.5) % 16];
+    // Simplify to 8-point for the dropdown
+    const eightPt = ['N','NE','E','SE','S','SW','W','NW'];
+    const nearest8 = eightPt.reduce((best, d) => {
+      const toAngle = a => ({ N:0,NE:45,E:90,SE:135,S:180,SW:225,W:270,NW:315 })[a];
+      const diff = a => Math.abs(((c.wind_direction_10m - toAngle(a)) + 540) % 360 - 180);
+      return diff(d) < diff(best) ? d : best;
+    }, 'N');
+
+    const temp = Math.round(c.temperature_2m);
+    const windSpd = Math.round(c.wind_speed_10m);
+    const pressure = Math.round(c.surface_pressure * 10) / 10;
+
+    // Auto-fill form fields
+    document.getElementById('sightTemp').value = temp;
+    document.getElementById('sightWind').value = nearest8;
+    document.getElementById('sightWindSpeed').value = windSpd;
+    if (document.getElementById('sightPressure')) {
+      document.getElementById('sightPressure').value = pressure;
+    }
+
+    statusEl.innerHTML = `✅ Auto-filled: <strong>${temp}°F · ${compassDir} ${windSpd}mph · ${pressure} hPa</strong> <span style="color:var(--text-3);font-size:10px;">(edit if needed)</span>`;
+    statusEl.style.color = 'var(--green)';
+  } catch (err) {
+    if (err.code === 1) {
+      statusEl.textContent = '📍 Location access denied — enter conditions manually.';
+    } else {
+      statusEl.textContent = '⚠️ Could not fetch weather — enter manually.';
+    }
+    statusEl.style.color = 'var(--text-3)';
   }
 }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
@@ -1288,6 +1686,7 @@ function addCamera() {
   state.cameras.push(cam);
   save();
   closeModal('camModal');
+  renderDashboard();
   document.getElementById('camName').value = '';
   document.getElementById('camNotes').value = '';
   renderSidebar();
@@ -1295,41 +1694,7 @@ function addCamera() {
 }
 
 function renderSidebar() {
-  // Cameras
-  const camList = document.getElementById('camList');
-  document.getElementById('camCountSidebar').textContent = state.cameras.length;
-  if (state.cameras.length === 0) {
-    camList.innerHTML = '<div style="color:var(--sage);font-size:12px;padding:4px 0;">No cameras yet. Add your first camera →</div>';
-  } else {
-    camList.innerHTML = state.cameras.map(c => {
-      const count = state.sightings.filter(s => s.camId === c.id).length;
-      return `<div class="cam-badge">
-        <div class="cam-dot" style="background:${c.color}"></div>
-        <div class="cam-name">${c.name}</div>
-        <div class="cam-count">${count}</div>
-      </div>`;
-    }).join('');
-  }
-
-  // Bucks
-  const buckList = document.getElementById('buckList');
-  document.getElementById('buckCountSidebar').textContent = state.bucks.length;
-  if (state.bucks.length === 0) {
-    buckList.innerHTML = '<div style="color:var(--sage);font-size:12px;padding:4px;">No bucks yet. Add a buck profile →</div>';
-  } else {
-    buckList.innerHTML = state.bucks.map(b => {
-      const count = state.sightings.filter(s => s.buckId === b.id).length;
-      const last = state.sightings.filter(s => s.buckId === b.id).sort((a,b2)=>new Date(b2.date+b2.time)-new Date(a.date+a.time))[0];
-      return `<div class="buck-card ${state.selectedBuckId===b.id?'selected':''}" onclick="selectBuck('${b.id}')">
-        <div class="buck-avatar">${b.emoji||'🦌'}</div>
-        <div class="buck-info">
-          <div class="buck-name">${b.name}</div>
-          <div class="buck-meta">${b.age?b.age+' yr · ':''} ${last?'Last: '+last.date:'No sightings'}</div>
-        </div>
-        <div class="buck-count">${count}</div>
-      </div>`;
-    }).join('');
-  }
+  // Sidebar removed — cameras/bucks managed via modals and dashboard
 }
 
 // ============================================================
@@ -1349,6 +1714,7 @@ function addBuck() {
   state.bucks.push(buck);
   save();
   closeModal('buckModal');
+  renderDashboard();
   document.getElementById('buckName').value = '';
   document.getElementById('buckFeatures').value = '';
   document.getElementById('buckEmoji').value = '';
@@ -1468,13 +1834,16 @@ function addSighting() {
     windDir: document.getElementById('sightWind').value,
     windSpeed: document.getElementById('sightWindSpeed').value,
     rut: document.getElementById('sightRut').value,
+    pressure: document.getElementById('sightPressure').value,
     notes: document.getElementById('sightNotes').value.trim()
   };
   state.sightings.push(s);
   save();
   closeModal('sightingModal');
+  renderDashboard();
   // reset
-  ['sightBuck','sightCam','sightTemp','sightWindSpeed','sightNotes'].forEach(id => document.getElementById(id).value = '');
+  ['sightBuck','sightCam','sightTemp','sightWindSpeed','sightPressure','sightNotes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('weatherStatus').textContent = '';
   document.getElementById('sightWind').value = '';
   document.getElementById('sightRut').value = '';
   renderSidebar();
@@ -1493,7 +1862,7 @@ function renderLog() {
 
   const tbody = document.getElementById('logTableBody');
   if (sightings.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🦌</div><div class="empty-text">No sightings match your filters</div></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🦌</div><div class="empty-text">No sightings match your filters</div></div></td></tr>`;
     return;
   }
   tbody.innerHTML = sightings.map(s => {
@@ -1502,13 +1871,14 @@ function renderLog() {
     const timeStr = s.time ? formatTime(s.time) : '—';
     const rutBadge = s.rut ? `<span class="rut-badge ${RUT_CLASSES[s.rut]}">${RUT_LABELS[s.rut]}</span>` : '—';
     return `<tr>
-      <td><div class="td-mono">${s.date}</div><div class="td-mono" style="color:var(--sage)">${timeStr}</div></td>
+      <td><div class="td-mono">${s.date}</div><div class="td-mono" style="color:var(--text-3)">${timeStr}</div></td>
       <td><div class="td-buck">${buck?buck.emoji+' '+buck.name:'Unknown'}</div></td>
       <td><div class="td-cam">${cam?`<div class="td-dot" style="background:${cam.color}"></div>${cam.name}`:'Unknown'}</div></td>
       <td class="td-mono">${s.temp?s.temp+'°F':'—'}</td>
       <td class="td-mono">${[s.windDir,s.windSpeed?s.windSpeed+'mph':''].filter(Boolean).join(' ')||'—'}</td>
+      <td class="td-mono">${s.pressure?s.pressure+' hPa':'—'}</td>
       <td>${rutBadge}</td>
-      <td style="font-size:12px;color:var(--field);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.notes||'—'}</td>
+      <td style="font-size:12px;color:var(--text-2);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.notes||'—'}</td>
     </tr>`;
   }).join('');
 }
@@ -1610,11 +1980,11 @@ function renderPatterns() {
     const c = rutCounts[r]||0;
     const pct = Math.round(c/rutTotal*100);
     return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-      <div style="width:70px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--sage);text-align:right">${RUT_LABELS[r]}</div>
-      <div style="flex:1;height:6px;background:rgba(255,255,255,0.08);border-radius:3px">
-        <div style="width:${pct}%;height:100%;background:var(--amber);border-radius:3px"></div>
+      <div style="width:70px;font-size:10px;font-weight:600;color:var(--text-3);text-align:right;width:70px">${RUT_LABELS[r]}</div>
+      <div style="flex:1;height:6px;background:var(--border);border-radius:3px">
+        <div style="width:${pct}%;height:100%;background:var(--green-mid);border-radius:3px"></div>
       </div>
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--field);width:20px">${c}</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-2);width:20px">${c}</div>
     </div>`;
   }).join('');
 
@@ -1625,12 +1995,12 @@ function renderPatterns() {
     return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
       <div style="font-size:16px">${buck?.emoji||'🦌'}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-family:'Playfair Display',serif;font-size:13px;color:var(--dawn);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${buck?.name||'Unknown'}</div>
-        <div style="height:4px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:4px">
-          <div style="width:${Math.round(count/maxBuck*100)}%;height:100%;background:var(--amber);border-radius:2px"></div>
+        <div style="font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${buck?.name||'Unknown'}</div>
+        <div style="height:4px;background:var(--border);border-radius:2px;margin-top:4px">
+          <div style="width:${Math.round(count/maxBuck*100)}%;height:100%;background:var(--green-mid);border-radius:2px"></div>
         </div>
       </div>
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--field);flex-shrink:0">${count}</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-2);flex-shrink:0">${count}</div>
     </div>`;
   }).join('');
 
@@ -1829,6 +2199,7 @@ renderSidebar();
 populateSightingDropdowns();
 updateStats();
 updateAiBadge();
+renderDashboard();
 if (state.mapDataUrl) showMap();
 
 // If map changes, re-render pins
