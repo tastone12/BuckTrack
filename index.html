@@ -1619,10 +1619,9 @@ async function fetchWeather() {
 
   try {
     // Get location
-    const pos = await new Promise((res, rej) =>
-      navigator.geolocation.getCurrentPosition(res, rej, { timeout: 6000 })
-    );
-    const { latitude: lat, longitude: lon } = pos.coords;
+    // Property coordinates — 46.2504, -91.07529 (Cable, WI)
+    const lat = 46.2504;
+    const lon = -91.07529;
 
     // Open-Meteo — free, no key required
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,wind_direction_10m,surface_pressure&temperature_unit=fahrenheit&wind_speed_unit=mph&pressure_msl=hPa&timezone=auto`;
@@ -1656,11 +1655,7 @@ async function fetchWeather() {
     statusEl.innerHTML = `✅ Auto-filled: <strong>${temp}°F · ${compassDir} ${windSpd}mph · ${pressure} hPa</strong> <span style="color:var(--text-3);font-size:10px;">(edit if needed)</span>`;
     statusEl.style.color = 'var(--green)';
   } catch (err) {
-    if (err.code === 1) {
-      statusEl.textContent = '📍 Location access denied — enter conditions manually.';
-    } else {
-      statusEl.textContent = '⚠️ Could not fetch weather — enter manually.';
-    }
+    statusEl.textContent = '⚠️ Could not fetch weather from Open-Meteo — enter conditions manually.';
     statusEl.style.color = 'var(--text-3)';
   }
 }
