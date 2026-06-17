@@ -48,6 +48,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    max-height: 100vh;
   }
 
   /* HEADER */
@@ -125,7 +126,7 @@
   .btn-secondary:hover { background: rgba(255,255,255,0.18); color: #fff; }
 
   /* MAIN LAYOUT */
-  .app { display: flex; flex: 1; overflow: hidden; position: relative; }
+  .app { display: flex; flex: 1; overflow: hidden; position: relative; max-height: calc(100vh - 52px); }
 
   /* SIDEBAR */
   .sidebar { display: none; }
@@ -210,7 +211,7 @@
   .cam-count { font-size: 11px; color: var(--text-3); }
 
   /* MAIN CONTENT */
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; max-height: calc(100vh - 52px); }
 
   /* VIEWS */
   .view { display: none !important; flex: 1; overflow: hidden; flex-direction: column; }
@@ -225,6 +226,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    min-height: 0;
   }
   .map-bg {
     position: absolute;
@@ -948,6 +950,22 @@
   .settings-action-btn.red:hover { background: var(--red); color: #fff; }
   .settings-cam-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
+  /* Field toggle */
+  .field-toggle-row { display:flex; align-items:center; gap:10px; padding:9px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; }
+  .field-toggle-name { flex:1; font-size:13px; font-weight:600; color:var(--text); }
+  .field-toggle-sub { font-size:11px; color:var(--text-3); margin-top:1px; }
+  .toggle-switch { position:relative; width:36px; height:20px; flex-shrink:0; }
+  .toggle-switch input { opacity:0; width:0; height:0; }
+  .toggle-slider { position:absolute; cursor:pointer; inset:0; background:var(--border-strong); border-radius:20px; transition:0.2s; }
+  .toggle-slider:before { position:absolute; content:''; height:14px; width:14px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:0.2s; }
+  .toggle-switch input:checked + .toggle-slider { background:var(--green-mid); }
+  .toggle-switch input:checked + .toggle-slider:before { transform:translateX(16px); }
+  .field-edit-btn { background:none; border:1px solid var(--border); color:var(--text-3); font-size:11px; font-weight:600; padding:3px 9px; border-radius:4px; cursor:pointer; transition:all 0.12s; flex-shrink:0; }
+  .field-edit-btn:hover { border-color:var(--green-border); color:var(--green); }
+  .custom-field-card { background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:10px 12px; display:flex; align-items:center; gap:10px; }
+  .custom-field-type-badge { font-size:10px; font-weight:700; padding:2px 8px; border-radius:8px; background:var(--green-light); color:var(--green); border:1px solid var(--green-border); flex-shrink:0; }
+  .custom-field-options { font-size:11px; color:var(--text-3); margin-top:2px; }
+
 </style>
 </head>
 <body>
@@ -968,10 +986,25 @@
     <button onclick="switchView('ai')">✦ AI Analyst</button>
     <button onclick="switchView('settings')">⚙ Settings</button>
   </nav>
-  <div class="header-actions">
-    <button class="btn-secondary" onclick="openModal('camModal')">+ Camera</button>
-    <button class="btn-secondary" onclick="openModal('buckModal')">+ Buck</button>
-    <button class="btn-primary" onclick="openModal('sightingModal')">+ Log Sighting</button>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="display:flex;align-items:center;gap:7px;">
+      <span style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.55);">Season</span>
+      <select id="globalSeasonFilter" onchange="onFilterChange()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;font-family:Inter,sans-serif;font-size:12px;font-weight:600;padding:5px 10px;border-radius:5px;cursor:pointer;min-width:130px;">
+        <option value="">All Seasons</option>
+      </select>
+    </div>
+    <div style="display:flex;align-items:center;gap:7px;">
+      <span style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.55);">Year</span>
+      <select id="globalYearFilter" onchange="onFilterChange()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;font-family:Inter,sans-serif;font-size:12px;font-weight:600;padding:5px 10px;border-radius:5px;cursor:pointer;min-width:100px;">
+        <option value="">All Years</option>
+      </select>
+    </div>
+    <div style="width:1px;height:24px;background:rgba(255,255,255,0.15);"></div>
+    <div class="header-actions">
+      <button class="btn-secondary" onclick="openModal('camModal')">+ Camera</button>
+      <button class="btn-secondary" onclick="openModal('buckModal')">+ Buck</button>
+      <button class="btn-primary" onclick="openModal('sightingModal')">+ Log Sighting</button>
+    </div>
   </div>
 </header>
 
@@ -981,7 +1014,7 @@
   <div class="main">
 
     <!-- DASHBOARD VIEW -->
-    <div class="view active" id="view-dashboard" style="display:flex">
+    <div class="view active" id="view-dashboard" style="display:flex;flex-direction:column;height:100%;overflow:hidden;">
       <div class="dashboard" id="dashboardContainer">
         <div class="dash-empty">
           <div class="dash-empty-icon">🦌</div>
@@ -992,7 +1025,7 @@
     </div>
 
     <!-- MAP VIEW -->
-    <div class="view" id="view-map" style="display:none">
+    <div class="view" id="view-map" style="display:none;height:0;overflow:hidden;">
       <div class="map-container" id="mapContainer">
         <div class="map-bg"></div>
 
@@ -1047,6 +1080,8 @@
               <th>Date / Time</th>
               <th>Buck</th>
               <th>Camera</th>
+              <th>Season</th>
+              <th>Year</th>
               <th>Temp</th>
               <th>Wind</th>
               <th>Pressure (inHg)</th>
@@ -1055,7 +1090,7 @@
             </tr>
           </thead>
           <tbody id="logTableBody">
-            <tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🦌</div><div class="empty-text">No sightings logged yet</div><div class="empty-sub">Start by adding cameras and buck profiles, then log your first sighting.</div></div></td></tr>
+            <tr><td colspan="10"><div class="empty-state"><div class="empty-icon">🦌</div><div class="empty-text">No sightings logged yet</div><div class="empty-sub">Start by adding cameras and buck profiles, then log your first sighting.</div></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -1218,6 +1253,61 @@
       </div>
     </div>
 
+    <!-- Sighting Form Fields -->
+    <div class="settings-section">
+      <div class="settings-section-title">📋 Sighting Form Fields</div>
+      <div class="settings-section-sub">Toggle built-in fields on or off, edit their options, and add your own custom fields. Custom fields appear in the Log Sighting form and sighting log.</div>
+
+      <!-- Built-in field toggles -->
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px;">Built-in Fields</div>
+      <div id="builtinFieldsList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px;"></div>
+
+      <!-- Field options editors (season + rut) -->
+      <div id="seasonEditor" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:10px;display:none;">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">Edit "Season" Options</div>
+        <div style="font-size:11px;color:var(--text-3);margin-bottom:10px;">These options appear in both the Log Sighting form and the global Season filter in the header.</div>
+        <div id="seasonOptionsList" style="display:flex;flex-direction:column;gap:5px;margin-bottom:10px;"></div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="newSeasonOption" class="settings-input" placeholder="New season (e.g. Food Plot Season)" style="flex:1;">
+          <button class="settings-add-btn" onclick="addFieldOption('season','newSeasonOption','seasonOptionsList')">+ Add</button>
+        </div>
+      </div>
+      <div id="rutStageEditor" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:18px;display:none;">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px;">Edit "Rut Stage" Options</div>
+        <div style="font-size:11px;color:var(--text-3);margin-bottom:10px;">Rename, reorder, or replace these options. Changes apply immediately to the Log Sighting dropdown.</div>
+        <div id="rutOptionsList" style="display:flex;flex-direction:column;gap:5px;margin-bottom:10px;"></div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="newRutOption" class="settings-input" placeholder="New option label (e.g. Early Season)" style="flex:1;">
+          <button class="settings-add-btn" onclick="addFieldOption('rut','newRutOption','rutOptionsList')">+ Add Option</button>
+        </div>
+      </div>
+
+      <!-- Custom fields -->
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px;">Custom Fields</div>
+      <div id="customFieldsList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;"></div>
+
+      <!-- Add custom field -->
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;">Add Custom Field</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+          <input type="text" id="newFieldLabel" class="settings-input" placeholder="Field label (e.g. Acorn Drop, Scrape Activity)" style="flex:1;min-width:180px;">
+          <select id="newFieldType" class="settings-input" style="width:130px;">
+            <option value="dropdown">Dropdown</option>
+            <option value="text">Text Input</option>
+            <option value="number">Number</option>
+            <option value="toggle">Yes / No</option>
+          </select>
+        </div>
+        <div id="dropdownOptionsWrap">
+          <div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">Dropdown options (one per line):</div>
+          <textarea id="newFieldOptions" class="settings-input" rows="3" placeholder="Light&#10;Moderate&#10;Heavy" style="width:100%;font-size:12px;"></textarea>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+          <button class="settings-add-btn" onclick="addCustomField()">+ Add Field</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1322,84 +1412,8 @@
       <div class="modal-title">Log Sighting</div>
       <button class="modal-close" onclick="closeModal('sightingModal')">✕</button>
     </div>
-    <div class="modal-body">
-      <!-- Weather auto-fill status -->
-      <div id="weatherStatus" style="font-size:12px;color:var(--text-3);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin-bottom:14px;min-height:32px;line-height:1.4;"></div>
-      <div class="form-row-2">
-        <div>
-          <label>Date</label>
-          <input type="date" id="sightDate" onchange="fetchWeather()">
-        </div>
-        <div>
-          <label>Time</label>
-          <input type="time" id="sightTime" onchange="fetchWeather()">
-        </div>
-      </div>
-      <div class="form-row-2">
-        <div>
-          <label>Buck</label>
-          <select id="sightBuck">
-            <option value="">— Select Buck —</option>
-          </select>
-        </div>
-        <div>
-          <label>Camera</label>
-          <select id="sightCam">
-            <option value="">— Select Camera —</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-row-2">
-        <div>
-          <label>Temperature (°F)</label>
-          <input type="number" id="sightTemp" placeholder="Auto-filled" min="-20" max="110">
-        </div>
-        <div>
-          <label>Wind Direction</label>
-          <select id="sightWind">
-            <option value="">Unknown</option>
-            <option value="N">N</option>
-            <option value="NE">NE</option>
-            <option value="E">E</option>
-            <option value="SE">SE</option>
-            <option value="S">S</option>
-            <option value="SW">SW</option>
-            <option value="W">W</option>
-            <option value="NW">NW</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-row-2">
-        <div>
-          <label>Wind Speed (mph)</label>
-          <input type="number" id="sightWindSpeed" placeholder="Auto-filled" min="0" max="60">
-        </div>
-        <div>
-          <label>Barometric Pressure (inHg)</label>
-          <input type="number" id="sightPressure" placeholder="Auto-filled" min="27" max="32" step="0.01">
-        </div>
-      </div>
-      <div class="form-row-2">
-        <div>
-          <label>Rut Stage</label>
-          <select id="sightRut">
-            <option value="">Unknown</option>
-            <option value="pre">Pre-Rut</option>
-            <option value="seek">Seeking</option>
-            <option value="peak">Peak Rut</option>
-            <option value="lock">Lock-Down</option>
-            <option value="post">Post-Rut</option>
-          </select>
-        </div>
-        <div>
-          <label>&nbsp;</label>
-          <button onclick="fetchWeather()" style="width:100%;background:var(--green-light);border:1px solid var(--green-border);color:var(--green);font-size:12px;font-weight:600;padding:8px;border-radius:5px;cursor:pointer;">↺ Refresh Weather</button>
-        </div>
-      </div>
-      <div class="form-row">
-        <label>Behavior / Notes</label>
-        <textarea id="sightNotes" placeholder="e.g. Feeding, moving with purpose toward NW, nose to ground, tending doe..."></textarea>
-      </div>
+    <div class="modal-body" id="sightingModalBody">
+      <!-- Rendered dynamically by renderSightingForm() -->
     </div>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeModal('sightingModal')">Cancel</button>
@@ -1418,7 +1432,22 @@ let state = {
   sightings: [],
   mapDataUrl: null,
   placingCamId: null,
-  selectedBuckId: null
+  selectedBuckId: null,
+  propertySettings: {},
+  fieldSettings: {
+    builtins: {
+      season:   { label: 'Season', enabled: true,
+                  options: ['Summer','Early Season','Pre-Rut','Rut','Late Season'] },
+      temp:     { label: 'Temperature (°F)', enabled: true },
+      windDir:  { label: 'Wind Direction',   enabled: true },
+      windSpeed:{ label: 'Wind Speed (mph)', enabled: true },
+      pressure: { label: 'Barometric Pressure (inHg)', enabled: true },
+      rut:      { label: 'Rut Stage',        enabled: true,
+                  options: ['Pre-Rut','Seeking','Peak Rut','Lock-Down','Post-Rut'] },
+      notes:    { label: 'Behavior / Notes', enabled: true }
+    },
+    custom: []
+  }
 };
 
 const CAM_COLORS = {
@@ -1444,17 +1473,21 @@ function switchView(v) {
   document.querySelectorAll('.view').forEach(el => {
     el.classList.remove('active');
     el.style.display = 'none';
+    el.style.height = '0';
+    el.style.overflow = 'hidden';
   });
   document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
   const viewEl = document.getElementById('view-' + v);
   if (viewEl) {
     viewEl.classList.add('active');
     viewEl.style.display = (v === 'settings') ? 'block' : 'flex';
+    viewEl.style.height = '100%';
+    viewEl.style.overflow = v === 'dashboard' || v === 'settings' ? 'auto' : 'hidden';
   }
   const navIdx = ['dashboard','map','log','patterns','ai','settings'].indexOf(v);
   if (navIdx >= 0) document.querySelectorAll('nav button')[navIdx].classList.add('active');
-  if (v === 'log') { renderLog(); updateStats(); }
-  if (v === 'patterns') renderPatterns();
+  if (v === 'log') { renderLog(); updateStats(); populateYearFilter(); }
+  if (v === 'patterns') { renderPatterns(); populateYearFilter(); }
   if (v === 'map') renderMapPins();
   if (v === 'ai') updateAiBadge();
   if (v === 'dashboard') renderDashboard();
@@ -1466,10 +1499,12 @@ function switchView(v) {
 // ============================================================
 function renderDashboard() {
   const container = document.getElementById('dashboardContainer');
-  const hasSightings = state.sightings.length > 0;
+  const sightings = filteredSightings();
+  const hasSightings = sightings.length > 0;
   const hasBucks = state.bucks.length > 0;
   const hasCams = state.cameras.length > 0;
 
+  const seasonLabel = activeSeasonFilter ? ` · ${activeSeasonFilter}` : '';
   if (!hasSightings && !hasBucks && !hasCams) {
     container.innerHTML = `<div class="dash-empty">
       <div class="dash-empty-icon">🦌</div>
@@ -1480,7 +1515,7 @@ function renderDashboard() {
   }
 
   // ── KPIs ──────────────────────────────────────────────────────
-  const totalSightings = state.sightings.length;
+  const totalSightings = sightings.length;
   const activeBucks = state.bucks.length;
   const activeCams = state.cameras.length;
 
@@ -1488,7 +1523,7 @@ function renderDashboard() {
   let daysSinceLast = '—';
   let lastSightingStr = 'No sightings yet';
   if (hasSightings) {
-    const sorted = [...state.sightings].sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
+    const sorted = [...sightings].sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
     const lastDate = new Date(sorted[0].date);
     const diffMs = new Date() - lastDate;
     const diffDays = Math.floor(diffMs / 86400000);
@@ -1500,13 +1535,13 @@ function renderDashboard() {
 
   // Peak movement hour
   const hourCounts = new Array(24).fill(0);
-  state.sightings.forEach(s => { if (s.time) hourCounts[parseInt(s.time)]++; });
+  sightings.forEach(s => { if (s.time) hourCounts[parseInt(s.time)]++; });
   const peakHourIdx = hourCounts.indexOf(Math.max(...hourCounts));
   const peakHourStr = hasSightings && hourCounts[peakHourIdx] > 0 ? formatTime(peakHourIdx+':00') : '—';
 
   // Hottest camera
   const camCounts = {};
-  state.sightings.forEach(s => { camCounts[s.camId] = (camCounts[s.camId]||0)+1; });
+  sightings.forEach(s => { camCounts[s.camId] = (camCounts[s.camId]||0)+1; });
   const topCamEntry = Object.entries(camCounts).sort((a,b)=>b[1]-a[1])[0];
   const topCam = topCamEntry ? state.cameras.find(c=>c.id===topCamEntry[0]) : null;
   const topCamStr = topCam ? topCam.name : '—';
@@ -1524,7 +1559,7 @@ function renderDashboard() {
   const buckCards = state.bucks.length === 0
     ? '<div style="color:var(--text-3);font-size:12px;padding:8px 0;">No bucks added yet.</div>'
     : state.bucks.map(b => {
-        const bSights = state.sightings.filter(s=>s.buckId===b.id);
+        const bSights = sightings.filter(s=>s.buckId===b.id);
         const lastS = bSights.sort((a,z)=>(z.date+z.time).localeCompare(a.date+a.time))[0];
         let daysAgo = '—', daysClass = 'stale';
         if (lastS) {
@@ -1569,7 +1604,7 @@ function renderDashboard() {
       }).join('');
 
   // ── Recent sightings feed ──────────────────────────────────────
-  const recent = [...state.sightings].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)).slice(0,6);
+  const recent = [...sightings].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)).slice(0,6);
   const feed = recent.length === 0
     ? '<div style="color:var(--text-3);font-size:12px;padding:8px 0;">No sightings yet.</div>'
     : recent.map(s => {
@@ -1588,7 +1623,7 @@ function renderDashboard() {
 
   // ── Wind breakdown ─────────────────────────────────────────────
   const windC = {};
-  state.sightings.forEach(s => { if(s.windDir) windC[s.windDir]=(windC[s.windDir]||0)+1; });
+  sightings.forEach(s => { if(s.windDir) windC[s.windDir]=(windC[s.windDir]||0)+1; });
   const dirs = ['N','NE','E','SE','S','SW','W','NW'];
   const maxW = Math.max(...Object.values(windC),1);
   const windMini = dirs.filter(d=>windC[d]).sort((a,b)=>windC[b]-windC[a]).slice(0,6).map(d =>
@@ -1601,7 +1636,7 @@ function renderDashboard() {
   // ── Pattern alert (simple heuristic) ──────────────────────────
   let alertTitle = '📡 Keep logging data';
   let alertText = 'The more sightings you log, the sharper your pattern insights become. Aim for 20+ entries to start seeing reliable trends.';
-  if (hasSightings && state.sightings.length >= 5) {
+  if (hasSightings && sightings.length >= 5) {
     const dawn = hourCounts.slice(5,9).reduce((a,b)=>a+b,0);
     const dusk = hourCounts.slice(17,21).reduce((a,b)=>a+b,0);
     const mid = hourCounts.slice(10,15).reduce((a,b)=>a+b,0);
@@ -1622,7 +1657,7 @@ function renderDashboard() {
 
   // ── Rut breakdown ──────────────────────────────────────────────
   const rutC = {};
-  state.sightings.forEach(s => { if(s.rut) rutC[s.rut]=(rutC[s.rut]||0)+1; });
+  sightings.forEach(s => { if(s.rut) rutC[s.rut]=(rutC[s.rut]||0)+1; });
   const rutOrder = ['pre','seek','peak','lock','post'];
   const rutTotal = Object.values(rutC).reduce((a,b)=>a+b,0)||1;
   const rutBars = rutOrder.map(r => {
@@ -1726,6 +1761,7 @@ function renderDashboard() {
 // ============================================================
 function openModal(id) {
   if (id === 'sightingModal') {
+    renderSightingForm();
     populateSightingDropdowns();
     document.getElementById(id).classList.add('open');
     const now = new Date();
@@ -1990,24 +2026,36 @@ function addSighting() {
   const time = document.getElementById('sightTime').value;
   if (!buckId || !camId || !date) { alert('Please fill in Buck, Camera, and Date.'); return; }
 
+  const b = state.fieldSettings?.builtins || {};
   const s = {
     id: 'sight_' + Date.now(),
     buckId, camId, date, time,
-    temp: document.getElementById('sightTemp').value,
-    windDir: document.getElementById('sightWind').value,
-    windSpeed: document.getElementById('sightWindSpeed').value,
-    rut: document.getElementById('sightRut').value,
-    pressure: document.getElementById('sightPressure').value,
-    notes: document.getElementById('sightNotes').value.trim()
+    temp: b.temp?.enabled !== false ? (document.getElementById('sightTemp')?.value || '') : '',
+    windDir: b.windDir?.enabled !== false ? (document.getElementById('sightWind')?.value || '') : '',
+    windSpeed: b.windSpeed?.enabled !== false ? (document.getElementById('sightWindSpeed')?.value || '') : '',
+    pressure: b.pressure?.enabled !== false ? (document.getElementById('sightPressure')?.value || '') : '',
+    year: document.getElementById('sightYear')?.value || new Date().getFullYear().toString(),
+    season: b.season?.enabled !== false ? (document.getElementById('sightSeason')?.value || '') : '',
+    rut: b.rut?.enabled !== false ? (document.getElementById('sightRut')?.value || '') : '',
+    notes: b.notes?.enabled !== false ? (document.getElementById('sightNotes')?.value.trim() || '') : '',
+    customFields: {}
   };
+
+  // Capture custom field values
+  (state.fieldSettings?.custom || []).filter(f=>f.enabled!==false).forEach(f => {
+    const el = document.getElementById(`custom_${f.id}`);
+    if (el) s.customFields[f.id] = el.value;
+  });
+
   state.sightings.push(s);
   save();
   closeModal('sightingModal');
+  populateYearFilter();
   renderDashboard();
   // reset
-  ['sightBuck','sightCam','sightTemp','sightWindSpeed','sightPressure','sightNotes'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('weatherStatus').textContent = '';
-  document.getElementById('sightWind').value = '';
+  ['sightBuck','sightCam','sightTemp','sightWindSpeed','sightPressure','sightNotes','sightSeason'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  const yEl=document.getElementById('sightYear'); if(yEl) yEl.value=new Date().getFullYear();
+  ['weatherStatus','sightWind','sightRut'].forEach(id => { const el=document.getElementById(id); if(el) el.value ? el.value='' : el.textContent=''; });
   document.getElementById('sightRut').value = '';
   renderSidebar();
   renderLog();
@@ -2018,14 +2066,14 @@ function renderLog() {
   const fBuck = document.getElementById('filterBuck').value;
   const fCam = document.getElementById('filterCam').value;
   const fRut = document.getElementById('filterRut').value;
-  let sightings = [...state.sightings].sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
+  let sightings = [...filteredSightings()].sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
   if (fBuck) sightings = sightings.filter(s => s.buckId === fBuck);
   if (fCam) sightings = sightings.filter(s => s.camId === fCam);
   if (fRut) sightings = sightings.filter(s => s.rut === fRut);
 
   const tbody = document.getElementById('logTableBody');
   if (sightings.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🦌</div><div class="empty-text">No sightings match your filters</div></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">🦌</div><div class="empty-text">No sightings match your filters</div></div></td></tr>`;
     return;
   }
   tbody.innerHTML = sightings.map(s => {
@@ -2037,6 +2085,8 @@ function renderLog() {
       <td><div class="td-mono">${s.date}</div><div class="td-mono" style="color:var(--text-3)">${timeStr}</div></td>
       <td><div class="td-buck">${buck?buck.emoji+' '+buck.name:'Unknown'}</div></td>
       <td><div class="td-cam">${cam?`<div class="td-dot" style="background:${cam.color}"></div>${cam.name}`:'Unknown'}</div></td>
+      <td class="td-mono">${s.season||'—'}</td>
+      <td class="td-mono">${s.year||'—'}</td>
       <td class="td-mono">${s.temp?s.temp+'°F':'—'}</td>
       <td class="td-mono">${[s.windDir,s.windSpeed?s.windSpeed+'mph':''].filter(Boolean).join(' ')||'—'}</td>
       <td class="td-mono">${s.pressure?s.pressure+'${pressure} inHg':'—'}</td>
@@ -2070,14 +2120,15 @@ function updateStats() {
 // ============================================================
 function renderPatterns() {
   const grid = document.getElementById('patternsGrid');
-  if (state.sightings.length === 0) {
+  const sightings = filteredSightings();
+  if (sightings.length === 0) {
     grid.innerHTML = '<div class="no-data-msg" style="grid-column:1/-1;">Log sightings to start seeing patterns.</div>';
     return;
   }
 
   // --- Hour distribution ---
   const hourCounts = new Array(24).fill(0);
-  state.sightings.forEach(s => {
+  sightings.forEach(s => {
     if (s.time) { const h = parseInt(s.time.split(':')[0]); hourCounts[h]++; }
   });
   const maxH = Math.max(...hourCounts, 1);
@@ -2092,7 +2143,7 @@ function renderPatterns() {
 
   // --- Wind direction ---
   const windCounts = {};
-  state.sightings.forEach(s => { if (s.windDir) windCounts[s.windDir] = (windCounts[s.windDir]||0)+1; });
+  sightings.forEach(s => { if (s.windDir) windCounts[s.windDir] = (windCounts[s.windDir]||0)+1; });
   const maxW = Math.max(...Object.values(windCounts), 1);
   const dirs = ['N','NE','E','SE','S','SW','W','NW'];
   const windRows = dirs.map(d => {
@@ -2107,7 +2158,7 @@ function renderPatterns() {
 
   // --- Top cameras ---
   const camCounts = {};
-  state.sightings.forEach(s => { camCounts[s.camId] = (camCounts[s.camId]||0)+1; });
+  sightings.forEach(s => { camCounts[s.camId] = (camCounts[s.camId]||0)+1; });
   const topCams = Object.entries(camCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
   const maxC = topCams[0]?.[1]||1;
   document.getElementById('pStatTopCam').textContent = topCams[0] ? (state.cameras.find(c=>c.id===topCams[0][0])?.name||'?') : '—';
@@ -2125,18 +2176,57 @@ function renderPatterns() {
 
   // --- Buck activity ---
   const buckCounts = {};
-  state.sightings.forEach(s => { buckCounts[s.buckId] = (buckCounts[s.buckId]||0)+1; });
+  sightings.forEach(s => { buckCounts[s.buckId] = (buckCounts[s.buckId]||0)+1; });
   const topBuck = Object.entries(buckCounts).sort((a,b)=>b[1]-a[1])[0];
   document.getElementById('pStatTopBuck').textContent = topBuck ? (state.bucks.find(b=>b.id===topBuck[0])?.name||'?') : '—';
 
   // --- Avg temp ---
-  const temps = state.sightings.filter(s=>s.temp).map(s=>Number(s.temp));
+  const temps = sightings.filter(s=>s.temp).map(s=>Number(s.temp));
   const avgTemp = temps.length > 0 ? Math.round(temps.reduce((a,b)=>a+b,0)/temps.length) : null;
   document.getElementById('pStatAvgTemp').textContent = avgTemp !== null ? avgTemp+'°F' : '—';
 
+  // --- Year-over-year comparison ---
+  const allYears = [...new Set(state.sightings.map(s=>s.year).filter(Boolean))].sort((a,b)=>b-a);
+  let yoyCard = '';
+  if (allYears.length >= 2) {
+    // For each year, get sighting count (respecting season filter only, not year filter)
+    const seasonFiltered = activeSeasonFilter
+      ? state.sightings.filter(s => s.season === activeSeasonFilter)
+      : state.sightings;
+    const yearTotals = allYears.map(y => ({
+      year: y,
+      count: seasonFiltered.filter(s => s.year === y).length
+    }));
+    const maxYearCount = Math.max(...yearTotals.map(y=>y.count), 1);
+    // Hour breakdown per year (dawn vs dusk vs mid)
+    const yearRows = yearTotals.map(({year, count}) => {
+      const ySights = seasonFiltered.filter(s => s.year === year);
+      const dawn = ySights.filter(s=>s.time&&parseInt(s.time)<9&&parseInt(s.time)>=5).length;
+      const dusk = ySights.filter(s=>s.time&&parseInt(s.time)>=17&&parseInt(s.time)<=20).length;
+      const pct = Math.round(count/maxYearCount*100);
+      const isActive = !activeYearFilter || activeYearFilter === year;
+      return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;opacity:${isActive?1:0.4}">
+        <div style="font-size:13px;font-weight:800;color:var(--text);width:44px">${year}</div>
+        <div style="flex:1">
+          <div style="height:8px;background:var(--border);border-radius:4px;margin-bottom:4px">
+            <div style="width:${pct}%;height:100%;background:var(--green-mid);border-radius:4px"></div>
+          </div>
+          <div style="font-size:10px;color:var(--text-3);">${count} sightings · 🌅 ${dawn} dawn · 🌇 ${dusk} dusk</div>
+        </div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);width:28px;text-align:right">${count}</div>
+      </div>`;
+    }).join('');
+    const seasonCtx = activeSeasonFilter ? ` · ${activeSeasonFilter}` : '';
+    yoyCard = `<div class="pattern-card" style="grid-column:1/-1">
+      <div class="pattern-card-title">Year-Over-Year Activity${seasonCtx}</div>
+      <div class="pattern-card-sub">Sightings per year — compare seasons across years</div>
+      <div style="margin-top:4px">${yearRows}</div>
+    </div>`;
+  }
+
   // --- Rut breakdown ---
   const rutCounts = {};
-  state.sightings.forEach(s => { if (s.rut) rutCounts[s.rut] = (rutCounts[s.rut]||0)+1; });
+  sightings.forEach(s => { if (s.rut) rutCounts[s.rut] = (rutCounts[s.rut]||0)+1; });
   const rutOrder = ['pre','seek','peak','lock','post'];
   const rutTotal = Object.values(rutCounts).reduce((a,b)=>a+b,0)||1;
   const rutBars = rutOrder.map(r => {
@@ -2194,6 +2284,7 @@ function renderPatterns() {
       <div class="pattern-card-sub">Total sightings per buck</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px;margin-top:4px">${buckRows||'<div class="no-data-msg">No bucks logged</div>'}</div>
     </div>
+    ${yoyCard}
   `;
 }
 
@@ -2238,7 +2329,15 @@ function buildDataContext() {
         return '- ' + parts.join(' | ');
       }).join('\n');
 
+  const filterCtx = [
+    activeSeasonFilter ? `Season filter: ${activeSeasonFilter}` : 'No season filter (all seasons)',
+    activeYearFilter ? `Year filter: ${activeYearFilter}` : 'No year filter (all years)',
+  ].join(' · ');
+
   return `You are an expert whitetail deer hunting analyst. You have access to real trail camera data from this hunter's property. Your job is to find patterns, give actionable stand strategy advice, and ask smart follow-up questions. Be specific — reference actual camera names, buck names, dates, and numbers from the data. Be direct and practical, like a seasoned hunting buddy who also knows deer science.
+
+=== ACTIVE FILTERS ===
+${filterCtx}
 
 === PROPERTY DATA ===
 
@@ -2357,6 +2456,315 @@ async function sendAiMessage() {
 }
 
 // ============================================================
+// SIGHTING FORM — DYNAMIC RENDER
+// ============================================================
+function renderSightingForm() {
+  const fs = state.fieldSettings || {};
+  const builtins = fs.builtins || {};
+  const custom = fs.custom || [];
+  const body = document.getElementById('sightingModalBody');
+  if (!body) return;
+
+  let html = `
+    <div id="weatherStatus" style="font-size:12px;color:var(--text-3);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin-bottom:14px;min-height:32px;line-height:1.4;"></div>
+    <div class="form-row-2">
+      <div><label>Date</label><input type="date" id="sightDate" onchange="fetchWeather()"></div>
+      <div><label>Time</label><input type="time" id="sightTime" onchange="fetchWeather()"></div>
+    </div>
+    <div class="form-row-2">
+      <div><label>Buck</label><select id="sightBuck"><option value="">— Select Buck —</option></select></div>
+      <div><label>Camera</label><select id="sightCam"><option value="">— Select Camera —</option></select></div>
+    </div>`;
+
+  // Year field — always shown
+  const currentYear = new Date().getFullYear();
+  html += `<div class="form-row-2">
+    <div><label>Year</label><select id="sightYear">${[currentYear,currentYear-1,currentYear-2,currentYear-3,currentYear-4].map(y=>`<option value="${y}">${y}</option>`).join('')}</select></div>
+    <div></div>
+  </div>`;
+
+  // Season field
+  const seasonEnabled = (b.season?.enabled !== false);
+  const seasonOptions = b.season?.options || ['Summer','Early Season','Pre-Rut','Rut','Late Season'];
+  if (seasonEnabled) {
+    html += `<div class="form-row"><label>${b.season?.label||'Season'}</label><select id="sightSeason"><option value="">— Select Season —</option>${seasonOptions.map(o=>`<option value="${o}">${o}</option>`).join('')}</select></div>`;
+  }
+
+  // Weather fields in a 2-col grid
+  const weatherFields = [];
+  if (builtins.temp?.enabled !== false)
+    weatherFields.push(`<div><label>${builtins.temp?.label||'Temperature (°F)'}</label><input type="number" id="sightTemp" placeholder="Auto-filled" min="-20" max="110"></div>`);
+  if (builtins.windDir?.enabled !== false)
+    weatherFields.push(`<div><label>${builtins.windDir?.label||'Wind Direction'}</label><select id="sightWind"><option value="">Unknown</option>${['N','NE','E','SE','S','SW','W','NW'].map(d=>`<option value="${d}">${d}</option>`).join('')}</select></div>`);
+  if (builtins.windSpeed?.enabled !== false)
+    weatherFields.push(`<div><label>${builtins.windSpeed?.label||'Wind Speed (mph)'}</label><input type="number" id="sightWindSpeed" placeholder="Auto-filled" min="0" max="60"></div>`);
+  if (builtins.pressure?.enabled !== false)
+    weatherFields.push(`<div><label>${builtins.pressure?.label||'Barometric Pressure (inHg)'}</label><input type="number" id="sightPressure" placeholder="Auto-filled" min="27" max="32" step="0.01"></div>`);
+
+  // Pair weather fields into rows of 2
+  for (let i = 0; i < weatherFields.length; i += 2) {
+    html += `<div class="form-row-2">${weatherFields[i]}${weatherFields[i+1]||'<div></div>'}</div>`;
+  }
+
+  // Rut stage + refresh button row
+  const rutEnabled = builtins.rut?.enabled !== false;
+  const rutOptions = builtins.rut?.options || ['Pre-Rut','Seeking','Peak Rut','Lock-Down','Post-Rut'];
+  const rutHtml = rutEnabled
+    ? `<div><label>${builtins.rut?.label||'Rut Stage'}</label><select id="sightRut"><option value="">Unknown</option>${rutOptions.map(o=>`<option value="${o}">${o}</option>`).join('')}</select></div>`
+    : '<div></div>';
+  html += `<div class="form-row-2">${rutHtml}<div><label>&nbsp;</label><button onclick="fetchWeather()" style="width:100%;background:var(--green-light);border:1px solid var(--green-border);color:var(--green);font-size:12px;font-weight:600;padding:8px;border-radius:5px;cursor:pointer;">↺ Refresh Weather</button></div></div>`;
+
+  // Custom fields — pairs of 2
+  const enabledCustom = custom.filter(f => f.enabled !== false);
+  for (let i = 0; i < enabledCustom.length; i += 2) {
+    const pair = [enabledCustom[i], enabledCustom[i+1]].filter(Boolean);
+    html += `<div class="form-row-2">${pair.map(f => `<div><label>${f.label}</label>${renderCustomFieldInput(f)}</div>`).join('')}${pair.length === 1 ? '<div></div>' : ''}</div>`;
+  }
+
+  // Notes
+  if (builtins.notes?.enabled !== false)
+    html += `<div class="form-row"><label>${builtins.notes?.label||'Behavior / Notes'}</label><textarea id="sightNotes" placeholder="e.g. Feeding, moving with purpose toward NW, nose to ground, tending doe..."></textarea></div>`;
+
+  body.innerHTML = html;
+}
+
+function renderCustomFieldInput(f) {
+  const id = `custom_${f.id}`;
+  if (f.type === 'dropdown') {
+    const opts = (f.options||[]).map(o=>`<option value="${o}">${o}</option>`).join('');
+    return `<select id="${id}"><option value="">— Select —</option>${opts}</select>`;
+  } else if (f.type === 'toggle') {
+    return `<select id="${id}"><option value="">Unknown</option><option value="Yes">Yes</option><option value="No">No</option></select>`;
+  } else if (f.type === 'number') {
+    return `<input type="number" id="${id}" placeholder="Enter value">`;
+  } else {
+    return `<input type="text" id="${id}" placeholder="Enter ${f.label.toLowerCase()}">`;
+  }
+}
+
+// ============================================================
+// FIELD SETTINGS
+// ============================================================
+function ensureFieldSettings() {
+  if (!state.fieldSettings) state.fieldSettings = { builtins: {}, custom: [] };
+  if (!state.fieldSettings.builtins) state.fieldSettings.builtins = {};
+  if (!state.fieldSettings.custom) state.fieldSettings.custom = [];
+  const defaults = {
+    season:    { label:'Season', enabled:true, options:['Summer','Early Season','Pre-Rut','Rut','Late Season'] },
+    temp:      { label:'Temperature (°F)', enabled:true },
+    windDir:   { label:'Wind Direction', enabled:true },
+    windSpeed: { label:'Wind Speed (mph)', enabled:true },
+    pressure:  { label:'Barometric Pressure (inHg)', enabled:true },
+    rut:       { label:'Rut Stage', enabled:true, options:['Pre-Rut','Seeking','Peak Rut','Lock-Down','Post-Rut'] },
+    notes:     { label:'Behavior / Notes', enabled:true }
+  };
+  for (const [k,v] of Object.entries(defaults)) {
+    if (!state.fieldSettings.builtins[k]) state.fieldSettings.builtins[k] = {...v};
+  }
+}
+
+function renderFieldSettings() {
+  ensureFieldSettings();
+  const b = state.fieldSettings.builtins;
+  const custom = state.fieldSettings.custom;
+
+  // Built-in toggles
+  const builtinEl = document.getElementById('builtinFieldsList');
+  const builtinDefs = [
+    { key:'season', desc:'Editable season options', hasEdit:'season' },
+    { key:'temp', desc:'Auto-filled from weather' },
+    { key:'windDir', desc:'Auto-filled from weather' },
+    { key:'windSpeed', desc:'Auto-filled from weather' },
+    { key:'pressure', desc:'Auto-filled from weather' },
+    { key:'rut', desc:'Editable dropdown options', hasEdit:true },
+    { key:'notes', desc:'Free text behavior notes' }
+  ];
+  builtinEl.innerHTML = builtinDefs.map(({key, desc, hasEdit}) => `
+    <div class="field-toggle-row">
+      <div style="flex:1">
+        <div class="field-toggle-name">${b[key].label}</div>
+        <div class="field-toggle-sub">${desc}</div>
+      </div>
+      ${hasEdit ? `<button class="field-edit-btn" onclick="toggleFieldEditor('${hasEdit}')">Edit Options</button>` : ''}
+      <label class="toggle-switch">
+        <input type="checkbox" ${b[key].enabled!==false?'checked':''} onchange="toggleBuiltinField('${key}', this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>`).join('');
+
+  // Rut options editor
+  renderRutOptions();
+
+  // Custom fields
+  const customEl = document.getElementById('customFieldsList');
+  customEl.innerHTML = custom.length === 0
+    ? '<div style="color:var(--text-3);font-size:12px;padding:4px;">No custom fields yet.</div>'
+    : custom.map(f => `
+      <div class="custom-field-card">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;color:var(--text)">${f.label}</div>
+          <div class="custom-field-options">${f.type === 'dropdown' ? 'Options: '+(f.options||[]).join(', ') : f.type}</div>
+        </div>
+        <span class="custom-field-type-badge">${f.type}</span>
+        <label class="toggle-switch">
+          <input type="checkbox" ${f.enabled!==false?'checked':''} onchange="toggleCustomField('${f.id}', this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+        <button class="settings-item-del" onclick="deleteCustomField('${f.id}')">Remove</button>
+      </div>`).join('');
+
+  // Show/hide dropdown options textarea
+  document.getElementById('newFieldType').onchange = function() {
+    document.getElementById('dropdownOptionsWrap').style.display = this.value === 'dropdown' ? 'block' : 'none';
+  };
+}
+
+// ── Global season + year filter ───────────────────────────
+let activeSeasonFilter = '';
+let activeYearFilter = '';
+
+function getSeasonOptions() {
+  ensureFieldSettings();
+  return state.fieldSettings.builtins.season?.options || ['Summer','Early Season','Pre-Rut','Rut','Late Season'];
+}
+
+function populateSeasonFilter() {
+  const sel = document.getElementById('globalSeasonFilter');
+  if (!sel) return;
+  const options = getSeasonOptions();
+  sel.innerHTML = '<option value="">All Seasons</option>' +
+    options.map(o => `<option value="${o}" ${o===activeSeasonFilter?'selected':''}>${o}</option>`).join('');
+}
+
+function populateYearFilter() {
+  const sel = document.getElementById('globalYearFilter');
+  if (!sel) return;
+  // Get all years from sightings + current year
+  const years = new Set([new Date().getFullYear().toString()]);
+  state.sightings.forEach(s => { if (s.year) years.add(s.year); });
+  const sorted = [...years].sort((a,b) => b-a);
+  sel.innerHTML = '<option value="">All Years</option>' +
+    sorted.map(y => `<option value="${y}" ${y===activeYearFilter?'selected':''}>${y}</option>`).join('');
+}
+
+function onFilterChange() {
+  activeSeasonFilter = document.getElementById('globalSeasonFilter').value;
+  activeYearFilter = document.getElementById('globalYearFilter').value;
+  const active = document.querySelector('.view.active')?.id?.replace('view-','');
+  if (active === 'dashboard') renderDashboard();
+  if (active === 'log') renderLog();
+  if (active === 'patterns') renderPatterns();
+  if (active === 'ai') updateAiBadge();
+}
+
+// Keep old name working
+function onSeasonChange() { onFilterChange(); }
+
+function filteredSightings() {
+  return state.sightings.filter(s => {
+    if (activeSeasonFilter && s.season !== activeSeasonFilter) return false;
+    if (activeYearFilter && (s.year||'') !== activeYearFilter) return false;
+    return true;
+  });
+}
+
+// ── Field option editor (generic for season + rut) ───────
+function toggleFieldEditor(key) {
+  const editorId = key === 'season' ? 'seasonEditor' : 'rutStageEditor';
+  const listId   = key === 'season' ? 'seasonOptionsList' : 'rutOptionsList';
+  const el = document.getElementById(editorId);
+  // Close the other one
+  ['seasonEditor','rutStageEditor'].forEach(id => {
+    if (id !== editorId) document.getElementById(id).style.display = 'none';
+  });
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  renderFieldOptionsList(key, listId);
+}
+
+// Keep old name working
+function toggleRutEditor() { toggleFieldEditor('rut'); }
+
+function renderFieldOptionsList(key, listId) {
+  ensureFieldSettings();
+  const options = state.fieldSettings.builtins[key]?.options || [];
+  document.getElementById(listId).innerHTML = options.map((o,i) => `
+    <div style="display:flex;align-items:center;gap:8px;">
+      <input type="text" value="${o}" class="settings-input" style="flex:1;" onchange="updateFieldOption('${key}',${i},this.value)">
+      <button class="settings-item-del" onclick="deleteFieldOption('${key}',${i})">✕</button>
+    </div>`).join('');
+}
+
+function renderRutOptions() { renderFieldOptionsList('rut','rutOptionsList'); }
+
+function addFieldOption(key, inputId, listId) {
+  const val = document.getElementById(inputId).value.trim();
+  if (!val) return;
+  ensureFieldSettings();
+  if (!state.fieldSettings.builtins[key].options) state.fieldSettings.builtins[key].options = [];
+  state.fieldSettings.builtins[key].options.push(val);
+  document.getElementById(inputId).value = '';
+  save();
+  renderFieldOptionsList(key, listId);
+  if (key === 'season') populateSeasonFilter();
+}
+
+// Keep old name working
+function addRutOption() { addFieldOption('rut','newRutOption','rutOptionsList'); }
+
+function updateFieldOption(key, i, val) {
+  ensureFieldSettings();
+  state.fieldSettings.builtins[key].options[i] = val;
+  save();
+  if (key === 'season') populateSeasonFilter();
+}
+
+function deleteFieldOption(key, i) {
+  ensureFieldSettings();
+  state.fieldSettings.builtins[key].options.splice(i, 1);
+  save();
+  const listId = key === 'season' ? 'seasonOptionsList' : 'rutOptionsList';
+  renderFieldOptionsList(key, listId);
+  if (key === 'season') populateSeasonFilter();
+}
+
+function deleteRutOption(i) { deleteFieldOption('rut', i); }
+function updateRutOption(i, val) { updateFieldOption('rut', i, val); }
+
+function toggleBuiltinField(key, enabled) {
+  ensureFieldSettings();
+  state.fieldSettings.builtins[key].enabled = enabled;
+  save();
+}
+
+function addCustomField() {
+  const label = document.getElementById('newFieldLabel').value.trim();
+  const type = document.getElementById('newFieldType').value;
+  if (!label) { alert('Enter a field label.'); return; }
+  const optionsRaw = document.getElementById('newFieldOptions').value;
+  const options = type === 'dropdown' ? optionsRaw.split('\n').map(s=>s.trim()).filter(Boolean) : [];
+  if (type === 'dropdown' && options.length === 0) { alert('Add at least one dropdown option.'); return; }
+  ensureFieldSettings();
+  state.fieldSettings.custom.push({ id: 'cf_'+Date.now(), label, type, options, enabled: true });
+  save();
+  document.getElementById('newFieldLabel').value = '';
+  document.getElementById('newFieldOptions').value = '';
+  renderFieldSettings();
+}
+
+function toggleCustomField(id, enabled) {
+  ensureFieldSettings();
+  const f = state.fieldSettings.custom.find(f=>f.id===id);
+  if (f) { f.enabled = enabled; save(); }
+}
+
+function deleteCustomField(id) {
+  if (!confirm('Remove this custom field?')) return;
+  ensureFieldSettings();
+  state.fieldSettings.custom = state.fieldSettings.custom.filter(f=>f.id!==id);
+  save(); renderFieldSettings();
+}
+
+// ============================================================
 // SETTINGS
 // ============================================================
 function renderSettings() {
@@ -2365,6 +2773,7 @@ function renderSettings() {
   if (ps.hunter) document.getElementById('setHunterTag').value = ps.hunter;
   document.getElementById('setLat').value = ps.lat || 46.2504;
   document.getElementById('setLon').value = ps.lon || -91.07529;
+  renderFieldSettings();
 
   const buckList = document.getElementById('settingsBuckList');
   buckList.innerHTML = state.bucks.length === 0
@@ -2412,6 +2821,7 @@ function settingsAddBuck() {
   document.getElementById('newBuckAge').value = '';
   renderSettings();
   renderDashboard();
+  populateSeasonFilter();
 }
 
 function settingsAddCamera() {
@@ -2459,11 +2869,11 @@ function savePropertySettings() {
 }
 
 function exportCSV() {
-  const headers = ['Date','Time','Buck','Camera','Temp (F)','Wind Dir','Wind Speed (mph)','Pressure (inHg)','Rut Stage','Notes'];
+  const headers = ['Date','Time','Buck','Camera','Year','Season','Temp (F)','Wind Dir','Wind Speed (mph)','Pressure (inHg)','Rut Stage','Notes'];
   const rows = state.sightings.map(s => {
     const buck = state.bucks.find(b=>b.id===s.buckId)?.name||'Unknown';
     const cam = state.cameras.find(c=>c.id===s.camId)?.name||'Unknown';
-    return [s.date,s.time,buck,cam,s.temp,s.windDir,s.windSpeed,s.pressure,s.rut,`"${(s.notes||'').replace(/"/g,'""')}"`].join(',');
+    return [s.date,s.time,buck,cam,s.year||'',s.season||'',s.temp,s.windDir,s.windSpeed,s.pressure,s.rut,`"${(s.notes||'').replace(/"/g,'""')}"`].join(',');
   });
   const csv = [headers.join(','), ...rows].join('\n');
   const a = document.createElement('a');
@@ -2490,6 +2900,9 @@ function clearAllData() {
 const _origFetchWeather = fetchWeather;
 
 load();
+ensureFieldSettings();
+populateSeasonFilter();
+populateYearFilter();
 renderSidebar();
 populateSightingDropdowns();
 updateStats();
