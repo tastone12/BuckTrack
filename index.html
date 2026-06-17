@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buck Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bark: #0d1a0f;
+    --soil: #152318;
+    --moss: #1e3d24;
+    --sage: #3d6644;
+    --field: #6a9b72;
+    --straw: #95c49e;
+    --dawn: #d4edd7;
+    --fog: #eaf4eb;
+    --amber: #b03030;
+    --blood: #7a1a1a;
+    --sky: #c0594a;
+    --panel: rgba(13,26,15,0.96);
+    --border: rgba(106,155,114,0.22);
+    --radius: 4px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bark);
+    color: var(--dawn);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    height: 52px;
+    background: var(--soil);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    color: var(--straw);
+  }
+  .logo span { color: var(--amber); }
+  nav { display: flex; gap: 4px; }
+  nav button {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--field);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    cursor: pointer;
+    border-radius: var(--radius);
+    transition: all 0.15s;
+  }
+  nav button:hover { color: var(--dawn); border-color: var(--border); }
+  nav button.active { background: var(--moss); color: var(--dawn); border-color: var(--sage); }
+  .header-actions { display: flex; gap: 8px; }
+  .btn-primary {
+    background: var(--amber);
+    color: var(--bark);
+    border: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: var(--radius);
+    transition: all 0.15s;
+  }
+  .btn-primary:hover { background: var(--straw); }
+  .btn-secondary {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--field);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 7px 14px;
+    cursor: pointer;
+    border-radius: var(--radius);
+    transition: all 0.15s;
+  }
+  .btn-secondary:hover { border-color: var(--field); color: var(--dawn); }
+
+  /* MAIN LAYOUT */
+  .app { display: flex; flex: 1; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 280px;
+    background: var(--soil);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .sidebar-section { padding: 16px; border-bottom: 1px solid var(--border); }
+  .sidebar-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--sage);
+    margin-bottom: 10px;
+  }
+  .sidebar-scroll { flex: 1; overflow-y: auto; padding: 12px; }
+  .sidebar-scroll::-webkit-scrollbar { width: 3px; }
+  .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+  .sidebar-scroll::-webkit-scrollbar-thumb { background: var(--sage); border-radius: 2px; }
+
+  /* BUCK CARDS */
+  .buck-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .buck-card:hover { background: rgba(255,255,255,0.08); border-color: var(--sage); }
+  .buck-card.selected { background: rgba(176,48,48,0.12); border-color: var(--amber); }
+  .buck-avatar {
+    width: 32px; height: 32px;
+    background: var(--moss);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+  .buck-info { flex: 1; min-width: 0; }
+  .buck-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    color: var(--dawn);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .buck-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--sage);
+    margin-top: 1px;
+  }
+  .buck-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    flex-shrink: 0;
+  }
+
+  /* CAMERA BADGES */
+  .cam-list { display: flex; flex-direction: column; gap: 4px; }
+  .cam-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .cam-badge:hover { background: rgba(255,255,255,0.07); }
+  .cam-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .cam-name { font-size: 12px; color: var(--dawn); flex: 1; }
+  .cam-count { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--sage); }
+
+  /* MAIN CONTENT */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* VIEWS */
+  .view { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+  .view.active { display: flex; }
+
+  /* MAP VIEW */
+  .map-container {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background: #0f0c06;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .map-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(106,155,114,0.07) 39px, rgba(106,155,114,0.07) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(106,155,114,0.07) 39px, rgba(106,155,114,0.07) 40px);
+  }
+  #propertyMap {
+    position: relative;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    opacity: 0.85;
+    display: none;
+  }
+  .map-upload-prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    text-align: center;
+    z-index: 2;
+  }
+  .map-upload-icon { font-size: 48px; opacity: 0.4; }
+  .map-upload-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--straw);
+  }
+  .map-upload-sub { color: var(--sage); font-size: 13px; max-width: 280px; line-height: 1.5; }
+  .map-upload-label {
+    background: var(--amber);
+    color: var(--bark);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .map-upload-label:hover { background: var(--straw); }
+  #mapFileInput { display: none; }
+
+  /* CAMERA PINS on map */
+  .map-pins-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .cam-pin {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    pointer-events: all;
+    transition: transform 0.15s;
+  }
+  .cam-pin:hover { transform: translate(-50%, -100%) scale(1.15); }
+  .cam-pin-body {
+    width: 26px; height: 26px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    border: 2px solid rgba(255,255,255,0.3);
+  }
+  .cam-pin-inner {
+    transform: rotate(45deg);
+    font-size: 11px;
+    color: white;
+  }
+  .cam-pin-label {
+    margin-top: 6px;
+    background: rgba(20,14,6,0.85);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--dawn);
+    white-space: nowrap;
+    backdrop-filter: blur(4px);
+  }
+
+  /* MAP CONTROLS */
+  .map-controls {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 20;
+  }
+  .map-ctrl-btn {
+    width: 36px; height: 36px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--field);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    backdrop-filter: blur(8px);
+  }
+  .map-ctrl-btn:hover { border-color: var(--sage); color: var(--dawn); }
+  .map-ctrl-btn.active { background: var(--moss); border-color: var(--sage); color: var(--dawn); }
+
+  /* LOG VIEW */
+  .log-toolbar {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: var(--soil);
+    flex-shrink: 0;
+  }
+  .filter-select {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    color: var(--dawn);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 6px 10px;
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+  .filter-select:focus { outline: none; border-color: var(--sage); }
+  .log-table-wrap { flex: 1; overflow-y: auto; }
+  .log-table-wrap::-webkit-scrollbar { width: 3px; }
+  .log-table-wrap::-webkit-scrollbar-thumb { background: var(--sage); }
+  table { width: 100%; border-collapse: collapse; }
+  thead { position: sticky; top: 0; z-index: 5; }
+  th {
+    background: var(--soil);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    text-align: left;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--sage);
+    font-weight: 400;
+  }
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(169,149,106,0.1);
+    font-size: 13px;
+    color: var(--dawn);
+  }
+  tr:hover td { background: rgba(255,255,255,0.03); }
+  .td-buck { font-family: 'Playfair Display', serif; font-size: 14px; }
+  .td-mono { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--field); }
+  .td-cam { display: flex; align-items: center; gap: 6px; }
+  .td-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .rut-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+  }
+  .rut-pre { background: rgba(149,196,158,0.15); color: var(--straw); }
+  .rut-seek { background: rgba(176,48,48,0.2); color: #e07070; }
+  .rut-peak { background: rgba(122,26,26,0.3); color: #e05a44; }
+  .rut-lock { background: rgba(30,61,36,0.4); color: var(--field); }
+  .rut-post { background: rgba(21,35,24,0.5); color: var(--sage); }
+
+  /* PATTERNS VIEW */
+  .patterns-grid {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    align-content: start;
+  }
+  .patterns-grid::-webkit-scrollbar { width: 3px; }
+  .patterns-grid::-webkit-scrollbar-thumb { background: var(--sage); }
+  .pattern-card {
+    background: var(--soil);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+  .pattern-card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    color: var(--straw);
+    margin-bottom: 4px;
+  }
+  .pattern-card-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--sage);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  /* Hour chart */
+  .hour-bars { display: flex; gap: 2px; align-items: flex-end; height: 60px; }
+  .hour-bar {
+    flex: 1;
+    background: var(--moss);
+    border-radius: 2px 2px 0 0;
+    transition: background 0.2s;
+    position: relative;
+  }
+  .hour-bar:hover { background: var(--amber); }
+  .hour-bar.peak { background: var(--amber); }
+  .hour-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 8px;
+    color: var(--sage);
+  }
+  /* Wind rose simple */
+  .wind-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .wind-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+    background: rgba(255,255,255,0.03);
+    border-radius: var(--radius);
+  }
+  .wind-dir { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--straw); width: 24px; }
+  .wind-bar-wrap { flex: 1; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; }
+  .wind-bar-fill { height: 100%; background: var(--field); border-radius: 2px; }
+  .wind-pct { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--sage); }
+  /* Top cams */
+  .top-cam-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(169,149,106,0.1);
+  }
+  .top-cam-rank {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--border);
+    width: 24px;
+    flex-shrink: 0;
+  }
+  .top-cam-info { flex: 1; }
+  .top-cam-name { font-size: 13px; color: var(--dawn); }
+  .top-cam-count { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--sage); }
+  .top-cam-bar-wrap { width: 80px; height: 4px; background: rgba(255,255,255,0.08); border-radius: 2px; }
+  .top-cam-bar-fill { height: 100%; border-radius: 2px; }
+
+  /* Temp scatter simple */
+  .temp-dots { display: flex; flex-wrap: wrap; gap: 4px; align-items: flex-end; height: 80px; position: relative; }
+  .temp-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--amber);
+    opacity: 0.7;
+    position: absolute;
+    transition: opacity 0.2s;
+  }
+  .temp-dot:hover { opacity: 1; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--soil);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    width: 480px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+  }
+  .modal::-webkit-scrollbar { width: 3px; }
+  .modal::-webkit-scrollbar-thumb { background: var(--sage); }
+  .modal-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--straw);
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--sage);
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 2px;
+  }
+  .modal-close:hover { color: var(--dawn); }
+  .modal-body { padding: 20px 24px; }
+  .form-row { margin-bottom: 16px; }
+  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--sage);
+    margin-bottom: 6px;
+  }
+  input, select, textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--dawn);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    padding: 8px 12px;
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--amber);
+  }
+  select option { background: var(--soil); }
+  textarea { resize: vertical; min-height: 64px; }
+  .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--soil);
+    flex-shrink: 0;
+  }
+  .stat-item {
+    padding: 10px 20px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .stat-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--straw);
+    line-height: 1;
+  }
+  .stat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--sage);
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 60px;
+    color: var(--sage);
+    text-align: center;
+    flex: 1;
+  }
+  .empty-icon { font-size: 36px; opacity: 0.4; }
+  .empty-text { font-family: 'Playfair Display', serif; font-size: 16px; color: var(--field); }
+  .empty-sub { font-size: 12px; line-height: 1.5; max-width: 240px; }
+
+  /* ADD CAM MODE hint */
+  .mode-hint {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--panel);
+    border: 1px solid var(--amber);
+    border-radius: 20px;
+    padding: 8px 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: #e07070;
+    letter-spacing: 0.05em;
+    z-index: 20;
+    display: none;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  .no-data-msg {
+    padding: 40px;
+    text-align: center;
+    color: var(--sage);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+  }
+
+  /* AI ANALYST VIEW */
+  .ai-view {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    gap: 0;
+  }
+  .ai-chat-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-right: 1px solid var(--border);
+  }
+  .ai-sidebar-col {
+    width: 260px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--soil);
+  }
+  .ai-sidebar-head {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--sage);
+  }
+  .ai-suggestions {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+  }
+  .ai-suggestions::-webkit-scrollbar { width: 3px; }
+  .ai-suggestions::-webkit-scrollbar-thumb { background: var(--sage); }
+  .ai-suggest-group { margin-bottom: 14px; }
+  .ai-suggest-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--moss);
+    margin-bottom: 5px;
+    padding: 0 4px;
+  }
+  .ai-suggest-btn {
+    display: block;
+    width: 100%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--field);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 12px;
+    line-height: 1.4;
+    text-align: left;
+    padding: 8px 10px;
+    cursor: pointer;
+    margin-bottom: 4px;
+    transition: all 0.15s;
+  }
+  .ai-suggest-btn:hover {
+    background: rgba(176,48,48,0.1);
+    border-color: rgba(176,48,48,0.35);
+    color: var(--dawn);
+  }
+  /* Chat messages */
+  .ai-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .ai-messages::-webkit-scrollbar { width: 3px; }
+  .ai-messages::-webkit-scrollbar-thumb { background: var(--sage); }
+  .msg {
+    display: flex;
+    gap: 10px;
+    max-width: 100%;
+  }
+  .msg-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    margin-top: 2px;
+  }
+  .msg-avatar.user { background: var(--moss); }
+  .msg-avatar.ai { background: rgba(212,130,26,0.2); border: 1px solid rgba(212,130,26,0.3); }
+  .msg-bubble {
+    flex: 1;
+    min-width: 0;
+  }
+  .msg-sender {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+  .msg-sender.user { color: var(--sage); }
+  .msg-sender.ai { color: var(--amber); }
+  .msg-text {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 2px 8px 8px 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--dawn);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .msg.user .msg-text {
+    background: rgba(30,61,36,0.3);
+    border-color: rgba(61,102,68,0.35);
+    border-radius: 8px 2px 8px 8px;
+    color: var(--dawn);
+  }
+  .msg-text strong { color: var(--straw); }
+  .msg-text em { color: var(--field); font-style: normal; }
+  /* typing indicator */
+  .typing-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--amber);
+    border-radius: 50%;
+    animation: typingBounce 1.2s infinite;
+    margin-right: 3px;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingBounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40% { transform: translateY(-6px); opacity: 1; }
+  }
+  /* Input area */
+  .ai-input-area {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    background: var(--soil);
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  .ai-input {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--dawn);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 13px;
+    padding: 10px 14px;
+    resize: none;
+    min-height: 42px;
+    max-height: 120px;
+    line-height: 1.5;
+    transition: border-color 0.15s;
+  }
+  .ai-input:focus { outline: none; border-color: var(--amber); }
+  .ai-send-btn {
+    background: var(--amber);
+    border: none;
+    border-radius: var(--radius);
+    color: var(--bark);
+    font-size: 16px;
+    width: 42px;
+    height: 42px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .ai-send-btn:hover { background: var(--straw); }
+  .ai-send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .ai-welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    text-align: center;
+    gap: 12px;
+    padding: 40px;
+  }
+  .ai-welcome-icon { font-size: 40px; opacity: 0.5; }
+  .ai-welcome-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--straw);
+  }
+  .ai-welcome-sub { color: var(--sage); font-size: 13px; line-height: 1.6; max-width: 320px; }
+  .ai-data-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(30,61,36,0.5);
+    border: 1px solid var(--sage);
+    border-radius: 12px;
+    padding: 4px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--field);
+  }
+  .ai-data-badge span { color: var(--straw); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">BUCK<span>TRACK</span></div>
+  <nav>
+    <button class="active" onclick="switchView('map')">📍 Map</button>
+    <button onclick="switchView('log')">📋 Sighting Log</button>
+    <button onclick="switchView('patterns')">📈 Patterns</button>
+    <button onclick="switchView('ai')" style="border-color:rgba(176,48,48,0.4);color:#e07070">🤖 AI Analyst</button>
+  </nav>
+  <div class="header-actions">
+    <button class="btn-secondary" onclick="openModal('camModal')">+ Camera</button>
+    <button class="btn-secondary" onclick="openModal('buckModal')">+ Buck</button>
+    <button class="btn-primary" onclick="openModal('sightingModal')">+ Log Sighting</button>
+  </div>
+</header>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Cameras (<span id="camCountSidebar">0</span>)</div>
+      <div class="cam-list" id="camList">
+        <div style="color:var(--sage);font-size:12px;padding:4px 0;">No cameras yet. Add your first camera →</div>
+      </div>
+    </div>
+    <div class="sidebar-label" style="padding:14px 16px 6px;">Bucks (<span id="buckCountSidebar">0</span>)</div>
+    <div class="sidebar-scroll" id="buckList">
+      <div style="color:var(--sage);font-size:12px;padding:4px;">No bucks yet. Add a buck profile →</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- MAP VIEW -->
+    <div class="view active" id="view-map">
+      <div class="map-container" id="mapContainer">
+        <div class="map-bg"></div>
+
+        <div class="map-upload-prompt" id="mapUploadPrompt">
+          <div class="map-upload-icon">🗺️</div>
+          <div class="map-upload-title">Upload Your Property Map</div>
+          <div class="map-upload-sub">Upload an aerial photo or hand-drawn map. Cameras will be pinned directly on it.</div>
+          <label class="map-upload-label" for="mapFileInput">Choose Image</label>
+          <input type="file" id="mapFileInput" accept="image/*" onchange="loadMap(this)">
+        </div>
+
+        <img id="propertyMap" alt="Property Map">
+        <div class="map-pins-layer" id="mapPinsLayer"></div>
+        <div class="mode-hint" id="modeHint">📍 Click anywhere on the map to place camera</div>
+
+        <div class="map-controls">
+          <button class="map-ctrl-btn" id="addCamMapBtn" title="Place camera on map" onclick="togglePlaceMode()">📷</button>
+          <button class="map-ctrl-btn" title="Upload new map" onclick="document.getElementById('mapFileInput').click()">🗺️</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOG VIEW -->
+    <div class="view" id="view-log">
+      <div class="stats-bar" id="statsBar">
+        <div class="stat-item"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Total Sightings</div></div>
+        <div class="stat-item"><div class="stat-value" id="statBucks">0</div><div class="stat-label">Bucks Tracked</div></div>
+        <div class="stat-item"><div class="stat-value" id="statCams">0</div><div class="stat-label">Active Cameras</div></div>
+        <div class="stat-item"><div class="stat-value" id="statDays">—</div><div class="stat-label">Days of Data</div></div>
+      </div>
+      <div class="log-toolbar">
+        <select class="filter-select" id="filterBuck" onchange="renderLog()">
+          <option value="">All Bucks</option>
+        </select>
+        <select class="filter-select" id="filterCam" onchange="renderLog()">
+          <option value="">All Cameras</option>
+        </select>
+        <select class="filter-select" id="filterRut" onchange="renderLog()">
+          <option value="">All Rut Stages</option>
+          <option value="pre">Pre-Rut</option>
+          <option value="seek">Seeking</option>
+          <option value="peak">Peak Rut</option>
+          <option value="lock">Lock-Down</option>
+          <option value="post">Post-Rut</option>
+        </select>
+        <button class="btn-secondary" onclick="renderLog()" style="margin-left:auto;">Refresh</button>
+      </div>
+      <div class="log-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date / Time</th>
+              <th>Buck</th>
+              <th>Camera</th>
+              <th>Temp</th>
+              <th>Wind</th>
+              <th>Rut Stage</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="logTableBody">
+            <tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🦌</div><div class="empty-text">No sightings logged yet</div><div class="empty-sub">Start by adding cameras and buck profiles, then log your first sighting.</div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PATTERNS VIEW -->
+    <div class="view" id="view-patterns">
+      <div class="stats-bar">
+        <div class="stat-item"><div class="stat-value" id="pStatPeakHour">—</div><div class="stat-label">Peak Hour</div></div>
+        <div class="stat-item"><div class="stat-value" id="pStatTopCam">—</div><div class="stat-label">Hottest Camera</div></div>
+        <div class="stat-item"><div class="stat-value" id="pStatTopBuck">—</div><div class="stat-label">Most Active Buck</div></div>
+        <div class="stat-item"><div class="stat-value" id="pStatAvgTemp">—</div><div class="stat-label">Avg Temp at Sighting</div></div>
+      </div>
+      <div class="patterns-grid" id="patternsGrid">
+        <div class="no-data-msg" style="grid-column:1/-1;">Log sightings to start seeing patterns.</div>
+      </div>
+    </div>
+
+    <!-- AI ANALYST VIEW -->
+    <div class="view" id="view-ai">
+      <div class="ai-view">
+        <!-- Chat column -->
+        <div class="ai-chat-col">
+          <div class="ai-messages" id="aiMessages">
+            <div class="ai-welcome" id="aiWelcome">
+              <div class="ai-welcome-icon">🦌</div>
+              <div class="ai-welcome-title">Your Hunting Analyst</div>
+              <div class="ai-welcome-sub">I have full access to your cameras, bucks, and every sighting you've logged. Ask me anything — patterns, stand timing, buck behavior, what conditions to watch for.</div>
+              <div class="ai-data-badge" id="aiDataBadge">📊 <span id="aiSightingCount">0</span> sightings · <span id="aiBuckCount">0</span> bucks · <span id="aiCamCount">0</span> cameras</div>
+            </div>
+          </div>
+          <div class="ai-input-area">
+            <textarea class="ai-input" id="aiInput" placeholder="Ask about patterns, buck behavior, stand timing, conditions..." rows="1"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiMessage()}"
+              oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+            <button class="ai-send-btn" id="aiSendBtn" onclick="sendAiMessage()">➤</button>
+          </div>
+        </div>
+        <!-- Suggestions sidebar -->
+        <div class="ai-sidebar-col">
+          <div class="ai-sidebar-head">Suggested Questions</div>
+          <div class="ai-suggestions">
+            <div class="ai-suggest-group">
+              <div class="ai-suggest-label">Pattern Analysis</div>
+              <button class="ai-suggest-btn" onclick="askSuggestion(this)">What time of day are bucks most active on my property?</button>
+              <button class="ai-suggest-btn" onclick="askSuggestion(this)">Which camera location has the most buck activity and why might that be?</button>
+              <button class="ai-suggest-btn" onclick="askSuggestion(this)">What temperature range produces the most sightings?</button>
+            </div>
+            <div class="ai-suggest-group">
+              <div class="ai-suggest-label">Individual Bucks</div>
+              <button class="ai-suggest-btn" onclick="askSuggestion(this)">Give me a full breakdown on each buck I'm tracking — patterns, tendencies, and what I know so far.</button>
+              <button class="ai-suggest-btn" onclick="askSuggestion(this)">Which buck is most patternable based on my data?</button>
+              <button class="ai-suggest-btn" onclick="askSuggestion(this)">Are any of my bucks showing nocturnal tendencies?</button>
+            </div>
+            <div class="ai-suggest-group">
+              <div class="ai-suggest-label">Stand Strategy</div>
+              <button class="ai-suggest-btn" onclick="askSuggestion(this)">Based on my data, what wind direction should I wait for before hunting my best camera location?</button>
+              <button class="ai-suggest-btn" onclick="askSuggestion(this)">What time should I be in my stand to maximize my chances?</button>
+              <button class="ai-suggest-btn" onclick="askSuggestion(this)">What conditions (temp, wind, rut stage) have historically produced the most daylight buck movement?</button>
+            </div>
+            <div class="ai-suggest-group">
+              <div class="ai-suggest-label">Rut Insights</div>
+              <button class="ai-suggest-btn" onclick="askSuggestion(this)">How did buck movement change across different rut stages in my data?</button>
+              <button class="ai-suggest-btn" onclick="askSuggestion(this)">During peak rut, which cameras were hottest and what does that tell me about travel routes?</button>
+            </div>
+            <div class="ai-suggest-group">
+              <div class="ai-suggest-label">Data Gaps</div>
+              <button class="ai-suggest-btn" onclick="askSuggestion(this)">What information am I missing that would help you give better analysis?</button>
+              <button class="ai-suggest-btn" onclick="askSuggestion(this)">Where should I consider adding another camera based on what you see in my data?</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ========== MODALS ========== -->
+
+<!-- ADD CAMERA -->
+<div class="modal-overlay" id="camModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Camera</div>
+      <button class="modal-close" onclick="closeModal('camModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>Camera Name / Location</label>
+        <input type="text" id="camName" placeholder="e.g. North Food Plot, Creek Crossing">
+      </div>
+      <div class="form-row-2">
+        <div>
+          <label>Color Tag</label>
+          <select id="camColor">
+            <option value="#d4821a">Amber</option>
+            <option value="#6b7a52">Sage</option>
+            <option value="#7a9baa">Sky</option>
+            <option value="#8b2a1a">Blood</option>
+            <option value="#a8956a">Field</option>
+            <option value="#c9b47a">Straw</option>
+          </select>
+        </div>
+        <div>
+          <label>Type</label>
+          <select id="camType">
+            <option value="cellular">Cellular</option>
+            <option value="sd">SD Card</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Notes (habitat, facing direction, etc.)</label>
+        <textarea id="camNotes" placeholder="e.g. Facing NW toward oak flat, 200yd from stand..."></textarea>
+      </div>
+      <div style="background:rgba(212,130,26,0.08);border:1px solid rgba(212,130,26,0.2);border-radius:4px;padding:10px 12px;font-size:12px;color:var(--field);line-height:1.5;">
+        💡 After adding, go to the Map view and click 📷 to pin this camera on your property map.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('camModal')">Cancel</button>
+      <button class="btn-primary" onclick="addCamera()">Add Camera</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD BUCK -->
+<div class="modal-overlay" id="buckModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Buck Profile</div>
+      <button class="modal-close" onclick="closeModal('buckModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <label>Nickname / ID</label>
+        <input type="text" id="buckName" placeholder="e.g. Splitbrow, Tank, 8-Point Main Frame">
+      </div>
+      <div class="form-row-2">
+        <div>
+          <label>Estimated Age</label>
+          <select id="buckAge">
+            <option value="">Unknown</option>
+            <option value="1.5">1.5 yr</option>
+            <option value="2.5">2.5 yr</option>
+            <option value="3.5">3.5 yr</option>
+            <option value="4.5">4.5 yr</option>
+            <option value="5.5+">5.5+ yr</option>
+          </select>
+        </div>
+        <div>
+          <label>First Year on Property</label>
+          <input type="number" id="buckYear" placeholder="e.g. 2024" min="2000" max="2099">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Identifying Features</label>
+        <textarea id="buckFeatures" placeholder="e.g. Sticker on left G2, kicker off right beam, chocolate rack..."></textarea>
+      </div>
+      <div class="form-row">
+        <label>Emoji / Icon</label>
+        <input type="text" id="buckEmoji" placeholder="🦌" maxlength="4" style="font-size:20px;text-align:center;">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('buckModal')">Cancel</button>
+      <button class="btn-primary" onclick="addBuck()">Add Buck</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOG SIGHTING -->
+<div class="modal-overlay" id="sightingModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Log Sighting</div>
+      <button class="modal-close" onclick="closeModal('sightingModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row-2">
+        <div>
+          <label>Date</label>
+          <input type="date" id="sightDate">
+        </div>
+        <div>
+          <label>Time</label>
+          <input type="time" id="sightTime">
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div>
+          <label>Buck</label>
+          <select id="sightBuck">
+            <option value="">— Select Buck —</option>
+          </select>
+        </div>
+        <div>
+          <label>Camera</label>
+          <select id="sightCam">
+            <option value="">— Select Camera —</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div>
+          <label>Temperature (°F)</label>
+          <input type="number" id="sightTemp" placeholder="e.g. 42" min="-20" max="110">
+        </div>
+        <div>
+          <label>Wind Direction</label>
+          <select id="sightWind">
+            <option value="">Unknown</option>
+            <option value="N">N</option>
+            <option value="NE">NE</option>
+            <option value="E">E</option>
+            <option value="SE">SE</option>
+            <option value="S">S</option>
+            <option value="SW">SW</option>
+            <option value="W">W</option>
+            <option value="NW">NW</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div>
+          <label>Wind Speed (mph)</label>
+          <input type="number" id="sightWindSpeed" placeholder="e.g. 8" min="0" max="60">
+        </div>
+        <div>
+          <label>Rut Stage</label>
+          <select id="sightRut">
+            <option value="">Unknown</option>
+            <option value="pre">Pre-Rut</option>
+            <option value="seek">Seeking</option>
+            <option value="peak">Peak Rut</option>
+            <option value="lock">Lock-Down</option>
+            <option value="post">Post-Rut</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Behavior / Notes</label>
+        <textarea id="sightNotes" placeholder="e.g. Feeding, moving with purpose toward NW, nose to ground, tending doe..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('sightingModal')">Cancel</button>
+      <button class="btn-primary" onclick="addSighting()">Log Sighting</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  cameras: [],
+  bucks: [],
+  sightings: [],
+  mapDataUrl: null,
+  placingCamId: null,
+  selectedBuckId: null
+};
+
+const CAM_COLORS = {
+  '#d4821a': 'Amber', '#6b7a52': 'Sage', '#7a9baa': 'Sky',
+  '#8b2a1a': 'Blood', '#a8956a': 'Field', '#c9b47a': 'Straw'
+};
+const RUT_LABELS = { pre:'Pre-Rut', seek:'Seeking', peak:'Peak Rut', lock:'Lock-Down', post:'Post-Rut' };
+const RUT_CLASSES = { pre:'rut-pre', seek:'rut-seek', peak:'rut-peak', lock:'rut-lock', post:'rut-post' };
+
+// ============================================================
+// PERSISTENCE
+// ============================================================
+function save() { localStorage.setItem('bucktrack_v1', JSON.stringify(state)); }
+function load() {
+  const raw = localStorage.getItem('bucktrack_v1');
+  if (raw) { state = JSON.parse(raw); }
+}
+
+// ============================================================
+// NAV
+// ============================================================
+function switchView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-' + v).classList.add('active');
+  document.querySelectorAll('nav button')[['map','log','patterns','ai'].indexOf(v)].classList.add('active');
+  if (v === 'log') { renderLog(); updateStats(); }
+  if (v === 'patterns') renderPatterns();
+  if (v === 'map') renderMapPins();
+  if (v === 'ai') updateAiBadge();
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function openModal(id) {
+  if (id === 'sightingModal') populateSightingDropdowns();
+  document.getElementById(id).classList.add('open');
+  // default date/time
+  if (id === 'sightingModal') {
+    if (!document.getElementById('sightDate').value) {
+      const now = new Date();
+      document.getElementById('sightDate').value = now.toISOString().split('T')[0];
+      document.getElementById('sightTime').value = now.toTimeString().slice(0,5);
+    }
+  }
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ============================================================
+// CAMERAS
+// ============================================================
+function addCamera() {
+  const name = document.getElementById('camName').value.trim();
+  if (!name) { alert('Please enter a camera name.'); return; }
+  const cam = {
+    id: 'cam_' + Date.now(),
+    name,
+    color: document.getElementById('camColor').value,
+    type: document.getElementById('camType').value,
+    notes: document.getElementById('camNotes').value.trim(),
+    x: null, y: null
+  };
+  state.cameras.push(cam);
+  save();
+  closeModal('camModal');
+  document.getElementById('camName').value = '';
+  document.getElementById('camNotes').value = '';
+  renderSidebar();
+  renderMapPins();
+}
+
+function renderSidebar() {
+  // Cameras
+  const camList = document.getElementById('camList');
+  document.getElementById('camCountSidebar').textContent = state.cameras.length;
+  if (state.cameras.length === 0) {
+    camList.innerHTML = '<div style="color:var(--sage);font-size:12px;padding:4px 0;">No cameras yet. Add your first camera →</div>';
+  } else {
+    camList.innerHTML = state.cameras.map(c => {
+      const count = state.sightings.filter(s => s.camId === c.id).length;
+      return `<div class="cam-badge">
+        <div class="cam-dot" style="background:${c.color}"></div>
+        <div class="cam-name">${c.name}</div>
+        <div class="cam-count">${count}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Bucks
+  const buckList = document.getElementById('buckList');
+  document.getElementById('buckCountSidebar').textContent = state.bucks.length;
+  if (state.bucks.length === 0) {
+    buckList.innerHTML = '<div style="color:var(--sage);font-size:12px;padding:4px;">No bucks yet. Add a buck profile →</div>';
+  } else {
+    buckList.innerHTML = state.bucks.map(b => {
+      const count = state.sightings.filter(s => s.buckId === b.id).length;
+      const last = state.sightings.filter(s => s.buckId === b.id).sort((a,b2)=>new Date(b2.date+b2.time)-new Date(a.date+a.time))[0];
+      return `<div class="buck-card ${state.selectedBuckId===b.id?'selected':''}" onclick="selectBuck('${b.id}')">
+        <div class="buck-avatar">${b.emoji||'🦌'}</div>
+        <div class="buck-info">
+          <div class="buck-name">${b.name}</div>
+          <div class="buck-meta">${b.age?b.age+' yr · ':''} ${last?'Last: '+last.date:'No sightings'}</div>
+        </div>
+        <div class="buck-count">${count}</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ============================================================
+// BUCKS
+// ============================================================
+function addBuck() {
+  const name = document.getElementById('buckName').value.trim();
+  if (!name) { alert('Please enter a name or ID for this buck.'); return; }
+  const buck = {
+    id: 'buck_' + Date.now(),
+    name,
+    age: document.getElementById('buckAge').value,
+    year: document.getElementById('buckYear').value,
+    features: document.getElementById('buckFeatures').value.trim(),
+    emoji: document.getElementById('buckEmoji').value.trim() || '🦌'
+  };
+  state.bucks.push(buck);
+  save();
+  closeModal('buckModal');
+  document.getElementById('buckName').value = '';
+  document.getElementById('buckFeatures').value = '';
+  document.getElementById('buckEmoji').value = '';
+  renderSidebar();
+}
+
+function selectBuck(id) {
+  state.selectedBuckId = state.selectedBuckId === id ? null : id;
+  renderSidebar();
+}
+
+// ============================================================
+// MAP
+// ============================================================
+function loadMap(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    state.mapDataUrl = e.target.result;
+    save();
+    showMap();
+  };
+  reader.readAsDataURL(file);
+}
+
+function showMap() {
+  const img = document.getElementById('propertyMap');
+  const prompt = document.getElementById('mapUploadPrompt');
+  img.src = state.mapDataUrl;
+  img.style.display = 'block';
+  prompt.style.display = 'none';
+  renderMapPins();
+}
+
+let placingMode = false;
+function togglePlaceMode() {
+  if (state.cameras.length === 0) {
+    alert('Add a camera first, then place it on the map.');
+    return;
+  }
+  if (!state.mapDataUrl) {
+    alert('Upload a property map first.');
+    return;
+  }
+  placingMode = !placingMode;
+  document.getElementById('addCamMapBtn').classList.toggle('active', placingMode);
+  document.getElementById('modeHint').style.display = placingMode ? 'block' : 'none';
+  document.getElementById('mapContainer').style.cursor = placingMode ? 'crosshair' : 'default';
+}
+
+document.getElementById('mapContainer').addEventListener('click', function(e) {
+  if (!placingMode) return;
+  // find unplaced cameras
+  const unplaced = state.cameras.filter(c => c.x === null);
+  if (unplaced.length === 0) { alert('All cameras are placed.'); togglePlaceMode(); return; }
+
+  const cam = unplaced[0];
+  const rect = this.getBoundingClientRect();
+  const img = document.getElementById('propertyMap');
+  const imgRect = img.getBoundingClientRect();
+  const xPct = (e.clientX - imgRect.left) / imgRect.width * 100;
+  const yPct = (e.clientY - imgRect.top) / imgRect.height * 100;
+  cam.x = xPct;
+  cam.y = yPct;
+  save();
+  renderMapPins();
+
+  const remaining = state.cameras.filter(c => c.x === null);
+  if (remaining.length === 0) {
+    togglePlaceMode();
+  } else {
+    document.getElementById('modeHint').textContent = `📍 Next: ${remaining[0].name} — click to place`;
+  }
+});
+
+function renderMapPins() {
+  const layer = document.getElementById('mapPinsLayer');
+  const img = document.getElementById('propertyMap');
+  if (!img || img.style.display === 'none') { layer.innerHTML = ''; return; }
+  layer.innerHTML = state.cameras.filter(c => c.x !== null).map(c => `
+    <div class="cam-pin" style="left:${c.x}%;top:${c.y}%" title="${c.name}">
+      <div class="cam-pin-body" style="background:${c.color}">
+        <div class="cam-pin-inner">📷</div>
+      </div>
+      <div class="cam-pin-label">${c.name}</div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// SIGHTINGS
+// ============================================================
+function populateSightingDropdowns() {
+  const bSel = document.getElementById('sightBuck');
+  const cSel = document.getElementById('sightCam');
+  bSel.innerHTML = '<option value="">— Select Buck —</option>' + state.bucks.map(b => `<option value="${b.id}">${b.emoji||'🦌'} ${b.name}</option>`).join('');
+  cSel.innerHTML = '<option value="">— Select Camera —</option>' + state.cameras.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  // also update filter selects
+  const fBuck = document.getElementById('filterBuck');
+  const fCam = document.getElementById('filterCam');
+  fBuck.innerHTML = '<option value="">All Bucks</option>' + state.bucks.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  fCam.innerHTML = '<option value="">All Cameras</option>' + state.cameras.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+}
+
+function addSighting() {
+  const buckId = document.getElementById('sightBuck').value;
+  const camId = document.getElementById('sightCam').value;
+  const date = document.getElementById('sightDate').value;
+  const time = document.getElementById('sightTime').value;
+  if (!buckId || !camId || !date) { alert('Please fill in Buck, Camera, and Date.'); return; }
+
+  const s = {
+    id: 'sight_' + Date.now(),
+    buckId, camId, date, time,
+    temp: document.getElementById('sightTemp').value,
+    windDir: document.getElementById('sightWind').value,
+    windSpeed: document.getElementById('sightWindSpeed').value,
+    rut: document.getElementById('sightRut').value,
+    notes: document.getElementById('sightNotes').value.trim()
+  };
+  state.sightings.push(s);
+  save();
+  closeModal('sightingModal');
+  // reset
+  ['sightBuck','sightCam','sightTemp','sightWindSpeed','sightNotes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('sightWind').value = '';
+  document.getElementById('sightRut').value = '';
+  renderSidebar();
+  renderLog();
+  updateStats();
+}
+
+function renderLog() {
+  const fBuck = document.getElementById('filterBuck').value;
+  const fCam = document.getElementById('filterCam').value;
+  const fRut = document.getElementById('filterRut').value;
+  let sightings = [...state.sightings].sort((a,b) => (b.date+b.time).localeCompare(a.date+a.time));
+  if (fBuck) sightings = sightings.filter(s => s.buckId === fBuck);
+  if (fCam) sightings = sightings.filter(s => s.camId === fCam);
+  if (fRut) sightings = sightings.filter(s => s.rut === fRut);
+
+  const tbody = document.getElementById('logTableBody');
+  if (sightings.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🦌</div><div class="empty-text">No sightings match your filters</div></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = sightings.map(s => {
+    const buck = state.bucks.find(b => b.id === s.buckId);
+    const cam = state.cameras.find(c => c.id === s.camId);
+    const timeStr = s.time ? formatTime(s.time) : '—';
+    const rutBadge = s.rut ? `<span class="rut-badge ${RUT_CLASSES[s.rut]}">${RUT_LABELS[s.rut]}</span>` : '—';
+    return `<tr>
+      <td><div class="td-mono">${s.date}</div><div class="td-mono" style="color:var(--sage)">${timeStr}</div></td>
+      <td><div class="td-buck">${buck?buck.emoji+' '+buck.name:'Unknown'}</div></td>
+      <td><div class="td-cam">${cam?`<div class="td-dot" style="background:${cam.color}"></div>${cam.name}`:'Unknown'}</div></td>
+      <td class="td-mono">${s.temp?s.temp+'°F':'—'}</td>
+      <td class="td-mono">${[s.windDir,s.windSpeed?s.windSpeed+'mph':''].filter(Boolean).join(' ')||'—'}</td>
+      <td>${rutBadge}</td>
+      <td style="font-size:12px;color:var(--field);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.notes||'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function formatTime(t) {
+  if (!t) return '—';
+  const [h,m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  return `${h%12||12}:${m.toString().padStart(2,'0')} ${ampm}`;
+}
+
+function updateStats() {
+  document.getElementById('statTotal').textContent = state.sightings.length;
+  document.getElementById('statBucks').textContent = new Set(state.sightings.map(s=>s.buckId)).size;
+  document.getElementById('statCams').textContent = new Set(state.sightings.map(s=>s.camId)).size;
+  if (state.sightings.length > 0) {
+    const dates = state.sightings.map(s => new Date(s.date));
+    const min = Math.min(...dates), max = Math.max(...dates);
+    const days = Math.round((max - min) / 86400000) + 1;
+    document.getElementById('statDays').textContent = days;
+  }
+}
+
+// ============================================================
+// PATTERNS
+// ============================================================
+function renderPatterns() {
+  const grid = document.getElementById('patternsGrid');
+  if (state.sightings.length === 0) {
+    grid.innerHTML = '<div class="no-data-msg" style="grid-column:1/-1;">Log sightings to start seeing patterns.</div>';
+    return;
+  }
+
+  // --- Hour distribution ---
+  const hourCounts = new Array(24).fill(0);
+  state.sightings.forEach(s => {
+    if (s.time) { const h = parseInt(s.time.split(':')[0]); hourCounts[h]++; }
+  });
+  const maxH = Math.max(...hourCounts, 1);
+  const peakHour = hourCounts.indexOf(Math.max(...hourCounts));
+  document.getElementById('pStatPeakHour').textContent = peakHour === -1 ? '—' : formatTime(peakHour+':00');
+
+  const hourBars = hourCounts.map((c,i) => {
+    const h = Math.round((c/maxH)*100);
+    const isPeak = c === Math.max(...hourCounts) && c > 0;
+    return `<div class="hour-bar ${isPeak?'peak':''}" style="height:${Math.max(h,2)}%" title="${i}:00 — ${c} sightings"></div>`;
+  }).join('');
+
+  // --- Wind direction ---
+  const windCounts = {};
+  state.sightings.forEach(s => { if (s.windDir) windCounts[s.windDir] = (windCounts[s.windDir]||0)+1; });
+  const maxW = Math.max(...Object.values(windCounts), 1);
+  const dirs = ['N','NE','E','SE','S','SW','W','NW'];
+  const windRows = dirs.map(d => {
+    const c = windCounts[d]||0;
+    const pct = Math.round(c/maxW*100);
+    return `<div class="wind-item">
+      <div class="wind-dir">${d}</div>
+      <div class="wind-bar-wrap"><div class="wind-bar-fill" style="width:${pct}%"></div></div>
+      <div class="wind-pct">${c}</div>
+    </div>`;
+  }).join('');
+
+  // --- Top cameras ---
+  const camCounts = {};
+  state.sightings.forEach(s => { camCounts[s.camId] = (camCounts[s.camId]||0)+1; });
+  const topCams = Object.entries(camCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxC = topCams[0]?.[1]||1;
+  document.getElementById('pStatTopCam').textContent = topCams[0] ? (state.cameras.find(c=>c.id===topCams[0][0])?.name||'?') : '—';
+  const camRows = topCams.map(([id,count],i) => {
+    const cam = state.cameras.find(c=>c.id===id);
+    return `<div class="top-cam-item">
+      <div class="top-cam-rank">${i+1}</div>
+      <div class="top-cam-info">
+        <div class="top-cam-name">${cam?cam.name:'Unknown'}</div>
+        <div class="top-cam-count">${count} sightings</div>
+      </div>
+      <div class="top-cam-bar-wrap"><div class="top-cam-bar-fill" style="width:${Math.round(count/maxC*100)}%;background:${cam?cam.color:'var(--sage)'}"></div></div>
+    </div>`;
+  }).join('');
+
+  // --- Buck activity ---
+  const buckCounts = {};
+  state.sightings.forEach(s => { buckCounts[s.buckId] = (buckCounts[s.buckId]||0)+1; });
+  const topBuck = Object.entries(buckCounts).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('pStatTopBuck').textContent = topBuck ? (state.bucks.find(b=>b.id===topBuck[0])?.name||'?') : '—';
+
+  // --- Avg temp ---
+  const temps = state.sightings.filter(s=>s.temp).map(s=>Number(s.temp));
+  const avgTemp = temps.length > 0 ? Math.round(temps.reduce((a,b)=>a+b,0)/temps.length) : null;
+  document.getElementById('pStatAvgTemp').textContent = avgTemp !== null ? avgTemp+'°F' : '—';
+
+  // --- Rut breakdown ---
+  const rutCounts = {};
+  state.sightings.forEach(s => { if (s.rut) rutCounts[s.rut] = (rutCounts[s.rut]||0)+1; });
+  const rutOrder = ['pre','seek','peak','lock','post'];
+  const rutTotal = Object.values(rutCounts).reduce((a,b)=>a+b,0)||1;
+  const rutBars = rutOrder.map(r => {
+    const c = rutCounts[r]||0;
+    const pct = Math.round(c/rutTotal*100);
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <div style="width:70px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--sage);text-align:right">${RUT_LABELS[r]}</div>
+      <div style="flex:1;height:6px;background:rgba(255,255,255,0.08);border-radius:3px">
+        <div style="width:${pct}%;height:100%;background:var(--amber);border-radius:3px"></div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--field);width:20px">${c}</div>
+    </div>`;
+  }).join('');
+
+  // Buck comparison
+  const buckRows = Object.entries(buckCounts).sort((a,b)=>b[1]-a[1]).map(([id,count]) => {
+    const buck = state.bucks.find(b=>b.id===id);
+    const maxBuck = Math.max(...Object.values(buckCounts));
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <div style="font-size:16px">${buck?.emoji||'🦌'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:'Playfair Display',serif;font-size:13px;color:var(--dawn);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${buck?.name||'Unknown'}</div>
+        <div style="height:4px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:4px">
+          <div style="width:${Math.round(count/maxBuck*100)}%;height:100%;background:var(--amber);border-radius:2px"></div>
+        </div>
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--field);flex-shrink:0">${count}</div>
+    </div>`;
+  }).join('');
+
+  grid.innerHTML = `
+    <div class="pattern-card">
+      <div class="pattern-card-title">Movement by Hour</div>
+      <div class="pattern-card-sub">All sightings · 24hr</div>
+      <div class="hour-bars">${hourBars}</div>
+      <div class="hour-labels"><span>12AM</span><span>6AM</span><span>12PM</span><span>6PM</span><span>11PM</span></div>
+    </div>
+    <div class="pattern-card">
+      <div class="pattern-card-title">Wind at Sighting</div>
+      <div class="pattern-card-sub">Direction frequency</div>
+      <div class="wind-grid">${windRows}</div>
+    </div>
+    <div class="pattern-card">
+      <div class="pattern-card-title">Camera Hotspots</div>
+      <div class="pattern-card-sub">By sighting count</div>
+      ${camRows || '<div class="no-data-msg">No camera data</div>'}
+    </div>
+    <div class="pattern-card">
+      <div class="pattern-card-title">Rut Stage Breakdown</div>
+      <div class="pattern-card-sub">Sightings by rut phase</div>
+      ${rutBars || '<div class="no-data-msg">No rut data logged</div>'}
+    </div>
+    <div class="pattern-card" style="grid-column:1/-1">
+      <div class="pattern-card-title">Buck Activity Comparison</div>
+      <div class="pattern-card-sub">Total sightings per buck</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px;margin-top:4px">${buckRows||'<div class="no-data-msg">No bucks logged</div>'}</div>
+    </div>
+  `;
+}
+
+// ============================================================
+// AI ANALYST
+// ============================================================
+let aiHistory = [];
+
+function updateAiBadge() {
+  document.getElementById('aiSightingCount').textContent = state.sightings.length;
+  document.getElementById('aiBuckCount').textContent = state.bucks.length;
+  document.getElementById('aiCamCount').textContent = state.cameras.length;
+}
+
+function buildDataContext() {
+  const RUT_LABELS = { pre:'Pre-Rut', seek:'Seeking', peak:'Peak Rut', lock:'Lock-Down', post:'Post-Rut' };
+  const camMap = Object.fromEntries(state.cameras.map(c => [c.id, c.name]));
+  const buckMap = Object.fromEntries(state.bucks.map(b => [b.id, `${b.name}${b.age?' (est. '+b.age+' yr)':''}`]));
+
+  const camSummary = state.cameras.map(c => {
+    const cnt = state.sightings.filter(s => s.camId === c.id).length;
+    return `- ${c.name} (${c.type}, ${cnt} sightings${c.notes ? ', notes: ' + c.notes : ''})`;
+  }).join('\n') || 'No cameras added yet.';
+
+  const buckSummary = state.bucks.map(b => {
+    const sights = state.sightings.filter(s => s.buckId === b.id);
+    const last = sights.sort((a,z)=>(z.date+z.time).localeCompare(a.date+a.time))[0];
+    return `- ${b.name}: est. age ${b.age||'unknown'}, ${sights.length} sightings, last seen ${last?last.date:'never'}${b.features?', features: '+b.features:''}`;
+  }).join('\n') || 'No bucks added yet.';
+
+  const sightingSummary = state.sightings.length === 0
+    ? 'No sightings logged yet.'
+    : state.sightings.map(s => {
+        const parts = [
+          s.date, s.time||'', buckMap[s.buckId]||'Unknown Buck',
+          'at', camMap[s.camId]||'Unknown Camera',
+          s.temp ? s.temp+'°F' : '',
+          s.windDir ? 'wind '+s.windDir+(s.windSpeed?' '+s.windSpeed+'mph':'') : '',
+          s.rut ? RUT_LABELS[s.rut] : '',
+          s.notes ? '— '+s.notes : ''
+        ].filter(Boolean);
+        return '- ' + parts.join(' | ');
+      }).join('\n');
+
+  return `You are an expert whitetail deer hunting analyst. You have access to real trail camera data from this hunter's property. Your job is to find patterns, give actionable stand strategy advice, and ask smart follow-up questions. Be specific — reference actual camera names, buck names, dates, and numbers from the data. Be direct and practical, like a seasoned hunting buddy who also knows deer science.
+
+=== PROPERTY DATA ===
+
+CAMERAS (${state.cameras.length} total):
+${camSummary}
+
+BUCKS BEING TRACKED (${state.bucks.length} total):
+${buckSummary}
+
+ALL SIGHTINGS (${state.sightings.length} total):
+${sightingSummary}
+
+=== END DATA ===
+
+Answer the hunter's question using this data. If there isn't enough data to give a confident answer, say so clearly and tell them what additional data would help. Always be specific when the data supports it.`;
+}
+
+function askSuggestion(btn) {
+  document.getElementById('aiInput').value = btn.textContent.trim();
+  sendAiMessage();
+}
+
+function appendMessage(role, text) {
+  const welcome = document.getElementById('aiWelcome');
+  if (welcome) welcome.style.display = 'none';
+
+  const msgs = document.getElementById('aiMessages');
+  const div = document.createElement('div');
+  div.className = 'msg';
+  const isUser = role === 'user';
+  div.innerHTML = `
+    <div class="msg-avatar ${isUser?'user':'ai'}">${isUser?'👤':'🦌'}</div>
+    <div class="msg-bubble">
+      <div class="msg-sender ${isUser?'user':'ai'}">${isUser?'You':'AI Analyst'}</div>
+      <div class="msg-text">${escapeHtml(text)}</div>
+    </div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function appendTyping() {
+  const welcome = document.getElementById('aiWelcome');
+  if (welcome) welcome.style.display = 'none';
+  const msgs = document.getElementById('aiMessages');
+  const div = document.createElement('div');
+  div.className = 'msg';
+  div.id = 'typingIndicator';
+  div.innerHTML = `
+    <div class="msg-avatar ai">🦌</div>
+    <div class="msg-bubble">
+      <div class="msg-sender ai">AI Analyst</div>
+      <div class="msg-text"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>
+    </div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function escapeHtml(text) {
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/#{1,3} (.+)/g,'<strong>$1</strong>')
+    .replace(/\n/g,'<br>');
+}
+
+async function sendAiMessage() {
+  const input = document.getElementById('aiInput');
+  const sendBtn = document.getElementById('aiSendBtn');
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  sendBtn.disabled = true;
+
+  appendMessage('user', text);
+  aiHistory.push({ role: 'user', content: text });
+
+  const typing = appendTyping();
+
+  try {
+    const systemPrompt = buildDataContext();
+    const messages = aiHistory.slice(-12); // keep last 12 turns for context
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages
+      })
+    });
+
+    const data = await response.json();
+    typing.remove();
+
+    if (data.content && data.content[0]) {
+      const reply = data.content[0].text;
+      aiHistory.push({ role: 'assistant', content: reply });
+      appendMessage('assistant', reply);
+    } else {
+      appendMessage('assistant', 'Something went wrong with the API response. Please try again.');
+    }
+  } catch (err) {
+    typing.remove();
+    appendMessage('assistant', 'Connection error. Please check your internet and try again.\n\nError: ' + err.message);
+  }
+
+  sendBtn.disabled = false;
+  document.getElementById('aiMessages').scrollTop = 99999;
+}
+
+
+load();
+renderSidebar();
+populateSightingDropdowns();
+updateStats();
+updateAiBadge();
+if (state.mapDataUrl) showMap();
+
+// If map changes, re-render pins
+const origShowMap = showMap;
+window.addEventListener('resize', renderMapPins);
+</script>
+</body>
+</html>
