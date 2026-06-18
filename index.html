@@ -1418,7 +1418,16 @@ const CAM_COLORS = {
   '#d4821a': 'Amber', '#6b7a52': 'Sage', '#7a9baa': 'Sky',
   '#8b2a1a': 'Blood', '#a8956a': 'Field', '#c9b47a': 'Straw'
 };
-const RUT_LABELS = { pre:'Pre-Rut', seek:'Seeking', peak:'Peak Rut', lock:'Lock-Down', post:'Post-Rut' };
+// RUT_LABELS defined at top
+function rutLabel(rut) { return RUT_LABELS[rut] || rut || '—'; }
+function rutClass(rut) {
+  if (rut === 'pre' || rut === 'Pre-Rut') return 'rut-pre';
+  if (rut === 'seek' || rut === 'Seeking') return 'rut-seek';
+  if (rut === 'peak' || rut === 'Peak Rut') return 'rut-peak';
+  if (rut === 'lock' || rut === 'Lock-Down') return 'rut-lock';
+  if (rut === 'post' || rut === 'Post-Rut') return 'rut-post';
+  return 'rut-pre';
+}
 const RUT_CLASSES = { pre:'rut-pre', seek:'rut-seek', peak:'rut-peak', lock:'rut-lock', post:'rut-post' };
 
 // ============================================================
@@ -1464,6 +1473,7 @@ function switchView(v) {
 // DASHBOARD
 // ============================================================
 function renderDashboard() {
+  try {
   const container = document.getElementById('dashboardContainer');
   const sightings = filteredSightings();
   const hasSightings = sightings.length > 0;
@@ -1576,12 +1586,12 @@ function renderDashboard() {
     : recent.map(s => {
         const buck = state.bucks.find(b=>b.id===s.buckId);
         const cam = state.cameras.find(c=>c.id===s.camId);
-        const isRut = ['peak','seek'].includes(s.rut);
+        const isRut = ['peak','seek','Peak Rut','Seeking'].includes(s.rut);
         return `<div class="feed-item">
           <div class="feed-dot ${isRut?'rut':''}"></div>
           <div style="flex:1;min-width:0">
             <div class="feed-title">${buck?.emoji||'🦌'} ${buck?.name||'Unknown Buck'}</div>
-            <div class="feed-detail">${cam?.name||'Unknown Cam'}${s.temp?' · '+s.temp+'°F':''}${s.windDir?' · '+s.windDir:''}${s.rut?' · '+RUT_LABELS[s.rut]:''}</div>
+            <div class="feed-detail">${cam?.name||'Unknown Cam'}${s.temp?' · '+s.temp+'°F':''}${s.windDir?' · '+s.windDir:''}${s.rut?' · '+rutLabel(s.rut):''}</div>
           </div>
           <div class="feed-time">${s.date}<br>${s.time?formatTime(s.time):''}</div>
         </div>`;
@@ -1631,7 +1641,7 @@ function renderDashboard() {
     const pct = Math.round(c/rutTotal*100);
     const colors = {pre:'var(--green-mid)',seek:'#b45309',peak:'var(--red-mid)',lock:'#6d28d9',post:'var(--text-3)'};
     return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
-      <div style="font-size:10px;font-weight:700;color:var(--text-3);width:60px;text-align:right">${RUT_LABELS[r]}</div>
+      <div style="font-size:10px;font-weight:700;color:var(--text-3);width:60px;text-align:right">${rutLabel(r)}</div>
       <div style="flex:1;height:6px;background:var(--border);border-radius:3px">
         <div style="width:${pct}%;height:100%;background:${colors[r]};border-radius:3px"></div>
       </div>
@@ -1719,6 +1729,11 @@ function renderDashboard() {
       </div>
     </div>
   `;
+  } catch(err) {
+    console.error('Dashboard render error:', err);
+    const c = document.getElementById('dashboardContainer');
+    if(c) c.innerHTML = `<div class="dash-empty"><div class="dash-empty-icon">⚠️</div><div class="dash-empty-title">Dashboard Error</div><div class="dash-empty-sub">${err.message}</div></div>`;
+  }
 }
 
 
@@ -2055,7 +2070,7 @@ function renderLog() {
     const buck = state.bucks.find(b => b.id === s.buckId);
     const cam = state.cameras.find(c => c.id === s.camId);
     const timeStr = s.time ? formatTime(s.time) : '—';
-    const rutBadge = s.rut ? `<span class="rut-badge ${RUT_CLASSES[s.rut]}">${RUT_LABELS[s.rut]}</span>` : '—';
+    const rutBadge = s.rut ? `<span class="rut-badge ${rutClass(s.rut)}">${rutLabel(s.rut)}</span>` : '—';
     return `<tr>
       <td><div class="td-mono">${s.date}</div><div class="td-mono" style="color:var(--text-3)">${timeStr}</div></td>
       <td><div class="td-buck">${buck?buck.emoji+' '+buck.name:'Unknown'}</div></td>
@@ -2208,7 +2223,7 @@ function renderPatterns() {
     const c = rutCounts[r]||0;
     const pct = Math.round(c/rutTotal*100);
     return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-      <div style="width:70px;font-size:10px;font-weight:600;color:var(--text-3);text-align:right;width:70px">${RUT_LABELS[r]}</div>
+      <div style="width:70px;font-size:10px;font-weight:600;color:var(--text-3);text-align:right;width:70px">${rutLabel(r)}</div>
       <div style="flex:1;height:6px;background:var(--border);border-radius:3px">
         <div style="width:${pct}%;height:100%;background:var(--green-mid);border-radius:3px"></div>
       </div>
@@ -2298,7 +2313,7 @@ function buildDataContext() {
           'at', camMap[s.camId]||'Unknown Camera',
           s.temp ? s.temp+'°F' : '',
           s.windDir ? 'wind '+s.windDir+(s.windSpeed?' '+s.windSpeed+'mph':'') : '',
-          s.rut ? RUT_LABELS[s.rut] : '',
+          s.rut ? rutLabel(s.rut),
           s.notes ? '— '+s.notes : ''
         ].filter(Boolean);
         return '- ' + parts.join(' | ');
