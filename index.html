@@ -989,14 +989,14 @@
   <div style="display:flex;align-items:center;gap:10px;">
     <div style="display:flex;align-items:center;gap:7px;">
       <span style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.55);">Season</span>
-      <select id="globalSeasonFilter" onchange="onFilterChange()" style="background:var(--nav);border:1px solid rgba(255,255,255,0.2);color:#fff;font-family:Inter,sans-serif;font-size:12px;font-weight:600;padding:5px 10px;border-radius:5px;cursor:pointer;min-width:130px;">
-        <option value="">All Seasons</option>
+      <select id="globalSeasonFilter" onchange="onFilterChange()" style="background:#1a2e1c;border:1px solid rgba(255,255,255,0.2);color:#fff;font-family:Inter,sans-serif;font-size:12px;font-weight:600;padding:5px 10px;border-radius:5px;cursor:pointer;min-width:130px;">
+        <option value="" style="background:#1a2e1c;color:#fff;">All Seasons</option>
       </select>
     </div>
     <div style="display:flex;align-items:center;gap:7px;">
       <span style="font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.55);">Year</span>
-      <select id="globalYearFilter" onchange="onFilterChange()" style="background:var(--nav);border:1px solid rgba(255,255,255,0.2);color:#fff;font-family:Inter,sans-serif;font-size:12px;font-weight:600;padding:5px 10px;border-radius:5px;cursor:pointer;min-width:100px;">
-        <option value="">All Years</option>
+      <select id="globalYearFilter" onchange="onFilterChange()" style="background:#1a2e1c;border:1px solid rgba(255,255,255,0.2);color:#fff;font-family:Inter,sans-serif;font-size:12px;font-weight:600;padding:5px 10px;border-radius:5px;cursor:pointer;min-width:100px;">
+        <option value="" style="background:#1a2e1c;color:#fff;">All Years</option>
       </select>
     </div>
     <div style="width:1px;height:24px;background:rgba(255,255,255,0.15);"></div>
@@ -1727,13 +1727,22 @@ function renderDashboard() {
 // ============================================================
 function openModal(id) {
   if (id === 'sightingModal') {
-    renderSightingForm();
+    try {
+      renderSightingForm();
+    } catch(e) {
+      console.error('renderSightingForm error:', e);
+      // Fallback: show a basic form
+      const body = document.getElementById('sightingModalBody');
+      if (body) body.innerHTML = '<div style="color:red;padding:10px;">Form error: ' + e.message + '</div>';
+    }
     populateSightingDropdowns();
     document.getElementById(id).classList.add('open');
     const now = new Date();
-    if (!document.getElementById('sightDate').value) {
-      document.getElementById('sightDate').value = now.toISOString().split('T')[0];
-      document.getElementById('sightTime').value = now.toTimeString().slice(0,5);
+    if (!document.getElementById('sightDate') || !document.getElementById('sightDate').value) {
+      const dateEl = document.getElementById('sightDate');
+      const timeEl = document.getElementById('sightTime');
+      if (dateEl) dateEl.value = now.toISOString().split('T')[0];
+      if (timeEl) timeEl.value = now.toTimeString().slice(0,5);
     }
     fetchWeather();
     return;
@@ -2055,7 +2064,7 @@ function renderLog() {
       <td class="td-mono">${s.year||'—'}</td>
       <td class="td-mono">${s.temp?s.temp+'°F':'—'}</td>
       <td class="td-mono">${[s.windDir,s.windSpeed?s.windSpeed+'mph':''].filter(Boolean).join(' ')||'—'}</td>
-      <td class="td-mono">${s.pressure?s.pressure+'${pressure} inHg':'—'}</td>
+      <td class="td-mono">${s.pressure?s.pressure+' inHg':'—'}</td>
       <td>${rutBadge}</td>
       <td style="font-size:12px;color:var(--text-2);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${s.notes||'—'}</td>
     </tr>`;
@@ -2451,10 +2460,10 @@ function renderSightingForm() {
   </div>`;
 
   // Season field
-  const seasonEnabled = (b.season?.enabled !== false);
-  const seasonOptions = b.season?.options || ['Summer','Early Season','Pre-Rut','Rut','Late Season'];
+  const seasonEnabled = (builtins.season?.enabled !== false);
+  const seasonOptions = builtins.season?.options || ['Summer','Early Season','Pre-Rut','Rut','Late Season'];
   if (seasonEnabled) {
-    html += `<div class="form-row"><label>${b.season?.label||'Season'}</label><select id="sightSeason"><option value="">— Select Season —</option>${seasonOptions.map(o=>`<option value="${o}">${o}</option>`).join('')}</select></div>`;
+    html += `<div class="form-row"><label>${builtins.season?.label||'Season'}</label><select id="sightSeason"><option value="">— Select Season —</option>${seasonOptions.map(o=>`<option value="${o}">${o}</option>`).join('')}</select></div>`;
   }
 
   // Weather fields in a 2-col grid
@@ -2600,7 +2609,7 @@ function populateSeasonFilter() {
   if (!sel) return;
   const options = getSeasonOptions();
   sel.innerHTML = '<option value="">All Seasons</option>' +
-    options.map(o => `<option value="${o}" ${o===activeSeasonFilter?'selected':''}>${o}</option>`).join('');
+    options.map(o => `<option value="${o}" style="background:#1a2e1c;color:#fff;" ${o===activeSeasonFilter?'selected':''}>${o}</option>`).join('');
 }
 
 function populateYearFilter() {
@@ -2611,7 +2620,7 @@ function populateYearFilter() {
   state.sightings.forEach(s => { if (s.year) years.add(s.year); });
   const sorted = [...years].sort((a,b) => b-a);
   sel.innerHTML = '<option value="">All Years</option>' +
-    sorted.map(y => `<option value="${y}" ${y===activeYearFilter?'selected':''}>${y}</option>`).join('');
+    sorted.map(y => `<option value="${y}" style="background:#1a2e1c;color:#fff;" ${y===activeYearFilter?'selected':''}>${y}</option>`).join('');
 }
 
 function onFilterChange() {
@@ -2866,8 +2875,11 @@ function clearAllData() {
 // also use saved coords in fetchWeather if set
 const _origFetchWeather = fetchWeather;
 
+// Load saved data first - everything else depends on this
 load();
 ensureFieldSettings();
+
+// Populate filters and UI that depend on state
 populateSeasonFilter();
 populateYearFilter();
 renderSidebar();
@@ -2875,11 +2887,14 @@ populateSightingDropdowns();
 updateStats();
 updateAiBadge();
 
-// Restore last active view or default to dashboard
+// Restore last active view - defer slightly so DOM is ready
 const lastView = sessionStorage.getItem('bucktrack_view') || 'dashboard';
-switchView(lastView);
+// Use setTimeout(0) to ensure all DOM elements are ready before rendering
+setTimeout(() => {
+  switchView(lastView);
+  if (state.mapDataUrl) showMap();
+}, 0);
 
-if (state.mapDataUrl) showMap();
 window.addEventListener('resize', renderMapPins);
 </script>
 </body>
