@@ -371,7 +371,7 @@ tr:hover td { background:var(--green-light); }
     <table>
       <thead><tr>
         <th>Date / Time</th><th>Buck</th><th>Camera</th><th>Year</th><th>Season</th>
-        <th>Temp</th><th>Wind</th><th>Pressure</th><th>Rut Stage</th><th>Notes</th>
+        <th>Temp</th><th>Wind</th><th>Pressure</th><th>Rut Stage</th><th>Heading</th><th>Behavior</th><th>Notes</th>
       </tr></thead>
       <tbody id="logBody"></tbody>
     </table>
@@ -463,14 +463,22 @@ tr:hover td { background:var(--green-light); }
       <div class="settings-list" id="sCamList"></div>
       <div class="settings-add-row">
         <input type="text" id="nCamName" class="field" placeholder="Camera name / location" style="flex:1">
-        <select id="nCamColor" class="field" style="width:108px">
+        <select id="nCamColor" class="field" style="width:100px">
           <option value="#3d7a2a">Green</option><option value="#a83030">Red</option>
           <option value="#4a5a6a">Slate</option><option value="#7a4e2a">Brown</option>
           <option value="#c8b882">Tan</option><option value="#6d28d9">Purple</option>
         </select>
-        <select id="nCamType" class="field" style="width:108px">
+        <select id="nCamType" class="field" style="width:100px">
           <option value="cellular">Cellular</option><option value="sd">SD Card</option>
         </select>
+        <select id="nCamFacing" class="field" style="width:100px" title="Camera facing direction">
+          <option value="">Facing?</option>
+          <option value="N">Facing N</option><option value="NE">Facing NE</option>
+          <option value="E">Facing E</option><option value="SE">Facing SE</option>
+          <option value="S">Facing S</option><option value="SW">Facing SW</option>
+          <option value="W">Facing W</option><option value="NW">Facing NW</option>
+        </select>
+        <input type="text" id="nCamNotes" class="field" placeholder="Notes (habitat, trail, etc.)" style="flex:1">
         <button class="btn-green" onclick="addCamSettings()">+ Add Camera</button>
       </div>
     </div>
@@ -544,7 +552,11 @@ tr:hover td { background:var(--green-light); }
         <div><label class="field-label">Color Tag</label><select id="mCamColor" class="field"><option value="#3d7a2a">Green</option><option value="#a83030">Red</option><option value="#4a5a6a">Slate</option><option value="#7a4e2a">Brown</option><option value="#c8b882">Tan</option><option value="#6d28d9">Purple</option></select></div>
         <div><label class="field-label">Type</label><select id="mCamType" class="field"><option value="cellular">Cellular</option><option value="sd">SD Card</option></select></div>
       </div>
-      <div class="form-row"><label class="field-label">Notes (habitat, direction, etc.)</label><textarea id="mCamNotes" class="field" placeholder="e.g. Facing NW toward oak flat..."></textarea></div>
+      <div class="form-2">
+        <div><label class="field-label">Camera Facing Direction</label><select id="mCamFacing" class="field"><option value="">Unknown</option><option value="N">N</option><option value="NE">NE</option><option value="E">E</option><option value="SE">SE</option><option value="S">S</option><option value="SW">SW</option><option value="W">W</option><option value="NW">NW</option></select></div>
+        <div></div>
+      </div>
+      <div class="form-row"><label class="field-label">Notes (habitat, trail, food source, etc.)</label><textarea id="mCamNotes" class="field" placeholder="e.g. On scrape line between bedding and food plot..."></textarea></div>
       <div style="background:var(--green-light);border:1px solid var(--green-border);border-radius:6px;padding:9px 12px;font-size:12px;color:var(--green);">💡 After adding, go to Map and click 📷 to pin this camera on your property map.</div>
     </div>
     <div class="modal-footer"><button class="btn-outline" onclick="closeModal('camModal')">Cancel</button><button class="btn-green" onclick="saveCam()">Add Camera</button></div>
@@ -1005,7 +1017,9 @@ function renderLog() {
       <td class="td-mono">${[s.windDir,s.windSpeed?s.windSpeed+'mph':''].filter(Boolean).join(' ')||'—'}</td>
       <td class="td-mono">${s.pressure?s.pressure+' inHg':'—'}</td>
       <td class="td-mono">${s.rut||'—'}</td>
-      <td style="font-size:12px;color:var(--text-2);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.notes||'—'}</td>
+      <td class="td-mono">${s.buckHeading||'—'}</td>
+      <td class="td-mono">${s.buckBehavior||'—'}</td>
+      <td style="font-size:12px;color:var(--text-2);max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.notes||'—'}</td>
     </tr>`;
   }).join('');
 }
@@ -1091,9 +1105,9 @@ function buildAIContext() {
   const camMap=Object.fromEntries(S.cameras.map(c=>[c.id,c.name]));
   const buckMap=Object.fromEntries(S.bucks.map(b=>[b.id,`${b.name}${b.age?' (est. '+b.age+')':''}`]));
   const filterCtx=[gSeason?`Season filter: ${gSeason}`:'No season filter',gYear?`Year filter: ${gYear}`:'No year filter'].join(' · ');
-  const camSummary=S.cameras.map(c=>`- ${c.name} (${c.type}, ${S.sightings.filter(s=>s.camId===c.id).length} sightings${c.notes?', '+c.notes:''})`).join('\n')||'None';
+  const camSummary=S.cameras.map(c=>`- ${c.name} (${c.type}${c.facing?', facing '+c.facing:''}, ${S.sightings.filter(s=>s.camId===c.id).length} sightings${c.notes?', '+c.notes:''})`).join('\n')||'None';
   const buckSummary=S.bucks.map(b=>{const bs=S.sightings.filter(s=>s.buckId===b.id);const last=[...bs].sort((a,z)=>(z.date+z.time).localeCompare(a.date+a.time))[0];return`- ${b.name}: ${b.age||'unknown age'}, ${bs.length} sightings, last seen ${last?last.date:'never'}${b.features?', '+b.features:''}`;}).join('\n')||'None';
-  const sightSummary=S.sightings.length===0?'None':S.sightings.map(s=>`- ${s.date} ${s.time||''} | ${buckMap[s.buckId]||'Unknown'} @ ${camMap[s.camId]||'Unknown'} | ${s.year||''} ${s.season||''} | ${s.temp?s.temp+'°F':''} ${s.windDir||''} ${s.windSpeed?s.windSpeed+'mph':''} ${s.pressure?s.pressure+'inHg':''} | Rut: ${s.rut||'—'} | ${s.notes||''}`).join('\n');
+  const sightSummary=S.sightings.length===0?'None':S.sightings.map(s=>`- ${s.date} ${s.time||''} | ${buckMap[s.buckId]||'Unknown'} @ ${camMap[s.camId]||'Unknown'} | ${s.year||''} ${s.season||''} | ${s.temp?s.temp+'°F':''} ${s.windDir||''} ${s.windSpeed?s.windSpeed+'mph':''} ${s.pressure?s.pressure+'inHg':''} | Rut: ${s.rut||'—'} | Heading: ${s.buckHeading||'—'} | Behavior: ${s.buckBehavior||'—'} | ${s.notes||''}`).join('\n');
   return `You are an expert whitetail deer hunting analyst with access to real trail camera data from this hunter's property near Cable, WI. Be specific — reference actual camera names, buck names, dates, and numbers. Be direct and practical like a seasoned hunting buddy who also knows deer science.
 
 === ACTIVE FILTERS ===
@@ -1165,7 +1179,7 @@ function renderSettingsBucks() {
 function renderSettingsCams() {
   const el=document.getElementById('sCamList'); if(!el) return;
   el.innerHTML=S.cameras.length===0?'<div style="color:var(--text-3);font-size:12px;padding:4px">No cameras yet.</div>':
-    S.cameras.map(c=>{const cnt=S.sightings.filter(s=>s.camId===c.id).length;return`<div class="settings-item"><div class="cam-dot-sm" style="background:${c.color}"></div><div style="flex:1"><div class="settings-item-name">${c.name}</div><div class="settings-item-meta">${c.type} · ${cnt} sightings</div></div><button class="btn-danger" onclick="deleteCam('${c.id}')">Remove</button></div>`;}).join('');
+    S.cameras.map(c=>{const cnt=S.sightings.filter(s=>s.camId===c.id).length;return`<div class="settings-item"><div class="cam-dot-sm" style="background:${c.color}"></div><div style="flex:1"><div class="settings-item-name">${c.name}</div><div class="settings-item-meta">${c.type}${c.facing?' · Facing '+c.facing:''} · ${cnt} sightings${c.notes?' · '+c.notes:''}</div></div><button class="btn-danger" onclick="deleteCam('${c.id}')">Remove</button></div>`;}).join('');
 }
 function renderBuiltinFields() {
   const el=document.getElementById('builtinFields'); if(!el) return;
@@ -1235,8 +1249,18 @@ function addBuckSettings() {
 }
 function addCamSettings() {
   const name=document.getElementById('nCamName').value.trim(); if(!name){alert('Enter a name.');return;}
-  S.cameras.push({id:'c_'+Date.now(),name,color:document.getElementById('nCamColor').value,type:document.getElementById('nCamType').value,notes:'',x:null,y:null});
-  save(); document.getElementById('nCamName').value='';
+  S.cameras.push({
+    id:'c_'+Date.now(), name,
+    color:document.getElementById('nCamColor').value,
+    type:document.getElementById('nCamType').value,
+    facing:document.getElementById('nCamFacing').value,
+    notes:document.getElementById('nCamNotes').value.trim(),
+    x:null, y:null
+  });
+  save();
+  document.getElementById('nCamName').value='';
+  document.getElementById('nCamNotes').value='';
+  document.getElementById('nCamFacing').value='';
   renderSettingsCams(); renderDashboard();
 }
 function deleteBuck(id) {
@@ -1254,7 +1278,7 @@ function savePropSettings() {
   save(); const btn=document.querySelector('#view-settings .btn-green'); if(btn){btn.textContent='✅ Saved!';setTimeout(()=>btn.textContent='Save Property Settings',2000);}
 }
 function exportCSV() {
-  const headers=['Date','Time','Buck','Camera','Year','Season','Temp(F)','WindDir','WindSpeed(mph)','Pressure(inHg)','RutStage','Notes'];
+  const headers=['Date','Time','Buck','Camera','Year','Season','Temp(F)','WindDir','WindSpeed(mph)','Pressure(inHg)','RutStage','BuckHeading','BuckBehavior','Notes'];
   const rows=S.sightings.map(s=>{const b=S.bucks.find(x=>x.id===s.buckId)?.name||'Unknown';const c=S.cameras.find(x=>x.id===s.camId)?.name||'Unknown';return[s.date,s.time,b,c,s.year||'',s.season||'',s.temp||'',s.windDir||'',s.windSpeed||'',s.pressure||'',s.rut||'',`"${(s.notes||'').replace(/"/g,'""')}"`].join(',');});
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([[headers.join(','),...rows].join('\n')],{type:'text/csv'})); a.download='bucktrack-sightings.csv'; a.click();
 }
@@ -1279,8 +1303,17 @@ document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('cli
 
 function saveCam() {
   const name=document.getElementById('mCamName').value.trim(); if(!name){alert('Enter a camera name.');return;}
-  S.cameras.push({id:'c_'+Date.now(),name,color:document.getElementById('mCamColor').value,type:document.getElementById('mCamType').value,notes:document.getElementById('mCamNotes').value.trim(),x:null,y:null});
-  save(); closeModal('camModal'); document.getElementById('mCamName').value=''; document.getElementById('mCamNotes').value='';
+  S.cameras.push({
+    id:'c_'+Date.now(), name,
+    color:document.getElementById('mCamColor').value,
+    type:document.getElementById('mCamType').value,
+    facing:document.getElementById('mCamFacing')?.value||'',
+    notes:document.getElementById('mCamNotes').value.trim(),
+    x:null, y:null
+  });
+  save(); closeModal('camModal');
+  document.getElementById('mCamName').value='';
+  document.getElementById('mCamNotes').value='';
   renderDashboard(); renderPins();
 }
 function saveBuck() {
@@ -1326,6 +1359,7 @@ function buildSightingForm() {
   for(let i=0;i<wxFields.length;i+=2) html+=`<div class="form-2">${wxFields[i]}${wxFields[i+1]||'<div></div>'}</div>`;
 
   if(b.rut?.enabled!==false) html+=`<div class="form-2"><div><label class="field-label">Rut Stage</label><select id="sRut" class="field"><option value="">Unknown</option>${rutOpts}</select></div><div><label class="field-label">&nbsp;</label><button onclick="fetchWx()" style="width:100%;background:var(--green-light);border:1px solid var(--green-border);color:var(--green);font-size:12px;font-weight:600;padding:8px;border-radius:5px;cursor:pointer">↺ Refresh Weather</button></div></div>`;
+  html+=`<div class="form-2"><div><label class="field-label">Buck Heading</label><select id="sBuckHeading" class="field"><option value="">Unknown</option><option value="N">N — heading North</option><option value="NE">NE — heading NE</option><option value="E">E — heading East</option><option value="SE">SE — heading SE</option><option value="S">S — heading South</option><option value="SW">SW — heading SW</option><option value="W">W — heading West</option><option value="NW">NW — heading NW</option></select></div><div><label class="field-label">Buck Behavior</label><select id="sBuckBehavior" class="field"><option value="">Unknown</option><option value="Feeding">Feeding</option><option value="Travelling">Travelling</option><option value="Nose to ground">Nose to ground</option><option value="Chasing">Chasing</option><option value="Tending doe">Tending doe</option><option value="Sparring">Sparring</option><option value="Scraping">Scraping</option><option value="Rubbing">Rubbing</option><option value="Bedded">Bedded</option><option value="Alert">Alert / Spooked</option></select></div></div>`;
 
   // Custom fields
   for(let i=0;i<cf.length;i+=2) {
@@ -1403,6 +1437,8 @@ function saveSighting() {
     windSpeed:b.windSpeed?.enabled!==false?(document.getElementById('sWindSpd')?.value||''):'',
     pressure:b.pressure?.enabled!==false?(document.getElementById('sPress')?.value||''):'',
     rut:b.rut?.enabled!==false?(document.getElementById('sRut')?.value||''):'',
+    buckHeading:document.getElementById('sBuckHeading')?.value||'',
+    buckBehavior:document.getElementById('sBuckBehavior')?.value||'',
     notes:b.notes?.enabled!==false?(document.getElementById('sNotes')?.value.trim()||''):'',
     customFields:{}
   };
