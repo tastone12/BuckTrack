@@ -894,34 +894,62 @@ function showMap() {
 }
 function togglePlace() {
   if (!S.mapDataUrl) { alert('Upload a property map first.'); return; }
-  if (S.cameras.length===0) { alert('Add a camera first, then place it on the map.'); return; }
+  if (S.cameras.length === 0) { alert('Add a camera in Settings first, then place it on the map.'); return; }
+  const unplaced = S.cameras.filter(c => c.x === null || c.x === undefined);
+  if (!unplaced.length) { alert('All cameras are already placed on the map.'); return; }
   placingMode = !placingMode;
   document.getElementById('placeBtn').classList.toggle('active', placingMode);
-  document.getElementById('mapHint').style.display = placingMode ? 'block' : 'none';
+  const hint = document.getElementById('mapHint');
+  hint.style.display = placingMode ? 'block' : 'none';
+  if (placingMode) hint.textContent = `📍 Click to place: ${unplaced[0].name}`;
   document.getElementById('mapArea').style.cursor = placingMode ? 'crosshair' : 'default';
 }
 document.getElementById('mapArea').addEventListener('click', function(e) {
   if (!placingMode) return;
-  const unplaced = S.cameras.filter(c=>c.x===null||c.x===undefined);
+  const unplaced = S.cameras.filter(c => c.x === null || c.x === undefined);
   if (!unplaced.length) { togglePlace(); return; }
   const cam = unplaced[0];
   const img = document.getElementById('propertyMap');
+  // Get position relative to the image itself (not the mapArea container)
   const rect = img.getBoundingClientRect();
-  cam.x = (e.clientX-rect.left)/rect.width*100;
-  cam.y = (e.clientY-rect.top)/rect.height*100;
-  save(); renderPins();
-  const remaining = S.cameras.filter(c=>c.x===null||c.x===undefined);
-  if (!remaining.length) { togglePlace(); }
-  else { document.getElementById('mapHint').textContent=`📍 Next: ${remaining[0].name}`; }
+  // Only register clicks within the image bounds
+  if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
+  cam.x = (e.clientX - rect.left) / rect.width * 100;
+  cam.y = (e.clientY - rect.top) / rect.height * 100;
+  save();
+  renderPins();
+  const remaining = S.cameras.filter(c => c.x === null || c.x === undefined);
+  if (!remaining.length) {
+    togglePlace();
+    document.getElementById('mapHint').textContent = '✅ All cameras placed!';
+    document.getElementById('mapHint').style.display = 'block';
+    setTimeout(() => { document.getElementById('mapHint').style.display = 'none'; }, 2000);
+  } else {
+    document.getElementById('mapHint').textContent = `📍 Click to place: ${remaining[0].name}`;
+  }
 });
 function renderPins() {
   const layer = document.getElementById('mapPins');
   const img = document.getElementById('propertyMap');
   if (!layer) return;
-  if (!img || img.style.display==='none') { layer.innerHTML=''; return; }
-  layer.innerHTML = S.cameras.filter(c=>c.x!=null).map(c=>`
-    <div class="map-pin" style="left:${c.x}%;top:${c.y}%">
-      <div class="pin-body" style="background:${c.color}"><div class="pin-icon">📷</div></div>
+  if (!img || img.style.display === 'none') { layer.innerHTML = ''; return; }
+
+  // Position the pins layer to exactly overlay the image
+  const imgRect = img.getBoundingClientRect();
+  const areaRect = document.getElementById('mapArea').getBoundingClientRect();
+  const offLeft = imgRect.left - areaRect.left;
+  const offTop = imgRect.top - areaRect.top;
+
+  layer.style.left = offLeft + 'px';
+  layer.style.top = offTop + 'px';
+  layer.style.width = imgRect.width + 'px';
+  layer.style.height = imgRect.height + 'px';
+
+  layer.innerHTML = S.cameras.filter(c => c.x != null).map(c => `
+    <div class="map-pin" style="left:${c.x}%;top:${c.y}%" title="${c.name}">
+      <div class="pin-body" style="background:${c.color}">
+        <div class="pin-icon">📷</div>
+      </div>
       <div class="pin-label">${c.name}</div>
     </div>`).join('');
 }
