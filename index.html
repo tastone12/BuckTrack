@@ -2313,7 +2313,7 @@ function buildDataContext() {
           'at', camMap[s.camId]||'Unknown Camera',
           s.temp ? s.temp+'°F' : '',
           s.windDir ? 'wind '+s.windDir+(s.windSpeed?' '+s.windSpeed+'mph':'') : '',
-          s.rut ? rutLabel(s.rut),
+          s.rut ? rutLabel(s.rut) : '',
           s.notes ? '— '+s.notes : ''
         ].filter(Boolean);
         return '- ' + parts.join(' | ');
