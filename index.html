@@ -145,34 +145,57 @@ textarea.field { resize:vertical; min-height:60px; }
 /* ── MAP ── */
 #view-map { position:relative; overflow:hidden; flex-direction:row !important; }
 .map-area { flex:1; position:relative; overflow:hidden; background:#e0ddd4; display:flex; align-items:center; justify-content:center; min-height:0; }
-.map-grid { position:absolute; inset:0; background: repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(61,122,42,0.07) 40px), repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(61,122,42,0.07) 40px); }
-#propertyMap { max-width:100%; max-height:100%; object-fit:contain; position:relative; display:none; box-shadow:var(--shadow-md); }
-.map-upload-box { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:40px 48px; display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center; box-shadow:var(--shadow-md); z-index:2; }
+/* ── MAP VIEWPORT ── */
+.map-viewport { flex:1; position:relative; overflow:hidden; background:#2a2e24; cursor:grab; user-select:none; }
+.map-viewport.grabbing { cursor:grabbing; }
+.map-viewport.crosshair { cursor:crosshair !important; }
+.map-canvas { position:absolute; transform-origin:0 0; will-change:transform; }
+.map-canvas img { display:block; pointer-events:none; }
+#mapFileInput { display:none; }
+/* toolbar */
+.map-toolbar { display:flex; gap:6px; flex-wrap:wrap; padding:9px 14px; border-bottom:1px solid var(--border); background:var(--surface); flex-shrink:0; align-items:center; }
+.map-tool-btn { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border:1px solid var(--border); border-radius:20px; background:var(--bg); font-size:11px; font-weight:600; color:var(--text-2); cursor:pointer; transition:all 0.12s; white-space:nowrap; }
+.map-tool-btn:hover { border-color:var(--green-border); color:var(--green); background:var(--green-light); }
+.map-tool-btn.active { background:var(--green-mid); color:#fff; border-color:var(--green); }
+/* upload box */
+.map-upload-box { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:36px 44px; display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center; box-shadow:var(--shadow-md); z-index:50; }
 .map-upload-box h3 { font-size:18px; font-weight:700; color:var(--text); }
 .map-upload-box p { font-size:13px; color:var(--text-3); max-width:260px; line-height:1.55; }
 .map-upload-label { background:var(--green-mid); color:#fff; font-family:'Inter',sans-serif; font-size:13px; font-weight:600; padding:9px 20px; border-radius:var(--r-sm); cursor:pointer; transition:background 0.15s; }
 .map-upload-label:hover { background:var(--green); }
-#mapFileInput { display:none; }
-.map-pins { position:absolute; pointer-events:none; z-index:10; }
-.map-pin { position:absolute; transform:translate(-50%,-100%); display:flex; flex-direction:column; align-items:center; cursor:pointer; pointer-events:all; transition:transform 0.15s; }
-.map-pin:hover { transform:translate(-50%,-100%) scale(1.15); }
-.pin-body { width:24px; height:24px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); border:2px solid rgba(255,255,255,0.5); box-shadow:0 2px 6px rgba(0,0,0,0.25); }
-.pin-icon { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; transform:rotate(45deg); font-size:10px; }
-.pin-label { margin-top:6px; background:rgba(255,255,255,0.95); border:1px solid var(--border); border-radius:4px; padding:2px 6px; font-size:10px; font-weight:600; color:var(--text); white-space:nowrap; box-shadow:var(--shadow); }
-.annot-pin { position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; cursor:pointer; pointer-events:all; transition:transform 0.15s; z-index:9; }
-.annot-pin:hover { transform:translate(-50%,-50%) scale(1.15); }
-.annot-icon { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; box-shadow:0 2px 6px rgba(0,0,0,0.3); border:2px solid rgba(255,255,255,0.6); }
-.annot-label { margin-top:3px; background:rgba(255,255,255,0.95); border:1px solid var(--border); border-radius:4px; padding:1px 5px; font-size:9px; font-weight:700; color:var(--text); white-space:nowrap; box-shadow:var(--shadow); text-align:center; }
-.annot-toolbar { display:flex; gap:6px; flex-wrap:wrap; padding:10px 14px; border-bottom:1px solid var(--border); background:var(--surface2); flex-shrink:0; align-items:center; }
-.annot-type-btn { display:flex; align-items:center; gap:5px; padding:5px 10px; border:1px solid var(--border); border-radius:20px; background:var(--surface); font-size:11px; font-weight:600; color:var(--text-2); cursor:pointer; transition:all 0.12s; white-space:nowrap; }
-.annot-type-btn:hover { border-color:var(--green-border); color:var(--green); background:var(--green-light); }
-.annot-type-btn.active { background:var(--green-mid); color:#fff; border-color:var(--green); }
-.annot-type-btn.placing { animation:pulse 1.5s infinite; }
-.map-controls { position:absolute; top:14px; right:14px; display:flex; flex-direction:column; gap:6px; z-index:20; }
-.map-ctrl { width:36px; height:36px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-sm); color:var(--text-2); font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow); transition:all 0.15s; }
-.map-ctrl:hover { border-color:var(--green-border); color:var(--green); }
-.map-ctrl.active { background:var(--green-mid); color:#fff; border-color:var(--green); }
-.map-hint { position:absolute; bottom:14px; left:50%; transform:translateX(-50%); background:var(--green); color:#fff; border-radius:20px; padding:7px 18px; font-size:12px; font-weight:600; display:none; box-shadow:var(--shadow-md); animation:pulse 2s infinite; z-index:20; }
+/* zoom controls */
+.map-zoom-controls { position:absolute; bottom:16px; right:16px; display:flex; flex-direction:column; gap:4px; z-index:40; }
+.zoom-btn { width:34px; height:34px; background:var(--surface); border:1px solid var(--border); border-radius:6px; font-size:18px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow); transition:all 0.12s; color:var(--text-2); }
+.zoom-btn:hover { background:var(--green-light); border-color:var(--green-border); color:var(--green); }
+.zoom-level { width:34px; height:24px; background:rgba(26,46,28,0.8); border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:#fff; }
+/* pins on canvas */
+.pin-el { position:absolute; transform:translate(-50%,-100%); display:flex; flex-direction:column; align-items:center; cursor:pointer; pointer-events:all; z-index:20; }
+.pin-el:hover .pin-body { filter:brightness(1.15); }
+.pin-body { width:26px; height:26px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); border:2px solid rgba(255,255,255,0.6); box-shadow:0 2px 8px rgba(0,0,0,0.4); position:relative; transition:filter 0.15s; }
+.pin-icon { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; transform:rotate(45deg); font-size:11px; }
+.pin-lbl { margin-top:7px; background:rgba(255,255,255,0.95); border:1px solid rgba(0,0,0,0.15); border-radius:4px; padding:2px 7px; font-size:10px; font-weight:700; color:#111; white-space:nowrap; box-shadow:0 1px 4px rgba(0,0,0,0.2); }
+/* annotation pins */
+.annot-el { position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; cursor:pointer; pointer-events:all; z-index:15; }
+.annot-el:hover .annot-ico { filter:brightness(1.15); }
+.annot-ico { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:15px; box-shadow:0 2px 8px rgba(0,0,0,0.4); border:2px solid rgba(255,255,255,0.7); transition:filter 0.15s; }
+.annot-lbl { margin-top:3px; background:rgba(255,255,255,0.95); border:1px solid rgba(0,0,0,0.15); border-radius:4px; padding:1px 6px; font-size:9px; font-weight:700; color:#111; white-space:nowrap; box-shadow:0 1px 4px rgba(0,0,0,0.2); }
+/* hint bar */
+.map-hint { position:absolute; bottom:16px; left:50%; transform:translateX(-50%); background:rgba(26,46,28,0.92); color:#fff; border-radius:20px; padding:8px 20px; font-size:12px; font-weight:600; display:none; box-shadow:var(--shadow-md); z-index:40; backdrop-filter:blur(4px); }
+/* pin popup */
+.pin-popup { position:absolute; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 12px; box-shadow:var(--shadow-md); z-index:50; min-width:160px; pointer-events:all; }
+.pin-popup-name { font-size:13px; font-weight:700; color:var(--text); margin-bottom:8px; }
+.pin-popup-btn { display:block; width:100%; text-align:left; background:none; border:none; font-family:Inter,sans-serif; font-size:12px; color:var(--text-2); padding:5px 6px; border-radius:4px; cursor:pointer; transition:background 0.1s; }
+.pin-popup-btn:hover { background:var(--green-light); color:var(--green); }
+.pin-popup-btn.danger { color:var(--red); }
+.pin-popup-btn.danger:hover { background:var(--red-light); }
+/* cam picker modal */
+.cam-picker { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px 20px; box-shadow:var(--shadow-md); z-index:60; min-width:240px; }
+.cam-picker h4 { font-size:14px; font-weight:700; color:var(--text); margin-bottom:12px; }
+.cam-picker-item { display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; cursor:pointer; transition:all 0.12s; margin-bottom:6px; background:var(--bg); }
+.cam-picker-item:hover { background:var(--green-light); border-color:var(--green-border); }
+.cam-picker-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.cam-picker-name { font-size:13px; font-weight:600; color:var(--text); flex:1; }
+.cam-picker-placed { font-size:10px; color:var(--text-3); }
 .map-analysis-panel { width:320px; flex-shrink:0; display:flex; flex-direction:column; background:var(--surface); border-left:1px solid var(--border); overflow:hidden; }
 .map-analysis-header { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
 .map-analysis-title { font-size:13px; font-weight:700; color:var(--text); }
@@ -353,48 +376,60 @@ tr:hover td { background:var(--green-light); }
 
 <!-- MAP -->
 <div class="view" id="view-map">
-  <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;min-width:0">
-  <div class="annot-toolbar" id="annotToolbar">
-    <span style="font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3);margin-right:4px">Add to Map:</span>
-    <button class="annot-type-btn" onclick="startAnnot('food_plot','🌽','#c8a020')" id="aBtn-food_plot">🌽 Food Plot</button>
-    <button class="annot-type-btn" onclick="startAnnot('stand','🪑','#5a3a1a')" id="aBtn-stand">🪑 Stand</button>
-    <button class="annot-type-btn" onclick="startAnnot('bedding','💤','#6b4a8a')" id="aBtn-bedding">💤 Bedding</button>
-    <button class="annot-type-btn" onclick="startAnnot('scrape','🦌','#8b4513')" id="aBtn-scrape">🦌 Scrape/Rub</button>
-    <button class="annot-type-btn" onclick="startAnnot('water','💧','#2a6a9a')" id="aBtn-water">💧 Water</button>
-    <button class="annot-type-btn" onclick="startAnnot('funnel','↗','#1a6a3a')" id="aBtn-funnel">↗ Funnel</button>
-    <button class="annot-type-btn" onclick="startAnnot('custom','📌','#888')" id="aBtn-custom">📌 Custom</button>
-    <button class="annot-type-btn" style="margin-left:auto;color:var(--red);border-color:var(--red-border)" onclick="clearAllAnnots()">✕ Clear All</button>
+  <!-- Toolbar -->
+  <div class="map-toolbar">
+    <button class="map-tool-btn" id="mBtn-cam" onclick="startMapTool('cam')" title="Place or reposition a camera">📷 Camera</button>
+    <div style="width:1px;height:20px;background:var(--border);margin:0 2px"></div>
+    <button class="map-tool-btn" id="mBtn-food_plot" onclick="startMapTool('food_plot')">🌽 Food Plot</button>
+    <button class="map-tool-btn" id="mBtn-stand"     onclick="startMapTool('stand')">🪑 Stand</button>
+    <button class="map-tool-btn" id="mBtn-bedding"   onclick="startMapTool('bedding')">💤 Bedding</button>
+    <button class="map-tool-btn" id="mBtn-scrape"    onclick="startMapTool('scrape')">🦌 Scrape/Rub</button>
+    <button class="map-tool-btn" id="mBtn-water"     onclick="startMapTool('water')">💧 Water</button>
+    <button class="map-tool-btn" id="mBtn-funnel"    onclick="startMapTool('funnel')">↗ Funnel</button>
+    <button class="map-tool-btn" id="mBtn-custom"    onclick="startMapTool('custom')">📌 Custom</button>
+    <div style="margin-left:auto;display:flex;gap:6px">
+      <button class="map-tool-btn" onclick="document.getElementById('mapFileInput').click()" title="Upload new map">🗺️ Map</button>
+      <button class="map-tool-btn" style="color:var(--red)" onclick="clearAllAnnots()" title="Clear all annotations">✕ Clear</button>
+    </div>
+    <input type="file" id="mapFileInput" accept="image/*" onchange="loadMap(this)">
   </div>
-  <div class="map-area" id="mapArea">
-    <div class="map-grid"></div>
-    <div class="map-upload-box" id="mapUploadBox">
-      <div style="font-size:40px;opacity:0.4">🗺️</div>
-      <h3>Upload Your Property Map</h3>
-      <p>Upload an aerial photo or hand-drawn map. Cameras will be pinned directly on it.</p>
-      <label class="map-upload-label" for="mapFileInput">Choose Image</label>
-      <input type="file" id="mapFileInput" accept="image/*" onchange="loadMap(this)">
+  <!-- Main map area + analysis panel -->
+  <div style="display:flex;flex:1;overflow:hidden">
+    <!-- Viewport -->
+    <div class="map-viewport" id="mapViewport">
+      <!-- Upload prompt (shown when no map) -->
+      <div class="map-upload-box" id="mapUploadBox">
+        <div style="font-size:40px;opacity:0.4">🗺️</div>
+        <h3>Upload Your Property Map</h3>
+        <p>Aerial photo or satellite screenshot. Cameras, food plots, and stands pin directly on it.</p>
+        <label class="map-upload-label" for="mapFileInput">Choose Image</label>
+      </div>
+      <!-- Zoomable/pannable canvas -->
+      <div class="map-canvas" id="mapCanvas">
+        <img id="propertyMap" alt="Property Map" style="display:none">
+      </div>
+      <!-- Hint bar -->
+      <div class="map-hint" id="mapHint"></div>
+      <!-- Zoom controls -->
+      <div class="map-zoom-controls">
+        <button class="zoom-btn" onclick="mapZoom(0.25)" title="Zoom in">+</button>
+        <div class="zoom-level" id="zoomLevel">1x</div>
+        <button class="zoom-btn" onclick="mapZoom(-0.25)" title="Zoom out">−</button>
+        <button class="zoom-btn" onclick="mapResetView()" title="Reset view" style="font-size:13px">⌂</button>
+      </div>
     </div>
-    <img id="propertyMap" alt="Property Map">
-    <div class="map-pins" id="mapPins"></div>
-    <div class="map-hint" id="mapHint">📍 Click to place camera</div>
-    <div class="map-controls">
-      <button class="map-ctrl" id="placeBtn" title="Place cameras on map" onclick="togglePlace()">📷</button>
-      <button class="map-ctrl" title="Reset all camera pins" onclick="resetAllPins()" style="font-size:12px;font-weight:700;">✕📍</button>
-      <button class="map-ctrl" title="Change map image" onclick="document.getElementById('mapFileInput').click()">🗺️</button>
-    </div>
-  </div>
-  </div><!-- end map+toolbar wrapper -->
-  <!-- ANALYSIS PANEL -->
-  <div class="map-analysis-panel">
-    <div class="map-analysis-header">
-      <div class="map-analysis-title">🔍 Property Analysis</div>
-      <button class="btn-green" id="analyzeBtn" onclick="analyzeProperty()" style="padding:6px 12px;font-size:12px;" title="Analyze terrain and camera placement">Analyze</button>
-    </div>
-    <div class="map-analysis-body" id="analysisBody">
-      <div class="map-analysis-empty">
-        <div class="map-analysis-icon">🌲</div>
-        <div style="font-size:13px;font-weight:600;color:var(--text-2)">AI Terrain Analysis</div>
-        <div style="font-size:12px;line-height:1.55;">Upload your property map and click <strong>Analyze</strong> — the AI will read your aerial, identify terrain features, and give you stand placement and camera suggestions based on what it sees.</div>
+    <!-- Analysis panel -->
+    <div class="map-analysis-panel">
+      <div class="map-analysis-header">
+        <div class="map-analysis-title">🔍 Property Analysis</div>
+        <button class="btn-green" id="analyzeBtn" onclick="analyzeProperty()" style="padding:6px 12px;font-size:12px;">Analyze</button>
+      </div>
+      <div class="map-analysis-body" id="analysisBody">
+        <div class="map-analysis-empty">
+          <div class="map-analysis-icon">🌲</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text-2)">AI Terrain Analysis</div>
+          <div style="font-size:12px;line-height:1.55;">Upload your property map and click <strong>Analyze</strong> — the AI will identify terrain features and give stand placement suggestions.</div>
+        </div>
       </div>
     </div>
   </div>
@@ -761,7 +796,7 @@ function go(v) {
   if (v === 'patterns') renderPatterns();
   if (v === 'ai') updateAIBadge();
   if (v === 'settings') renderSettings();
-  if (v === 'map') { renderPins(); renderAnnotations(); }
+  if (v === 'map') { if (S.mapDataUrl) showMap(); }
 }
 
 // ── helpers ───────────────────────────────────────────────
@@ -970,95 +1005,380 @@ function renderDashboard() {
 }
 
 // ============================================================
-// MAP
+// MAP — ZOOM/PAN + PINS + ANNOTATIONS
 // ============================================================
+const ANNOT_TYPES = {
+  food_plot:{ icon:'🌽', color:'#b8940a', label:'Food Plot' },
+  stand:    { icon:'🪑', color:'#5a3a1a', label:'Stand' },
+  bedding:  { icon:'💤', color:'#6b4a8a', label:'Bedding' },
+  scrape:   { icon:'🦌', color:'#8b4513', label:'Scrape/Rub' },
+  water:    { icon:'💧', color:'#2a6a9a', label:'Water' },
+  funnel:   { icon:'↗',  color:'#1a6a3a', label:'Funnel' },
+  custom:   { icon:'📌', color:'#666',    label:'Custom' },
+};
+
+// Viewport state
+let mapScale = 1, mapOffX = 0, mapOffY = 0;
+let mapImgW = 0, mapImgH = 0;
+let mapIsDragging = false, mapDragStartX = 0, mapDragStartY = 0, mapDragOffX = 0, mapDragOffY = 0;
+let mapActiveTool = null; // 'cam' | 'food_plot' | 'stand' etc.
+let mapMovingPinId = null; // camera id being repositioned
+let mapPopup = null;
+
 function loadMap(input) {
   const file = input.files[0]; if (!file) return;
   const reader = new FileReader();
-  reader.onload = e => { S.mapDataUrl = e.target.result; save(); showMap(); };
+  reader.onload = e => { S.mapDataUrl = e.target.result; save(); initMap(); };
   reader.readAsDataURL(file);
 }
-function showMap() {
-  const img = document.getElementById('propertyMap');
+
+function initMap() {
+  if (!S.mapDataUrl) return;
   const box = document.getElementById('mapUploadBox');
-  if (!img || !S.mapDataUrl) return;
-  img.src = S.mapDataUrl; img.style.display='block';
-  if (box) box.style.display='none';
-  renderPins();
-  renderAnnotations();
-}
-function togglePlace() {
-  if (!S.mapDataUrl) { alert('Upload a property map first.'); return; }
-  if (S.cameras.length === 0) { alert('Add a camera in Settings first, then place it on the map.'); return; }
-  const unplaced = S.cameras.filter(c => c.x === null || c.x === undefined);
-  if (!unplaced.length) { alert('All cameras are already placed on the map.'); return; }
-  placingMode = !placingMode;
-  document.getElementById('placeBtn').classList.toggle('active', placingMode);
-  const hint = document.getElementById('mapHint');
-  hint.style.display = placingMode ? 'block' : 'none';
-  if (placingMode) hint.textContent = `📍 Click to place: ${unplaced[0].name}`;
-  document.getElementById('mapArea').style.cursor = placingMode ? 'crosshair' : 'default';
-}
-document.getElementById('mapArea').addEventListener('click', function(e) {
-  // Handle annotation placement
-  if (placingAnnotType) {
-    const img = document.getElementById('propertyMap');
-    if (!img || img.style.display === 'none') return;
-    const rect = img.getBoundingClientRect();
-    if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
-    const x = (e.clientX - rect.left) / rect.width * 100;
-    const y = (e.clientY - rect.top) / rect.height * 100;
-    // For custom type, ask for a label
-    let label = ANNOT_TYPES[placingAnnotType].label;
-    if (placingAnnotType === 'custom') {
-      const input = prompt('Label for this marker:', 'Custom');
-      if (!input) return;
-      label = input.trim();
-    }
-    S.annotations.push({ id:'a_'+Date.now(), type:placingAnnotType, x, y, label });
-    save(); renderAnnotations();
-    // Stay in placing mode to allow multiple of same type
-    return;
-  }
-  if (!placingMode) return;
-  const unplaced = S.cameras.filter(c => c.x === null || c.x === undefined);
-  if (!unplaced.length) { togglePlace(); return; }
-  const cam = unplaced[0];
+  if (box) box.style.display = 'none';
   const img = document.getElementById('propertyMap');
-  // Get position relative to the image itself (not the mapArea container)
-  const rect = img.getBoundingClientRect();
-  // Only register clicks within the image bounds
-  if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
-  cam.x = (e.clientX - rect.left) / rect.width * 100;
-  cam.y = (e.clientY - rect.top) / rect.height * 100;
-  save();
-  renderPins();
-  const remaining = S.cameras.filter(c => c.x === null || c.x === undefined);
-  if (!remaining.length) {
-    togglePlace();
-    document.getElementById('mapHint').textContent = '✅ All cameras placed!';
-    document.getElementById('mapHint').style.display = 'block';
-    setTimeout(() => { document.getElementById('mapHint').style.display = 'none'; }, 2000);
-  } else {
-    document.getElementById('mapHint').textContent = `📍 Click to place: ${remaining[0].name}`;
+  img.src = S.mapDataUrl;
+  img.style.display = 'block';
+  img.onload = () => {
+    mapImgW = img.naturalWidth;
+    mapImgH = img.naturalHeight;
+    mapResetView();
+    renderAllPins();
+  };
+  if (img.complete && img.naturalWidth) {
+    mapImgW = img.naturalWidth;
+    mapImgH = img.naturalHeight;
+    mapResetView();
+    renderAllPins();
   }
+}
+
+function mapApplyTransform() {
+  const canvas = document.getElementById('mapCanvas');
+  if (canvas) canvas.style.transform = 'translate(' + mapOffX + 'px,' + mapOffY + 'px) scale(' + mapScale + ')';
+  const zl = document.getElementById('zoomLevel');
+  if (zl) zl.textContent = Math.round(mapScale * 100) + '%';
+}
+
+function mapResetView() {
+  const vp = document.getElementById('mapViewport');
+  const img = document.getElementById('propertyMap');
+  if (!vp || !img || !mapImgW) return;
+  const vpW = vp.clientWidth, vpH = vp.clientHeight;
+  const scaleX = vpW / mapImgW, scaleY = vpH / mapImgH;
+  mapScale = Math.min(scaleX, scaleY, 1);
+  mapOffX = (vpW - mapImgW * mapScale) / 2;
+  mapOffY = (vpH - mapImgH * mapScale) / 2;
+  mapApplyTransform();
+}
+
+function mapZoom(delta) {
+  const vp = document.getElementById('mapViewport');
+  if (!vp) return;
+  const vpW = vp.clientWidth, vpH = vp.clientHeight;
+  const cx = vpW / 2, cy = vpH / 2;
+  const newScale = Math.min(Math.max(mapScale + delta, 0.1), 8);
+  const ratio = newScale / mapScale;
+  mapOffX = cx - (cx - mapOffX) * ratio;
+  mapOffY = cy - (cy - mapOffY) * ratio;
+  mapScale = newScale;
+  mapApplyTransform();
+  renderAllPins();
+}
+
+// ── Pan (drag) ────────────────────────────────────────────
+function initMapPan() {
+  const vp = document.getElementById('mapViewport');
+  if (!vp) return;
+
+  vp.addEventListener('mousedown', e => {
+    if (e.target.closest('.pin-el,.annot-el,.pin-popup,.cam-picker,.zoom-btn,.zoom-level,.map-upload-box')) return;
+    if (mapActiveTool) return; // don't pan when placing
+    mapIsDragging = true;
+    mapDragStartX = e.clientX; mapDragStartY = e.clientY;
+    mapDragOffX = mapOffX; mapDragOffY = mapOffY;
+    vp.classList.add('grabbing');
+    e.preventDefault();
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!mapIsDragging) return;
+    mapOffX = mapDragOffX + (e.clientX - mapDragStartX);
+    mapOffY = mapDragOffY + (e.clientY - mapDragStartY);
+    mapApplyTransform();
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (mapIsDragging) {
+      mapIsDragging = false;
+      const vp = document.getElementById('mapViewport');
+      if (vp) vp.classList.remove('grabbing');
+    }
+  });
+
+  vp.addEventListener('wheel', e => {
+    e.preventDefault();
+    const rect = vp.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+    const delta = e.deltaY < 0 ? 0.15 : -0.15;
+    const newScale = Math.min(Math.max(mapScale + delta, 0.1), 8);
+    const ratio = newScale / mapScale;
+    mapOffX = cx - (cx - mapOffX) * ratio;
+    mapOffY = cy - (cy - mapOffY) * ratio;
+    mapScale = newScale;
+    mapApplyTransform();
+    renderAllPins();
+  }, { passive: false });
+
+  // Click to place
+  vp.addEventListener('click', e => {
+    if (mapIsDragging) return;
+    if (!mapActiveTool) return;
+    if (e.target.closest('.pin-el,.annot-el,.pin-popup,.cam-picker,.zoom-btn,.zoom-level,.map-upload-box')) return;
+    if (!S.mapDataUrl) return;
+
+    // Convert viewport click to image-relative percent
+    const rect = vp.getBoundingClientRect();
+    const cx = (e.clientX - rect.left - mapOffX) / mapScale;
+    const cy = (e.clientY - rect.top  - mapOffY) / mapScale;
+    const xPct = cx / mapImgW * 100;
+    const yPct = cy / mapImgH * 100;
+    if (xPct < 0 || xPct > 100 || yPct < 0 || yPct > 100) return;
+
+    if (mapActiveTool === 'cam') {
+      handleCamPlace(xPct, yPct, e);
+    } else {
+      handleAnnotPlace(mapActiveTool, xPct, yPct);
+    }
+  });
+}
+
+// ── Tool management ───────────────────────────────────────
+function startMapTool(tool) {
+  if (!S.mapDataUrl) { alert('Upload a property map first.'); return; }
+  if (mapActiveTool === tool) { cancelMapTool(); return; }
+  cancelMapTool();
+  mapActiveTool = tool;
+  closePopup();
+  document.querySelectorAll('.map-tool-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('mBtn-' + tool);
+  if (btn) btn.classList.add('active');
+  const vp = document.getElementById('mapViewport');
+  if (vp) vp.classList.add('crosshair');
+  const hint = document.getElementById('mapHint');
+  if (hint) {
+    if (tool === 'cam') {
+      hint.textContent = '📷 Click map to place camera — choose from popup';
+    } else {
+      hint.textContent = (ANNOT_TYPES[tool]?.icon || '📌') + ' Click map to place ' + (ANNOT_TYPES[tool]?.label || tool) + ' — click again to place another · ESC to cancel';
+    }
+    hint.style.display = 'block';
+  }
+}
+
+function cancelMapTool() {
+  mapActiveTool = null;
+  mapMovingPinId = null;
+  document.querySelectorAll('.map-tool-btn').forEach(b => b.classList.remove('active'));
+  const vp = document.getElementById('mapViewport');
+  if (vp) vp.classList.remove('crosshair');
+  const hint = document.getElementById('mapHint');
+  if (hint) hint.style.display = 'none';
+  removeCamPicker();
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { cancelMapTool(); closePopup(); } });
+
+// ── Camera placement ──────────────────────────────────────
+function handleCamPlace(xPct, yPct, e) {
+  const unplaced = S.cameras.filter(c => c.x == null);
+  const placed   = S.cameras.filter(c => c.x != null);
+
+  if (S.cameras.length === 0) {
+    alert('Add cameras in Settings first.');
+    cancelMapTool(); return;
+  }
+
+  // Show cam picker popup
+  removeCamPicker();
+  const vp = document.getElementById('mapViewport');
+  const rect = vp.getBoundingClientRect();
+  const picker = document.createElement('div');
+  picker.className = 'cam-picker';
+  picker.id = 'camPicker';
+  picker.style.left = Math.min(e.clientX - rect.left + 10, rect.width - 260) + 'px';
+  picker.style.top  = Math.min(e.clientY - rect.top  + 10, rect.height - 300) + 'px';
+
+  let html = '<h4>📷 Select Camera to Place</h4>';
+  S.cameras.forEach(cam => {
+    const isPlaced = cam.x != null;
+    html += '<div class="cam-picker-item" data-xpct="' + xPct + '" data-ypct="' + yPct + '" data-camid="' + cam.id + '" onclick="placeCamAt(+this.dataset.xpct,+this.dataset.ypct,this.dataset.camid)">' +
+      '<div class="cam-dot-sm cam-picker-dot" style="background:' + cam.color + '"></div>' +
+      '<div class="cam-picker-name">' + cam.name + '</div>' +
+      '<div class="cam-picker-placed">' + (isPlaced ? '↺ Move' : '＋ Place') + '</div>' +
+      '</div>';
+  });
+  html += '<button onclick="removeCamPicker();cancelMapTool();" style="margin-top:6px;background:none;border:none;font-size:12px;color:var(--text-3);cursor:pointer;padding:4px">Cancel</button>';
+  picker.innerHTML = html;
+  vp.appendChild(picker);
+}
+
+function placeCamAt(xPct, yPct, camId) {
+  const cam = S.cameras.find(c => c.id === camId);
+  if (!cam) return;
+  cam.x = xPct; cam.y = yPct;
+  save(); removeCamPicker(); renderAllPins();
+  // Stay in cam tool so user can place next camera
+  const remaining = S.cameras.filter(c => c.x == null);
+  const hint = document.getElementById('mapHint');
+  if (remaining.length > 0 && hint) {
+    hint.textContent = '📷 ' + cam.name + ' placed! Click to place another camera.';
+  } else if (hint) {
+    hint.textContent = '✅ All cameras placed! Click ESC or another tool to finish.';
+  }
+}
+
+function removeCamPicker() {
+  const p = document.getElementById('camPicker');
+  if (p) p.remove();
+}
+
+// ── Annotation placement ──────────────────────────────────
+function handleAnnotPlace(type, xPct, yPct) {
+  let label = ANNOT_TYPES[type]?.label || 'Custom';
+  if (type === 'custom') {
+    const input = prompt('Label for this marker:', '');
+    if (input === null) return;
+    label = input.trim() || 'Custom';
+  }
+  S.annotations.push({ id:'a_'+Date.now(), type, x:xPct, y:yPct, label });
+  save(); renderAllPins();
+}
+
+function clearAllAnnots() {
+  if (!S.annotations.length) return;
+  if (!confirm('Clear all map annotations?')) return;
+  S.annotations = []; save(); renderAllPins();
+}
+
+// ── Pin popup ─────────────────────────────────────────────
+function closePopup() {
+  if (mapPopup) { mapPopup.remove(); mapPopup = null; }
+}
+
+function showPinPopup(type, id, label, xPct, yPct) {
+  closePopup();
+  removeCamPicker();
+  const vp = document.getElementById('mapViewport');
+  const px = (xPct / 100 * mapImgW * mapScale + mapOffX);
+  const py = (yPct / 100 * mapImgH * mapScale + mapOffY);
+
+  const popup = document.createElement('div');
+  popup.className = 'pin-popup';
+  mapPopup = popup;
+  popup.style.left = Math.min(px + 14, vp.clientWidth - 180) + 'px';
+  popup.style.top  = Math.max(py - 60, 8) + 'px';
+
+  if (type === 'cam') {
+    popup.innerHTML = '<div class="pin-popup-name">📷 ' + label + '</div>' +
+      '<button class="pin-popup-btn" onclick="startMapTool(\'cam\')">↺ Move camera</button>' +
+      '<button class="pin-popup-btn danger" data-cid="' + id + '" onclick="removeCamPin(this.dataset.cid);closePopup()">✕ Remove from map</button>' +
+      '<button class="pin-popup-btn" onclick="closePopup()" style="color:var(--text-3)">Cancel</button>';
+  } else {
+    popup.innerHTML = '<div class="pin-popup-name">' + (ANNOT_TYPES[type]?.icon||'📌') + ' ' + label + '</div>' +
+      '<button class="pin-popup-btn danger" data-aid="' + id + '" onclick="removeAnnot(this.dataset.aid);closePopup()">✕ Remove</button>' +
+      '<button class="pin-popup-btn" onclick="closePopup()" style="color:var(--text-3)">Cancel</button>';
+  }
+  vp.appendChild(popup);
+}
+
+function removeCamPin(camId) {
+  const cam = S.cameras.find(c => c.id === camId);
+  if (cam) { cam.x = null; cam.y = null; }
+  save(); renderAllPins();
+}
+
+function removeAnnot(id) {
+  S.annotations = S.annotations.filter(a => a.id !== id);
+  save(); renderAllPins();
+}
+
+// ── Render all pins to canvas ─────────────────────────────
+function renderAllPins() {
+  const canvas = document.getElementById('mapCanvas');
+  const img = document.getElementById('propertyMap');
+  if (!canvas || !img || !mapImgW) return;
+
+  // Remove existing pins (keep only the img)
+  Array.from(canvas.children).forEach(el => { if (el !== img) el.remove(); });
+
+  // Camera pins
+  S.cameras.filter(c => c.x != null).forEach(cam => {
+    const pin = document.createElement('div');
+    pin.className = 'pin-el';
+    pin.style.left = (cam.x / 100 * mapImgW) + 'px';
+    pin.style.top  = (cam.y / 100 * mapImgH) + 'px';
+    pin.innerHTML = '<div class="pin-body" style="background:' + cam.color + '"><div class="pin-icon">📷</div></div>' +
+      '<div class="pin-lbl">' + cam.name + '</div>';
+    pin.addEventListener('click', e => {
+      e.stopPropagation();
+      if (mapActiveTool) return;
+      showPinPopup('cam', cam.id, cam.name, cam.x, cam.y);
+    });
+    canvas.appendChild(pin);
+  });
+
+  // Annotation pins
+  S.annotations.forEach(a => {
+    const t = ANNOT_TYPES[a.type] || ANNOT_TYPES.custom;
+    const pin = document.createElement('div');
+    pin.className = 'annot-el';
+    pin.style.left = (a.x / 100 * mapImgW) + 'px';
+    pin.style.top  = (a.y / 100 * mapImgH) + 'px';
+    pin.innerHTML = '<div class="annot-ico" style="background:' + t.color + '">' + t.icon + '</div>' +
+      '<div class="annot-lbl">' + (a.label || t.label) + '</div>';
+    pin.addEventListener('click', e => {
+      e.stopPropagation();
+      if (mapActiveTool) return;
+      showPinPopup(a.type, a.id, a.label || t.label, a.x, a.y);
+    });
+    canvas.appendChild(pin);
+  });
+}
+
+function resetAllPins() {
+  if (!confirm('Reset all camera positions?')) return;
+  S.cameras.forEach(c => { c.x = null; c.y = null; });
+  save(); renderAllPins();
+}
+
+function showMap() {
+  if (!S.mapDataUrl) return;
+  initMap();
+}
+
+window.addEventListener('resize', () => {
+  if (S.mapDataUrl && mapImgW) { mapResetView(); renderAllPins(); }
 });
-// Compress image to max dimensions and quality before API call
+
+
+
+// ============================================================
+// MAP — PROPERTY ANALYSIS
+// ============================================================
 function compressImage(dataUrl, maxDim, quality) {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      let w = img.width, h = img.height;
-      // Scale down if larger than maxDim
+  return new Promise(function(resolve) {
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var w = img.width, h = img.height;
       if (w > maxDim || h > maxDim) {
         if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
         else { w = Math.round(w * maxDim / h); h = maxDim; }
       }
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, w, h);
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
       resolve(canvas.toDataURL('image/jpeg', quality));
     };
     img.src = dataUrl;
@@ -1067,235 +1387,93 @@ function compressImage(dataUrl, maxDim, quality) {
 
 async function analyzeProperty() {
   if (!S.mapDataUrl) { alert('Upload a property map first.'); return; }
-  const body = document.getElementById('analysisBody');
-  const btn = document.getElementById('analyzeBtn');
+  var body = document.getElementById('analysisBody');
+  var btn = document.getElementById('analyzeBtn');
   if (!body || !btn) return;
 
-  // Show loading state
   btn.disabled = true;
   btn.textContent = '...';
-  body.innerHTML = `<div class="map-analysis-loading">
-    <div class="analysis-spinner"></div>
-    <div style="font-size:13px;font-weight:600;color:var(--text-2)">Analyzing your property...</div>
-    <div style="font-size:12px;color:var(--text-3)">Reading terrain, cover types, and water features</div>
-  </div>`;
+  body.innerHTML = '<div class="map-analysis-loading"><div class="analysis-spinner"></div><div style="font-size:13px;font-weight:600;color:var(--text-2);margin-top:8px">Analyzing your property...</div><div style="font-size:12px;color:var(--text-3);margin-top:4px">Reading terrain, cover types, and water features</div></div>';
 
-  // Build camera context for the prompt
-  const placedCams = S.cameras.filter(c => c.x != null);
-  const annotContext = S.annotations.length > 0
-    ? S.annotations.map(a => {
-        const t = ANNOT_TYPES[a.type] || ANNOT_TYPES.custom;
-        return '- ' + (a.label||t.label) + ' (' + t.label + ') at ' + Math.round(a.x) + '% from left, ' + Math.round(a.y) + '% from top';
-      }).join('\n')
-    : 'No annotations added yet.';
+  var placedCams = S.cameras.filter(function(c){ return c.x != null; });
+  var camLines = placedCams.map(function(c){
+    return '- ' + c.name + ' at ' + Math.round(c.x) + '% L, ' + Math.round(c.y) + '% T' + (c.facing ? ' facing ' + c.facing : '') + (c.notes ? ', ' + c.notes : '');
+  });
+  var camContext = camLines.length > 0 ? camLines.join('\n') : 'No cameras pinned on map yet.';
 
-  const camContext = placedCams.length > 0
-    ? placedCams.map(c => '- ' + c.name + ' at ' + Math.round(c.x) + '% from left, ' + Math.round(c.y) + '% from top' + (c.facing ? ', facing ' + c.facing : '') + (c.notes ? ', ' + c.notes : '')).join('\n')
-    : 'No cameras pinned on map yet.';
+  var annotLines = S.annotations.map(function(a){
+    var t = ANNOT_TYPES[a.type] || ANNOT_TYPES.custom;
+    return '- ' + (a.label || t.label) + ' (' + t.label + ') at ' + Math.round(a.x) + '% L, ' + Math.round(a.y) + '% T';
+  });
+  var annotContext = annotLines.length > 0 ? annotLines.join('\n') : 'No annotations yet.';
+  var sightContext = S.sightings.length > 0 ? (S.sightings.length + ' sightings across ' + S.cameras.length + ' cameras.') : 'No sightings yet.';
 
-  const sightContext = S.sightings.length > 0
-    ? (S.sightings.length + ' sightings logged across ' + S.cameras.length + ' cameras.')
-    : 'No sightings logged yet.';
+  var systemPrompt = [
+    'You are an expert whitetail deer hunting guide and land manager with deep knowledge of deer behavior, terrain reading, and stand placement strategy.',
+    'You are analyzing an aerial/satellite image of a hunting property in northern Wisconsin near Cable, WI (Chequamegon-Nicolet National Forest area).',
+    '',
+    'Analyze the image carefully and provide:',
+    '1. **Terrain & Cover Overview** - timber types, openings, water features, ridges, valleys, edges',
+    '2. **Likely Bedding Areas** - where deer are probably bedding based on terrain and cover',
+    '3. **Likely Food Sources** - food plots, agricultural fields, mast-producing areas, browse',
+    '4. **Natural Funnels & Travel Corridors** - pinch points and terrain features that funnel deer movement',
+    '5. **Camera Placement Assessment** - evaluate current camera positions and suggest improvements',
+    '6. **Top Stand Locations** - your top 3-5 recommended stand locations with reasoning',
+    '7. **Key Observations** - anything notable that would affect hunting strategy',
+    '',
+    'Be specific and practical. Reference actual features visible in the image. This hunter tracks patterns seriously and wants actionable intelligence.'
+  ].join('\n');
 
-  const systemPrompt = `You are an expert whitetail deer hunting guide and land manager with deep knowledge of deer behavior, terrain reading, and stand placement strategy. You are analyzing an aerial/satellite image of a hunting property in northern Wisconsin near Cable, WI.
-
-Analyze the image carefully and provide:
-1. **Terrain & Cover Overview** — describe what you see: timber types, openings, water features, ridges, valleys, edges
-2. **Likely Bedding Areas** — where deer are probably bedding based on terrain and cover
-3. **Likely Food Sources** — visible food plots, agricultural fields, mast-producing areas, browse
-4. **Natural Funnels & Travel Corridors** — pinch points, terrain features that funnel deer movement
-5. **Camera Placement Assessment** — evaluate the current camera positions if any are placed, and suggest improvements
-6. **Top Stand Locations** — your top 3-5 recommended stand or blind locations based on terrain, with reasoning
-7. **Key Observations** — anything notable about this property that would affect hunting strategy
-
-Be specific and practical — reference actual features you can see in the image. This hunter is serious about pattern tracking and wants actionable intelligence.`;
-
-  const userPrompt = `Here is my hunting property aerial map. Please analyze the terrain and give me your full assessment.
-
-Current camera locations on the map:
-${camContext}
-
-Sighting data context: ${sightContext}
-
-What do you see, and what would you recommend?`;
+  var userPrompt = [
+    'Here is my hunting property aerial map. Please analyze the terrain and give me your full assessment.',
+    '',
+    'Camera locations on map:',
+    camContext,
+    '',
+    'Map annotations (food plots, stands, etc.):',
+    annotContext,
+    '',
+    'Sighting data: ' + sightContext,
+    '',
+    'What do you see and what would you recommend?'
+  ].join('\n');
 
   try {
-    // Compress image to JPEG at reduced size before sending to API
-    const compressedDataUrl = await compressImage(S.mapDataUrl, 1200, 0.75);
-    const base64 = compressedDataUrl.split(',')[1];
-    const mediaType = 'image/jpeg';
+    var compressedDataUrl = await compressImage(S.mapDataUrl, 1200, 0.75);
+    var base64 = compressedDataUrl.split(',')[1];
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    var response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1500,
         system: systemPrompt,
-        messages: [{
-          role: 'user',
-          content: [
-            { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
-            { type: 'text', text: userPrompt }
-          ]
-        }]
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
+          { type: 'text', text: userPrompt }
+        ]}]
       })
     });
 
-    const data = await response.json();
-    const text = data.content?.[0]?.text || 'No response received.';
+    var data = await response.json();
+    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+    var text = data.content && data.content[0] ? data.content[0].text : 'No response received.';
 
-    // Format the response with basic markdown rendering
-    // Format the response
-    const formatted = text
+    var formatted = text
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n\n/g, '<br><br>')
       .replace(/\n/g, '<br>');
 
-    body.innerHTML = `<div style="padding-bottom:20px">${formatted}</div>`;
+    body.innerHTML = '<div style="padding-bottom:20px;font-size:13px;line-height:1.65;color:var(--text)">' + formatted + '</div>';
 
-  } catch (err) {
-    const errMsg = err.message || 'Unknown error';
-    body.innerHTML = '<div class="map-analysis-empty">' +
-      '<div class="map-analysis-icon">⚠️</div>' +
-      '<div style="font-size:13px;font-weight:600;color:var(--red)">Analysis failed</div>' +
-      '<div style="font-size:12px;color:var(--text-3);margin-top:4px">' + errMsg + '</div>' +
-      '<div style="font-size:11px;color:var(--text-3);margin-top:8px;line-height:1.5">Check your internet connection and try again.<br>If the problem persists, try a smaller map image.</div>' +
-      '</div>';
+  } catch(err) {
+    body.innerHTML = '<div class="map-analysis-empty"><div class="map-analysis-icon">⚠️</div><div style="font-size:13px;font-weight:600;color:var(--red)">Analysis failed</div><div style="font-size:12px;color:var(--text-3);margin-top:4px">' + (err.message || 'Unknown error') + '</div><div style="font-size:11px;color:var(--text-3);margin-top:8px;line-height:1.5">Check your connection and try again. If it persists, try a smaller map image.</div></div>';
   }
 
   btn.disabled = false;
   btn.textContent = 'Re-analyze';
 }
-
-// ── ANNOTATION TYPES ──────────────────────────────────
-const ANNOT_TYPES = {
-  food_plot: { icon:'🌽', color:'#c8a020', label:'Food Plot' },
-  stand:     { icon:'🪑', color:'#5a3a1a', label:'Stand' },
-  bedding:   { icon:'💤', color:'#6b4a8a', label:'Bedding' },
-  scrape:    { icon:'🦌', color:'#8b4513', label:'Scrape/Rub' },
-  water:     { icon:'💧', color:'#2a6a9a', label:'Water' },
-  funnel:    { icon:'↗',  color:'#1a6a3a', label:'Funnel' },
-  custom:    { icon:'📌', color:'#888',    label:'Custom' },
-};
-
-let placingAnnotType = null;
-
-function startAnnot(type, icon, color) {
-  if (!S.mapDataUrl) { alert('Upload a property map first.'); return; }
-  // Toggle off if already placing this type
-  if (placingAnnotType === type) {
-    cancelAnnot(); return;
-  }
-  // Cancel any camera placing
-  if (placingMode) togglePlace();
-  placingAnnotType = type;
-  // Update button states
-  document.querySelectorAll('.annot-type-btn').forEach(b => b.classList.remove('active','placing'));
-  const btn = document.getElementById('aBtn-' + type);
-  if (btn) { btn.classList.add('active','placing'); }
-  const hint = document.getElementById('mapHint');
-  hint.textContent = ANNOT_TYPES[type].icon + ' Click map to place ' + ANNOT_TYPES[type].label;
-  hint.style.display = 'block';
-  document.getElementById('mapArea').style.cursor = 'crosshair';
-}
-
-function cancelAnnot() {
-  placingAnnotType = null;
-  document.querySelectorAll('.annot-type-btn').forEach(b => b.classList.remove('active','placing'));
-  document.getElementById('mapHint').style.display = 'none';
-  document.getElementById('mapArea').style.cursor = 'default';
-}
-
-function clearAllAnnots() {
-  if (!S.annotations.length) return;
-  if (!confirm('Clear all map annotations?')) return;
-  S.annotations = []; save(); renderAnnotations();
-}
-
-function deleteAnnot(id) {
-  S.annotations = S.annotations.filter(a => a.id !== id);
-  save(); renderAnnotations();
-}
-
-function renderAnnotations() {
-  // Remove existing annotation layer
-  const existing = document.getElementById('annotLayer');
-  if (existing) existing.remove();
-  const img = document.getElementById('propertyMap');
-  if (!img || img.style.display === 'none' || !S.annotations.length) return;
-
-  const layer = document.createElement('div');
-  layer.id = 'annotLayer';
-  layer.style.cssText = 'position:absolute;pointer-events:none;z-index:8;';
-
-  const imgRect = img.getBoundingClientRect();
-  const areaRect = document.getElementById('mapArea').getBoundingClientRect();
-  layer.style.left = (imgRect.left - areaRect.left) + 'px';
-  layer.style.top = (imgRect.top - areaRect.top) + 'px';
-  layer.style.width = imgRect.width + 'px';
-  layer.style.height = imgRect.height + 'px';
-
-  layer.innerHTML = S.annotations.map(a => {
-    const t = ANNOT_TYPES[a.type] || ANNOT_TYPES.custom;
-    return '<div class="annot-pin" style="left:' + a.x + '%;top:' + a.y + '%;pointer-events:all" title="' + (a.label||t.label) + ' — click to remove" data-aid="' + a.id + '">' +
-      '<div class="annot-icon" style="background:' + t.color + '">' + t.icon + '</div>' +
-      '<div class="annot-label">' + (a.label||t.label) + '</div>' +
-      '</div>';
-  }).join('');
-
-  document.getElementById('mapArea').appendChild(layer);
-  // Use event delegation to handle annotation pin clicks
-  layer.addEventListener('click', function(e) {
-    const pin = e.target.closest('.annot-pin');
-    if (!pin) return;
-    e.stopPropagation();
-    const aid = pin.dataset.aid;
-    if (aid) deleteAnnot(aid);
-  });
-}
-
-function resetAllPins() {
-  if (!confirm('Reset all camera positions? You will need to re-pin them on the map.')) return;
-  S.cameras.forEach(c => { c.x = null; c.y = null; });
-  save(); renderPins();
-  alert('All camera pins cleared. Click 📷 to re-place them.');
-}
-
-function resetOnePin(camId) {
-  const cam = S.cameras.find(c => c.id === camId);
-  if (!cam) return;
-  if (!confirm(`Reset pin for "${cam.name}"? You can re-place it by clicking 📷.`)) return;
-  cam.x = null; cam.y = null;
-  save(); renderPins();
-}
-
-function renderPins() {
-  const layer = document.getElementById('mapPins');
-  const img = document.getElementById('propertyMap');
-  if (!layer) return;
-  if (!img || img.style.display === 'none') { layer.innerHTML = ''; return; }
-
-  // Position the pins layer to exactly overlay the image
-  const imgRect = img.getBoundingClientRect();
-  const areaRect = document.getElementById('mapArea').getBoundingClientRect();
-  const offLeft = imgRect.left - areaRect.left;
-  const offTop = imgRect.top - areaRect.top;
-
-  layer.style.left = offLeft + 'px';
-  layer.style.top = offTop + 'px';
-  layer.style.width = imgRect.width + 'px';
-  layer.style.height = imgRect.height + 'px';
-
-  layer.innerHTML = S.cameras.filter(c => c.x != null).map(c => `
-    <div class="map-pin" style="left:${c.x}%;top:${c.y}%" title="Click to reposition ${c.name}" onclick="event.stopPropagation();resetOnePin('${c.id}')">
-      <div class="pin-body" style="background:${c.color}">
-        <div class="pin-icon">📷</div>
-      </div>
-      <div class="pin-label">${c.name} ✕</div>
-    </div>`).join('');
-}
-window.addEventListener('resize', () => { renderPins(); renderAnnotations(); });
 
 // ============================================================
 // SIGHTING LOG
@@ -1827,6 +2005,7 @@ populateFilters();
 const lastView = sessionStorage.getItem('bt_view') || 'dashboard';
 // Small timeout ensures DOM is fully ready
 setTimeout(() => {
+  initMapPan(); // set up zoom/pan event listeners
   go(lastView);
   if (S.mapDataUrl) showMap();
 }, 10);
