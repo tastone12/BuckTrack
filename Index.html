@@ -1,0 +1,2176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BuckTrack</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #eceae2;
+  --surface: #f5f3ec;
+  --surface2: #e8e6de;
+  --nav: #1a2e1c;
+  --green: #2d5a1f;
+  --green-mid: #3d7a2a;
+  --green-light: #d4ebc8;
+  --green-border: #a0c880;
+  --red: #8b1e1e;
+  --red-mid: #a83030;
+  --red-light: #f0d8d8;
+  --red-border: #d09090;
+  --text: #1a1a0e;
+  --text-2: #3a4a2a;
+  --text-3: #6a7a5a;
+  --border: #ccc8b0;
+  --border-strong: #aaa890;
+  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  --r: 8px;
+  --r-sm: 5px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+/* ── HEADER ── */
+header { display:flex; align-items:center; justify-content:space-between; padding:0 20px; height:52px; background:var(--nav); flex-shrink:0; z-index:100; gap:12px; }
+.logo { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.logo-icon { width:28px; height:28px; background:var(--green-mid); border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; }
+.logo-text { font-size:15px; font-weight:700; color:#fff; }
+.logo-sub { font-size:10px; font-weight:400; color:rgba(255,255,255,0.55); letter-spacing:0.05em; }
+nav { display:flex; gap:2px; }
+nav button { background:none; border:none; color:rgba(255,255,255,0.7); font-family:'Inter',sans-serif; font-size:13px; font-weight:500; padding:6px 12px; cursor:pointer; border-radius:5px; transition:all 0.15s; white-space:nowrap; }
+nav button:hover { color:#fff; background:rgba(255,255,255,0.08); }
+nav button.active { background:rgba(255,255,255,0.15); color:#fff; }
+.header-right { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+.filter-group { display:flex; align-items:center; gap:6px; }
+.filter-label { font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:rgba(255,255,255,0.5); }
+.header-select { background:#1a2e1c; border:1px solid rgba(255,255,255,0.2); color:#fff; font-family:'Inter',sans-serif; font-size:12px; font-weight:600; padding:5px 8px; border-radius:5px; cursor:pointer; min-width:110px; }
+.header-select option { background:#1a2e1c; color:#fff; }
+.h-divider { width:1px; height:22px; background:rgba(255,255,255,0.15); }
+.btn-primary { background:var(--red-mid); color:#fff; border:none; font-family:'Inter',sans-serif; font-size:13px; font-weight:600; padding:7px 14px; cursor:pointer; border-radius:var(--r-sm); transition:background 0.15s; white-space:nowrap; }
+.btn-primary:hover { background:var(--red); }
+.btn-ghost { background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); color:rgba(255,255,255,0.85); font-family:'Inter',sans-serif; font-size:13px; font-weight:500; padding:6px 12px; cursor:pointer; border-radius:var(--r-sm); transition:all 0.15s; white-space:nowrap; }
+.btn-ghost:hover { background:rgba(255,255,255,0.18); color:#fff; }
+
+/* ── LAYOUT ── */
+.app { display:flex; flex:1; overflow:hidden; flex-direction:column; }
+.view { display:none; flex:1; flex-direction:column; overflow:hidden; }
+.view.active { display:flex; }
+
+/* ── SHARED CARDS ── */
+.card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); box-shadow:var(--shadow); }
+.card-title { font-size:13px; font-weight:700; color:var(--text); }
+.card-sub { font-size:10px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-3); margin-top:1px; margin-bottom:12px; }
+.btn-green { background:var(--green-mid); color:#fff; border:none; font-family:'Inter',sans-serif; font-size:13px; font-weight:600; padding:7px 14px; cursor:pointer; border-radius:var(--r-sm); transition:background 0.15s; }
+.btn-green:hover { background:var(--green); }
+.btn-outline { background:var(--surface); border:1px solid var(--border); color:var(--text-2); font-family:'Inter',sans-serif; font-size:13px; font-weight:500; padding:6px 12px; cursor:pointer; border-radius:var(--r-sm); transition:all 0.12s; }
+.btn-outline:hover { border-color:var(--green-border); color:var(--green); }
+.btn-danger { background:var(--red-light); color:var(--red); border:1px solid var(--red-border); font-family:'Inter',sans-serif; font-size:12px; font-weight:600; padding:4px 10px; cursor:pointer; border-radius:4px; transition:all 0.12s; }
+.btn-danger:hover { background:var(--red-mid); color:#fff; }
+label.field-label { display:block; font-size:11px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-3); margin-bottom:5px; }
+input.field, select.field, textarea.field { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:var(--r-sm); color:var(--text); font-family:'Inter',sans-serif; font-size:13px; padding:8px 10px; transition:all 0.12s; }
+input.field:focus, select.field:focus, textarea.field:focus { outline:none; border-color:var(--green-mid); box-shadow:0 0 0 3px rgba(61,122,42,0.12); background:var(--surface); }
+textarea.field { resize:vertical; min-height:60px; }
+
+/* ── DASHBOARD ── */
+#view-dashboard { overflow-y:auto; background:var(--bg); }
+.dashboard { padding:18px 22px; display:flex; flex-direction:column; gap:14px; }
+.kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.kpi { padding:14px 16px; position:relative; overflow:hidden; }
+.kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+.kpi.k-green::before { background:var(--green-mid); }
+.kpi.k-red::before { background:var(--red-mid); }
+.kpi.k-brown::before { background:#7a4e2a; }
+.kpi.k-slate::before { background:#4a5a6a; }
+.kpi-label { font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-3); margin-bottom:5px; }
+.kpi-value { font-size:26px; font-weight:800; color:var(--text); line-height:1; }
+.kpi-sub { font-size:11px; color:var(--text-3); margin-top:4px; }
+.alert-bar { background:linear-gradient(135deg,#1a2e1c 0%,#2a3818 100%); border:1px solid rgba(255,255,255,0.08); border-radius:var(--r); padding:13px 16px; color:#fff; display:flex; gap:12px; align-items:flex-start; }
+.alert-icon { font-size:18px; flex-shrink:0; }
+.alert-title { font-size:12px; font-weight:700; color:#c8b882; margin-bottom:3px; }
+.alert-text { font-size:12px; color:rgba(255,255,255,0.72); line-height:1.5; }
+.dash-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:13px; }
+.dash-card { padding:14px 16px; }
+.dash-card.span2 { grid-column:span 2; }
+.dash-card.span3 { grid-column:span 3; }
+.hour-bars { display:flex; gap:2px; align-items:flex-end; height:60px; margin-bottom:5px; }
+.hour-bar { flex:1; background:var(--green-light); border:1px solid var(--green-border); border-bottom:none; border-radius:2px 2px 0 0; min-height:2px; cursor:pointer; transition:background 0.15s; }
+.hour-bar:hover { background:var(--green-mid); }
+.hour-bar.peak { background:var(--red-mid); border-color:var(--red); }
+.hour-bar.high { background:var(--green-mid); border-color:var(--green); }
+.hour-labels { display:flex; justify-content:space-between; font-size:9px; color:var(--text-3); font-weight:600; }
+.buck-row { display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--bg); border:1px solid var(--border); border-radius:6px; margin-bottom:6px; cursor:pointer; transition:all 0.12s; }
+.buck-row:hover { background:var(--green-light); border-color:var(--green-border); }
+.buck-avi { width:30px; height:30px; background:var(--green-light); border:1px solid var(--green-border); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+.buck-row-name { font-size:13px; font-weight:700; color:var(--text); }
+.buck-row-detail { font-size:11px; color:var(--text-3); }
+.buck-row-count { font-size:16px; font-weight:800; color:var(--green-mid); text-align:right; }
+.buck-row-last { font-size:10px; color:var(--text-3); text-align:right; }
+.badge { display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; margin-top:2px; }
+.badge.fresh { background:var(--green-light); color:var(--green); border:1px solid var(--green-border); }
+.badge.stale { background:#fff7ed; color:#b45309; border:1px solid #fcd9a0; }
+.badge.cold { background:var(--red-light); color:var(--red); border:1px solid var(--red-border); }
+.cam-rank-row { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid var(--border); }
+.cam-rank-row:last-child { border-bottom:none; }
+.cam-rank-num { font-size:14px; font-weight:800; color:var(--border-strong); width:18px; flex-shrink:0; }
+.cam-rank-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.cam-rank-name { font-size:13px; font-weight:600; color:var(--text); flex:1; }
+.cam-rank-bar-wrap { width:60px; height:5px; background:var(--border); border-radius:3px; }
+.cam-rank-bar { height:100%; border-radius:3px; }
+.cam-rank-count { font-size:13px; font-weight:700; color:var(--text); margin-left:4px; }
+.wind-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.wind-dir { font-size:12px; font-weight:700; color:var(--green); width:28px; }
+.wind-bar-wrap { flex:1; height:5px; background:var(--border); border-radius:3px; }
+.wind-bar { height:100%; background:var(--green-mid); border-radius:3px; }
+.wind-count { font-size:11px; color:var(--text-3); width:20px; text-align:right; }
+.feed-row { display:flex; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); }
+.feed-row:last-child { border-bottom:none; }
+.feed-dot { width:7px; height:7px; border-radius:50%; background:var(--green-mid); flex-shrink:0; margin-top:4px; }
+.feed-dot.rut { background:var(--red-mid); }
+.feed-title { font-size:12px; font-weight:600; color:var(--text); }
+.feed-detail { font-size:11px; color:var(--text-3); margin-top:1px; }
+.feed-time { font-size:11px; color:var(--text-3); flex-shrink:0; text-align:right; white-space:nowrap; }
+.yoy-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.yoy-year { font-size:13px; font-weight:800; color:var(--text); width:44px; }
+.yoy-bar-wrap { flex:1; height:8px; background:var(--border); border-radius:4px; }
+.yoy-bar { height:100%; background:var(--green-mid); border-radius:4px; }
+.yoy-count { font-size:13px; font-weight:700; color:var(--text); width:28px; text-align:right; }
+.yoy-detail { font-size:10px; color:var(--text-3); margin-top:2px; }
+.dash-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:60px; background:var(--surface); border:1px dashed var(--border-strong); border-radius:var(--r); text-align:center; }
+.dash-empty-icon { font-size:36px; opacity:0.35; }
+.dash-empty-title { font-size:15px; font-weight:700; color:var(--text-2); }
+.dash-empty-sub { font-size:12px; color:var(--text-3); line-height:1.5; max-width:280px; }
+
+/* ── MAP ── */
+#view-map { position:relative; overflow:hidden; flex-direction:column !important; }
+.map-area { flex:1; position:relative; overflow:hidden; background:#e0ddd4; display:flex; align-items:center; justify-content:center; min-height:0; }
+/* ── MAP VIEWPORT ── */
+.map-viewport { flex:1; position:relative; overflow:hidden; background:#2a2e24; cursor:grab; user-select:none; }
+.map-viewport.grabbing { cursor:grabbing; }
+.map-viewport.crosshair { cursor:crosshair !important; }
+.map-canvas { position:absolute; transform-origin:0 0; will-change:transform; }
+.map-canvas img { display:block; pointer-events:none; }
+#mapFileInput { display:none; }
+/* toolbar */
+.map-toolbar { display:flex; gap:6px; flex-wrap:wrap; padding:9px 14px; border-bottom:1px solid var(--border); background:var(--surface); flex-shrink:0; align-items:center; }
+.map-tool-btn { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border:1px solid var(--border); border-radius:20px; background:var(--bg); font-size:11px; font-weight:600; color:var(--text-2); cursor:pointer; transition:all 0.12s; white-space:nowrap; }
+.map-tool-btn:hover { border-color:var(--green-border); color:var(--green); background:var(--green-light); }
+.map-tool-btn.active { background:var(--green-mid); color:#fff; border-color:var(--green); }
+/* upload box */
+.map-upload-box { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:36px 44px; display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center; box-shadow:var(--shadow-md); z-index:50; }
+.map-upload-box h3 { font-size:18px; font-weight:700; color:var(--text); }
+.map-upload-box p { font-size:13px; color:var(--text-3); max-width:260px; line-height:1.55; }
+.map-upload-label { background:var(--green-mid); color:#fff; font-family:'Inter',sans-serif; font-size:13px; font-weight:600; padding:9px 20px; border-radius:var(--r-sm); cursor:pointer; transition:background 0.15s; }
+.map-upload-label:hover { background:var(--green); }
+/* zoom controls */
+.map-zoom-controls { position:absolute; bottom:16px; right:16px; display:flex; flex-direction:column; gap:4px; z-index:40; }
+.zoom-btn { width:34px; height:34px; background:var(--surface); border:1px solid var(--border); border-radius:6px; font-size:18px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow); transition:all 0.12s; color:var(--text-2); }
+.zoom-btn:hover { background:var(--green-light); border-color:var(--green-border); color:var(--green); }
+.zoom-level { width:34px; height:24px; background:rgba(26,46,28,0.8); border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:#fff; }
+/* pins on canvas */
+.pin-el { position:absolute; transform:translate(-50%,-100%); display:flex; flex-direction:column; align-items:center; cursor:pointer; pointer-events:all; z-index:20; }
+.pin-el:hover .pin-body { filter:brightness(1.15); }
+.pin-body { width:26px; height:26px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); border:2px solid rgba(255,255,255,0.6); box-shadow:0 2px 8px rgba(0,0,0,0.4); position:relative; transition:filter 0.15s; }
+.pin-icon { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; transform:rotate(45deg); font-size:11px; }
+.pin-lbl { margin-top:7px; background:rgba(255,255,255,0.95); border:1px solid rgba(0,0,0,0.15); border-radius:4px; padding:2px 7px; font-size:10px; font-weight:700; color:#111; white-space:nowrap; box-shadow:0 1px 4px rgba(0,0,0,0.2); }
+/* annotation pins */
+.annot-el { position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; cursor:pointer; pointer-events:all; z-index:15; }
+.annot-el:hover .annot-ico { filter:brightness(1.15); }
+.annot-ico { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:15px; box-shadow:0 2px 8px rgba(0,0,0,0.4); border:2px solid rgba(255,255,255,0.7); transition:filter 0.15s; }
+.annot-lbl { margin-top:3px; background:rgba(255,255,255,0.95); border:1px solid rgba(0,0,0,0.15); border-radius:4px; padding:1px 6px; font-size:9px; font-weight:700; color:#111; white-space:nowrap; box-shadow:0 1px 4px rgba(0,0,0,0.2); }
+/* hint bar */
+.map-hint { position:absolute; bottom:16px; left:50%; transform:translateX(-50%); background:rgba(26,46,28,0.92); color:#fff; border-radius:20px; padding:8px 20px; font-size:12px; font-weight:600; display:none; box-shadow:var(--shadow-md); z-index:40; backdrop-filter:blur(4px); }
+/* pin popup */
+.pin-popup { position:absolute; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 12px; box-shadow:var(--shadow-md); z-index:50; min-width:160px; pointer-events:all; }
+.pin-popup-name { font-size:13px; font-weight:700; color:var(--text); margin-bottom:8px; }
+.pin-popup-btn { display:block; width:100%; text-align:left; background:none; border:none; font-family:Inter,sans-serif; font-size:12px; color:var(--text-2); padding:5px 6px; border-radius:4px; cursor:pointer; transition:background 0.1s; }
+.pin-popup-btn:hover { background:var(--green-light); color:var(--green); }
+.pin-popup-btn.danger { color:var(--red); }
+.pin-popup-btn.danger:hover { background:var(--red-light); }
+/* cam picker modal */
+.cam-picker { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px 20px; box-shadow:var(--shadow-md); z-index:60; min-width:240px; }
+.cam-picker h4 { font-size:14px; font-weight:700; color:var(--text); margin-bottom:12px; }
+.cam-picker-item { display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; cursor:pointer; transition:all 0.12s; margin-bottom:6px; background:var(--bg); }
+.cam-picker-item:hover { background:var(--green-light); border-color:var(--green-border); }
+.cam-picker-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.cam-picker-name { font-size:13px; font-weight:600; color:var(--text); flex:1; }
+.cam-picker-placed { font-size:10px; color:var(--text-3); }
+.map-analysis-panel { width:320px; flex-shrink:0; display:flex; flex-direction:column; background:var(--surface); border-left:1px solid var(--border); overflow:hidden; }
+.map-analysis-header { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+.map-analysis-title { font-size:13px; font-weight:700; color:var(--text); }
+.map-analysis-body { flex:1; overflow-y:auto; padding:14px 16px; font-size:13px; line-height:1.65; color:var(--text); }
+.map-analysis-body::-webkit-scrollbar { width:3px; }
+.map-analysis-body::-webkit-scrollbar-thumb { background:var(--border-strong); }
+.map-analysis-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; height:100%; text-align:center; padding:24px; color:var(--text-3); }
+.map-analysis-icon { font-size:32px; opacity:0.35; }
+.map-analysis-loading { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; height:100%; text-align:center; padding:24px; }
+.analysis-spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--green-mid); border-radius:50%; animation:spin 0.8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.7} }
+
+/* ── LOG ── */
+.log-toolbar { padding:10px 18px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; gap:8px; align-items:center; flex-shrink:0; }
+.log-toolbar select { background:var(--bg); border:1px solid var(--border); color:var(--text); font-family:'Inter',sans-serif; font-size:12px; font-weight:500; padding:6px 10px; border-radius:var(--r-sm); cursor:pointer; }
+.log-table-wrap { flex:1; overflow-y:auto; background:var(--bg); }
+.log-table-wrap::-webkit-scrollbar { width:4px; }
+.log-table-wrap::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:2px; }
+table { width:100%; border-collapse:collapse; background:var(--surface); }
+thead { position:sticky; top:0; z-index:5; }
+th { background:var(--surface); border-bottom:1px solid var(--border); padding:10px 14px; text-align:left; font-size:11px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-3); }
+td { padding:10px 14px; border-bottom:1px solid var(--border); font-size:13px; color:var(--text); }
+tr:hover td { background:var(--green-light); }
+.td-mono { font-size:12px; color:var(--text-2); }
+.td-bold { font-size:13px; font-weight:600; }
+.rut-badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+
+/* ── PATTERNS ── */
+#view-patterns { overflow-y:auto; background:var(--bg); }
+.patterns-wrap { padding:18px 22px; }
+.stat-row { display:flex; border-bottom:1px solid var(--border); background:var(--surface); flex-shrink:0; }
+.stat-item { padding:11px 18px; border-right:1px solid var(--border); }
+.stat-value { font-size:20px; font-weight:700; color:var(--text); line-height:1; }
+.stat-label { font-size:10px; font-weight:600; letter-spacing:0.07em; text-transform:uppercase; color:var(--text-3); margin-top:2px; }
+.patterns-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+.pattern-card { padding:16px 18px; }
+.pattern-card.full { grid-column:1/-1; }
+
+/* ── AI ── */
+#view-ai { flex-direction:row !important; }
+.ai-chat { flex:1; display:flex; flex-direction:column; overflow:hidden; border-right:1px solid var(--border); }
+.ai-messages { flex:1; overflow-y:auto; padding:18px; display:flex; flex-direction:column; gap:14px; background:var(--bg); }
+.ai-messages::-webkit-scrollbar { width:3px; }
+.ai-messages::-webkit-scrollbar-thumb { background:var(--border-strong); }
+.ai-welcome { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; text-align:center; gap:10px; padding:40px; }
+.ai-welcome h3 { font-size:18px; font-weight:700; color:var(--text); }
+.ai-welcome p { font-size:13px; color:var(--text-3); line-height:1.6; max-width:300px; }
+.ai-badge { display:inline-flex; align-items:center; gap:5px; background:var(--green-light); border:1px solid var(--green-border); border-radius:12px; padding:4px 12px; font-size:12px; font-weight:600; color:var(--green); }
+.msg { display:flex; gap:9px; }
+.msg-avi { width:26px; height:26px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:12px; margin-top:2px; }
+.msg-avi.user { background:var(--green-light); border:1px solid var(--green-border); }
+.msg-avi.ai { background:var(--nav); }
+.msg-sender { font-size:10px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; margin-bottom:4px; }
+.msg-sender.user { color:var(--text-3); }
+.msg-sender.ai { color:var(--green-mid); }
+.msg-bubble { background:var(--surface); border:1px solid var(--border); border-radius:3px 9px 9px 9px; padding:10px 13px; font-size:13px; line-height:1.65; color:var(--text); white-space:pre-wrap; word-break:break-word; box-shadow:var(--shadow); }
+.msg.user .msg-bubble { background:var(--green-light); border-color:var(--green-border); border-radius:9px 3px 9px 9px; }
+.ai-input-area { padding:12px 16px; border-top:1px solid var(--border); background:var(--surface); display:flex; gap:8px; }
+.ai-input { flex:1; background:var(--bg); border:1px solid var(--border); border-radius:var(--r-sm); color:var(--text); font-family:'Inter',sans-serif; font-size:13px; padding:9px 12px; resize:none; min-height:40px; max-height:100px; transition:all 0.12s; }
+.ai-input:focus { outline:none; border-color:var(--green-mid); box-shadow:0 0 0 3px rgba(61,122,42,0.12); }
+.ai-send { background:var(--green-mid); border:none; border-radius:var(--r-sm); color:#fff; font-size:15px; width:40px; height:40px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:background 0.15s; }
+.ai-send:hover { background:var(--green); }
+.ai-send:disabled { opacity:0.4; cursor:not-allowed; }
+.ai-sidebar { width:256px; flex-shrink:0; overflow-y:auto; background:var(--surface); }
+.ai-sidebar-head { padding:12px 14px; border-bottom:1px solid var(--border); font-size:10px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-3); }
+.ai-suggestions { padding:10px; }
+.suggest-group { margin-bottom:12px; }
+.suggest-group-label { font-size:10px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:var(--green); margin-bottom:5px; padding:0 2px; }
+.suggest-btn { display:block; width:100%; background:var(--bg); border:1px solid var(--border); border-radius:var(--r-sm); color:var(--text-2); font-family:'Inter',sans-serif; font-size:12px; line-height:1.45; text-align:left; padding:7px 9px; cursor:pointer; margin-bottom:4px; transition:all 0.12s; }
+.suggest-btn:hover { background:var(--green-light); border-color:var(--green-border); color:var(--green); }
+.typing-dot { display:inline-block; width:6px; height:6px; background:var(--green-mid); border-radius:50%; animation:typingBounce 1.2s infinite; margin-right:3px; }
+.typing-dot:nth-child(2) { animation-delay:0.2s; }
+.typing-dot:nth-child(3) { animation-delay:0.4s; }
+@keyframes typingBounce { 0%,80%,100%{transform:translateY(0);opacity:0.4} 40%{transform:translateY(-5px);opacity:1} }
+
+/* ── SETTINGS ── */
+#view-settings { overflow-y:auto; background:var(--bg); }
+.settings-body { max-width:860px; margin:0 auto; padding:20px; display:flex; flex-direction:column; gap:14px; }
+.settings-section { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:18px 20px; box-shadow:var(--shadow); }
+.settings-title { font-size:14px; font-weight:700; color:var(--text); margin-bottom:3px; }
+.settings-sub { font-size:12px; color:var(--text-3); margin-bottom:14px; }
+.settings-list { display:flex; flex-direction:column; gap:5px; margin-bottom:12px; }
+.settings-item { display:flex; align-items:center; gap:10px; padding:8px 11px; background:var(--bg); border:1px solid var(--border); border-radius:6px; }
+.settings-item-name { font-size:13px; font-weight:600; color:var(--text); }
+.settings-item-meta { font-size:11px; color:var(--text-3); margin-top:1px; }
+.settings-add-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.settings-fields-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+.settings-field { display:flex; flex-direction:column; gap:5px; }
+.toggle-switch { position:relative; width:36px; height:20px; flex-shrink:0; }
+.toggle-switch input { opacity:0; width:0; height:0; }
+.toggle-slider { position:absolute; cursor:pointer; inset:0; background:var(--border-strong); border-radius:20px; transition:0.2s; }
+.toggle-slider:before { position:absolute; content:''; height:14px; width:14px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:0.2s; }
+.toggle-switch input:checked + .toggle-slider { background:var(--green-mid); }
+.toggle-switch input:checked + .toggle-slider:before { transform:translateX(16px); }
+.field-toggle-row { display:flex; align-items:center; gap:10px; padding:8px 11px; background:var(--bg); border:1px solid var(--border); border-radius:6px; margin-bottom:5px; }
+.edit-options-btn { background:none; border:1px solid var(--border); color:var(--text-3); font-size:11px; font-weight:600; padding:3px 8px; border-radius:4px; cursor:pointer; transition:all 0.12s; flex-shrink:0; }
+.edit-options-btn:hover { border-color:var(--green-border); color:var(--green); }
+.options-editor { background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:12px; margin-bottom:10px; display:none; }
+.cam-dot-sm { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+.action-btn { font-family:'Inter',sans-serif; font-size:12px; font-weight:600; padding:7px 14px; border-radius:var(--r-sm); cursor:pointer; transition:all 0.15s; border:1px solid; }
+.action-btn.green { background:var(--green-light); color:var(--green); border-color:var(--green-border); }
+.action-btn.green:hover { background:var(--green-mid); color:#fff; }
+.action-btn.slate { background:#eef0f4; color:#4a5a6a; border-color:#c8cdd8; }
+.action-btn.slate:hover { background:#4a5a6a; color:#fff; }
+.action-btn.red { background:var(--red-light); color:var(--red); border-color:var(--red-border); }
+.action-btn.red:hover { background:var(--red-mid); color:#fff; }
+.custom-field-card { background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:9px 11px; display:flex; align-items:center; gap:10px; margin-bottom:5px; }
+.cf-type-badge { font-size:10px; font-weight:700; padding:2px 7px; border-radius:8px; background:var(--green-light); color:var(--green); border:1px solid var(--green-border); flex-shrink:0; }
+
+/* ── MODALS ── */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(17,28,18,0.45); z-index:1000; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+.modal-overlay.open { display:flex; }
+.modal { background:var(--surface); border:1px solid var(--border); border-radius:10px; width:480px; max-width:95vw; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.18); }
+.modal::-webkit-scrollbar { width:3px; }
+.modal::-webkit-scrollbar-thumb { background:var(--border-strong); }
+.modal-header { padding:18px 22px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.modal-title { font-size:15px; font-weight:700; color:var(--text); }
+.modal-close { background:none; border:none; color:var(--text-3); font-size:18px; cursor:pointer; padding:3px; border-radius:4px; transition:all 0.12s; }
+.modal-close:hover { background:var(--surface2); color:var(--text); }
+.modal-body { padding:18px 22px; }
+.modal-footer { padding:14px 22px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px; background:var(--surface2); border-radius:0 0 10px 10px; }
+.form-row { margin-bottom:13px; }
+.form-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:13px; }
+.weather-status { font-size:12px; color:var(--text-3); background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:8px 12px; margin-bottom:13px; min-height:32px; line-height:1.4; }
+
+/* ── EMPTY STATES ── */
+.empty { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:60px; text-align:center; flex:1; }
+.empty-icon { font-size:32px; opacity:0.3; }
+.empty-text { font-size:14px; font-weight:600; color:var(--text-2); }
+.empty-sub { font-size:12px; color:var(--text-3); line-height:1.5; max-width:240px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🦌</div>
+    <div>
+      <div class="logo-text">BuckTrack</div>
+      <div class="logo-sub">BY T-STONE</div>
+    </div>
+  </div>
+  <nav>
+    <button onclick="go('dashboard')" id="nav-dashboard">Dashboard</button>
+    <button onclick="go('map')" id="nav-map">Map</button>
+    <button onclick="go('log')" id="nav-log">Sighting Log</button>
+    <button onclick="go('patterns')" id="nav-patterns">Patterns</button>
+    <button onclick="go('ai')" id="nav-ai">✦ AI Analyst</button>
+    <button onclick="go('settings')" id="nav-settings">⚙ Settings</button>
+  </nav>
+  <div class="header-right">
+    <div class="filter-group">
+      <span class="filter-label">Season</span>
+      <select id="gSeason" class="header-select" onchange="onFilter()">
+        <option value="">All Seasons</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Year</span>
+      <select id="gYear" class="header-select" onchange="onFilter()">
+        <option value="">All Years</option>
+      </select>
+    </div>
+    <div class="h-divider"></div>
+    <button class="btn-ghost" onclick="openModal('camModal')">+ Camera</button>
+    <button class="btn-ghost" onclick="openModal('buckModal')">+ Buck</button>
+    <button class="btn-primary" onclick="openModal('sightModal')">+ Log Sighting</button>
+  </div>
+</header>
+
+<div class="app">
+
+<!-- DASHBOARD -->
+<div class="view" id="view-dashboard">
+  <div class="dashboard" id="dashContent"></div>
+</div>
+
+<!-- MAP -->
+<div class="view" id="view-map">
+  <!-- Toolbar -->
+  <div class="map-toolbar">
+    <button class="map-tool-btn" id="mBtn-cam" onclick="startMapTool('cam')" title="Place or reposition a camera">📷 Camera</button>
+    <div style="width:1px;height:20px;background:var(--border);margin:0 2px"></div>
+    <button class="map-tool-btn" id="mBtn-food_plot" onclick="startMapTool('food_plot')">🌽 Food Plot</button>
+    <button class="map-tool-btn" id="mBtn-stand"     onclick="startMapTool('stand')">🪑 Stand</button>
+    <button class="map-tool-btn" id="mBtn-bedding"   onclick="startMapTool('bedding')">💤 Bedding</button>
+    <button class="map-tool-btn" id="mBtn-scrape"    onclick="startMapTool('scrape')">🦌 Scrape/Rub</button>
+    <button class="map-tool-btn" id="mBtn-water"     onclick="startMapTool('water')">💧 Water</button>
+    <button class="map-tool-btn" id="mBtn-funnel"    onclick="startMapTool('funnel')">↗ Funnel</button>
+    <button class="map-tool-btn" id="mBtn-custom"    onclick="startMapTool('custom')">📌 Custom</button>
+    <div style="margin-left:auto;display:flex;gap:6px">
+      <button class="map-tool-btn" onclick="document.getElementById('mapFileInput').click()" title="Upload new map">🗺️ Map</button>
+      <button class="map-tool-btn" style="color:var(--red)" onclick="clearAllAnnots()" title="Clear all annotations">✕ Clear</button>
+    </div>
+    <input type="file" id="mapFileInput" accept="image/*" onchange="loadMap(this)">
+  </div>
+  <!-- Main map area + analysis panel -->
+  <div style="display:flex;flex:1;overflow:hidden">
+    <!-- Viewport -->
+    <div class="map-viewport" id="mapViewport">
+      <!-- Upload prompt (shown when no map) -->
+      <div class="map-upload-box" id="mapUploadBox">
+        <div style="font-size:40px;opacity:0.4">🗺️</div>
+        <h3>Upload Your Property Map</h3>
+        <p>Aerial photo or satellite screenshot. Cameras, food plots, and stands pin directly on it.</p>
+        <label class="map-upload-label" for="mapFileInput">Choose Image</label>
+      </div>
+      <!-- Zoomable/pannable canvas -->
+      <div class="map-canvas" id="mapCanvas">
+        <img id="propertyMap" alt="Property Map" style="display:none">
+      </div>
+      <!-- Hint bar -->
+      <div class="map-hint" id="mapHint"></div>
+      <!-- Zoom controls -->
+      <div class="map-zoom-controls">
+        <button class="zoom-btn" onclick="mapZoom(0.25)" title="Zoom in">+</button>
+        <div class="zoom-level" id="zoomLevel">1x</div>
+        <button class="zoom-btn" onclick="mapZoom(-0.25)" title="Zoom out">−</button>
+        <button class="zoom-btn" onclick="mapResetView()" title="Reset view" style="font-size:13px">⌂</button>
+      </div>
+    </div>
+    <!-- Analysis panel -->
+    <div class="map-analysis-panel">
+      <div class="map-analysis-header">
+        <div class="map-analysis-title">🔍 Property Analysis</div>
+        <button class="btn-green" id="analyzeBtn" onclick="analyzeProperty()" style="padding:6px 12px;font-size:12px;">Analyze</button>
+      </div>
+      <div class="map-analysis-body" id="analysisBody">
+        <div class="map-analysis-empty">
+          <div class="map-analysis-icon">🌲</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text-2)">AI Terrain Analysis</div>
+          <div style="font-size:12px;line-height:1.55;">Upload your property map and click <strong>Analyze</strong> — the AI will identify terrain features and give stand placement suggestions.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOG -->
+<div class="view" id="view-log">
+  <div class="stat-row" id="logStats">
+    <div class="stat-item"><div class="stat-value" id="sTot">0</div><div class="stat-label">Total Sightings</div></div>
+    <div class="stat-item"><div class="stat-value" id="sBucks">0</div><div class="stat-label">Bucks Tracked</div></div>
+    <div class="stat-item"><div class="stat-value" id="sCams">0</div><div class="stat-label">Active Cameras</div></div>
+    <div class="stat-item"><div class="stat-value" id="sDays">—</div><div class="stat-label">Days of Data</div></div>
+  </div>
+  <div class="log-toolbar">
+    <select id="fBuck" onchange="renderLog()"><option value="">All Bucks</option></select>
+    <select id="fCam" onchange="renderLog()"><option value="">All Cameras</option></select>
+    <select id="fRut" onchange="renderLog()"><option value="">All Rut Stages</option></select>
+    <span style="font-size:11px;color:var(--text-3);margin-left:8px">Double-click or ✏️ to edit</span>
+    <button class="btn-green" style="margin-left:auto;padding:6px 14px;font-size:12px;" onclick="renderLog()">Refresh</button>
+  </div>
+  <div class="log-table-wrap">
+    <table>
+      <thead><tr>
+        <th>Date / Time</th><th>Buck</th><th>Camera</th><th>Year</th><th>Season</th>
+        <th>Temp</th><th>Wind</th><th>Pressure</th><th>Rut Stage</th><th>Heading</th><th>Behavior</th><th>Notes</th><th></th>
+      </tr></thead>
+      <tbody id="logBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- PATTERNS -->
+<div class="view" id="view-patterns">
+  <div class="stat-row">
+    <div class="stat-item"><div class="stat-value" id="pPeak">—</div><div class="stat-label">Peak Hour</div></div>
+    <div class="stat-item"><div class="stat-value" id="pCam">—</div><div class="stat-label">Hottest Camera</div></div>
+    <div class="stat-item"><div class="stat-value" id="pBuck">—</div><div class="stat-label">Most Active Buck</div></div>
+    <div class="stat-item"><div class="stat-value" id="pTemp">—</div><div class="stat-label">Avg Temp at Sighting</div></div>
+  </div>
+  <div id="view-patterns" style="display:contents"><div class="patterns-wrap" id="patternsContent"></div></div>
+</div>
+
+<!-- AI ANALYST -->
+<div class="view" id="view-ai">
+  <div class="ai-chat">
+    <div class="ai-messages" id="aiMessages">
+      <div class="ai-welcome" id="aiWelcome">
+        <div style="font-size:40px;opacity:0.4">🦌</div>
+        <h3>Your Hunting Analyst</h3>
+        <p>I have full access to your cameras, bucks, and every sighting logged. Ask me anything about patterns, stand timing, or buck behavior.</p>
+        <div class="ai-badge" id="aiBadge">📊 0 sightings · 0 bucks · 0 cameras</div>
+      </div>
+    </div>
+    <div class="ai-input-area">
+      <textarea class="ai-input" id="aiInput" placeholder="Ask about patterns, buck behavior, stand timing..." rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAI()}"
+        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
+      <button class="ai-send" id="aiSend" onclick="sendAI()">➤</button>
+    </div>
+  </div>
+  <div class="ai-sidebar">
+    <div class="ai-sidebar-head">Suggested Questions</div>
+    <div class="ai-suggestions">
+      <div class="suggest-group">
+        <div class="suggest-group-label">Pattern Analysis</div>
+        <button class="suggest-btn" onclick="askAI(this)">What time of day are bucks most active on my property?</button>
+        <button class="suggest-btn" onclick="askAI(this)">Which camera has the most buck activity and why?</button>
+        <button class="suggest-btn" onclick="askAI(this)">What temperature range produces the most sightings?</button>
+      </div>
+      <div class="suggest-group">
+        <div class="suggest-group-label">Individual Bucks</div>
+        <button class="suggest-btn" onclick="askAI(this)">Give me a full breakdown on each buck I'm tracking.</button>
+        <button class="suggest-btn" onclick="askAI(this)">Which buck is most patternable based on my data?</button>
+        <button class="suggest-btn" onclick="askAI(this)">Are any of my bucks showing nocturnal tendencies?</button>
+      </div>
+      <div class="suggest-group">
+        <div class="suggest-group-label">Stand Strategy</div>
+        <button class="suggest-btn" onclick="askAI(this)">What wind direction should I wait for before hunting my best camera location?</button>
+        <button class="suggest-btn" onclick="askAI(this)">What conditions have produced the most daylight buck movement?</button>
+        <button class="suggest-btn" onclick="askAI(this)">What time should I be in my stand to maximize chances?</button>
+      </div>
+      <div class="suggest-group">
+        <div class="suggest-group-label">Data Gaps</div>
+        <button class="suggest-btn" onclick="askAI(this)">What information am I missing that would help your analysis?</button>
+        <button class="suggest-btn" onclick="askAI(this)">Where should I consider adding another camera?</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="view" id="view-settings">
+  <div class="settings-body">
+
+    <div class="settings-section">
+      <div class="settings-title">🦌 Buck Profiles</div>
+      <div class="settings-sub">Add, edit, or remove bucks that appear in the sighting log dropdown.</div>
+      <div class="settings-list" id="sBuckList"></div>
+      <div class="settings-add-row">
+        <input type="text" id="nBuckName" class="field" placeholder="Nickname (e.g. Splitbrow)" style="flex:1">
+        <input type="text" id="nBuckEmoji" class="field" placeholder="🦌" maxlength="4" style="width:56px;text-align:center;font-size:18px">
+        <select id="nBuckAge" class="field" style="width:96px">
+          <option value="">Age?</option>
+          <option>1.5 yr</option><option>2.5 yr</option><option>3.5 yr</option><option>4.5 yr</option><option>5.5+ yr</option>
+        </select>
+        <input type="text" id="nBuckFeatures" class="field" placeholder="Identifying features (optional)" style="flex:1">
+        <button class="btn-green" onclick="addBuckSettings()">+ Add Buck</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-title">📷 Cameras</div>
+      <div class="settings-sub">Add, edit, or remove camera locations.</div>
+      <div class="settings-list" id="sCamList"></div>
+      <div class="settings-add-row">
+        <input type="text" id="nCamName" class="field" placeholder="Camera name / location" style="flex:1">
+        <select id="nCamColor" class="field" style="width:100px">
+          <option value="#3d7a2a">Green</option><option value="#a83030">Red</option>
+          <option value="#4a5a6a">Slate</option><option value="#7a4e2a">Brown</option>
+          <option value="#c8b882">Tan</option><option value="#6d28d9">Purple</option>
+        </select>
+        <select id="nCamType" class="field" style="width:100px">
+          <option value="cellular">Cellular</option><option value="sd">SD Card</option>
+        </select>
+        <select id="nCamFacing" class="field" style="width:100px" title="Camera facing direction">
+          <option value="">Facing?</option>
+          <option value="N">Facing N</option><option value="NE">Facing NE</option>
+          <option value="E">Facing E</option><option value="SE">Facing SE</option>
+          <option value="S">Facing S</option><option value="SW">Facing SW</option>
+          <option value="W">Facing W</option><option value="NW">Facing NW</option>
+        </select>
+        <input type="text" id="nCamNotes" class="field" placeholder="Notes (habitat, trail, etc.)" style="flex:1">
+        <button class="btn-green" onclick="addCamSettings()">+ Add Camera</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-title">📷 Camera Fields</div>
+      <div class="settings-sub">Toggle built-in camera fields on/off and add custom fields that appear when adding a camera.</div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px;">Built-in Fields</div>
+      <div id="camBuiltinFields"></div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3);margin:14px 0 8px;">Custom Fields</div>
+      <div id="camCustomFields" style="margin-bottom:12px;"></div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;">Add Custom Camera Field</div>
+        <div class="form-2" style="margin-bottom:10px;">
+          <div><label class="field-label">Field Label</label><input type="text" id="ccfLabel" class="field" placeholder="e.g. Height (ft), Bait Type"></div>
+          <div><label class="field-label">Type</label>
+            <select id="ccfType" class="field" onchange="document.getElementById('ccfOptsWrap').style.display=this.value==='dropdown'?'block':'none'">
+              <option value="text">Text</option><option value="dropdown">Dropdown</option><option value="number">Number</option>
+            </select>
+          </div>
+        </div>
+        <div id="ccfOptsWrap" style="display:none"><label class="field-label">Options (one per line)</label><textarea id="ccfOpts" class="field" rows="2" placeholder="Low&#10;Medium&#10;High"></textarea></div>
+        <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn-green" onclick="addCamCustomField()">+ Add Field</button></div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-title">⚙ Property Settings</div>
+      <div class="settings-sub">Configure your property name and weather coordinates.</div>
+      <div class="settings-fields-grid">
+        <div class="settings-field"><label class="field-label">Property Name</label><input type="text" id="sPropName" class="field" placeholder="e.g. Cable 40"></div>
+        <div class="settings-field"><label class="field-label">Hunter Tag</label><input type="text" id="sHunterTag" class="field" placeholder="e.g. T-Stone"></div>
+        <div class="settings-field"><label class="field-label">Weather Latitude</label><input type="number" id="sLat" class="field" step="0.0001" placeholder="46.2504"></div>
+        <div class="settings-field"><label class="field-label">Weather Longitude</label><input type="number" id="sLon" class="field" step="0.0001" placeholder="-91.07529"></div>
+      </div>
+      <button class="btn-green" onclick="savePropSettings()">Save Property Settings</button>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-title">📋 Sighting Form Fields</div>
+      <div class="settings-sub">Toggle built-in fields on/off, edit dropdown options, and add custom fields.</div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px;">Built-in Fields</div>
+      <div id="builtinFields"></div>
+      <div class="options-editor" id="seasonEditor">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px;">Edit Season Options</div>
+        <div id="seasonOptList" style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px;"></div>
+        <div style="display:flex;gap:8px"><input type="text" id="newSeasonOpt" class="field" placeholder="New season..." style="flex:1"><button class="btn-green" style="padding:6px 12px;font-size:12px" onclick="addOpt('season')">+ Add</button></div>
+      </div>
+      <div class="options-editor" id="rutEditor">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px;">Edit Rut Stage Options</div>
+        <div id="rutOptList" style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px;"></div>
+        <div style="display:flex;gap:8px"><input type="text" id="newRutOpt" class="field" placeholder="New option..." style="flex:1"><button class="btn-green" style="padding:6px 12px;font-size:12px" onclick="addOpt('rut')">+ Add</button></div>
+      </div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3);margin:14px 0 8px;">Custom Fields</div>
+      <div id="customFieldsList" style="margin-bottom:12px;"></div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px;">Add Custom Field</div>
+        <div class="form-2" style="margin-bottom:10px;">
+          <div><label class="field-label">Field Label</label><input type="text" id="cfLabel" class="field" placeholder="e.g. Acorn Drop"></div>
+          <div><label class="field-label">Type</label>
+            <select id="cfType" class="field" onchange="document.getElementById('cfOptsWrap').style.display=this.value==='dropdown'?'block':'none'">
+              <option value="dropdown">Dropdown</option><option value="text">Text</option><option value="number">Number</option><option value="yesno">Yes / No</option>
+            </select>
+          </div>
+        </div>
+        <div id="cfOptsWrap"><label class="field-label">Options (one per line)</label><textarea id="cfOpts" class="field" rows="3" placeholder="Light&#10;Moderate&#10;Heavy"></textarea></div>
+        <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn-green" onclick="addCustomField()">+ Add Field</button></div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-title">💾 Data Management</div>
+      <div class="settings-sub">Export, backup, or reset your tracking data.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="action-btn green" onclick="exportCSV()">⬇ Export to CSV</button>
+        <button class="action-btn slate" onclick="backupJSON()">⬇ Backup JSON</button>
+        <button class="action-btn red" onclick="clearAll()">✕ Clear All Data</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- end .app -->
+
+<!-- CAMERA MODAL -->
+<div class="modal-overlay" id="camModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Add Camera</div><button class="modal-close" onclick="closeModal('camModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label class="field-label">Camera Name / Location</label><input type="text" id="mCamName" class="field" placeholder="e.g. North Food Plot, Creek Crossing"></div>
+      <div class="form-2">
+        <div><label class="field-label">Color Tag</label><select id="mCamColor" class="field"><option value="#3d7a2a">Green</option><option value="#a83030">Red</option><option value="#4a5a6a">Slate</option><option value="#7a4e2a">Brown</option><option value="#c8b882">Tan</option><option value="#6d28d9">Purple</option></select></div>
+        <div><label class="field-label">Type</label><select id="mCamType" class="field"><option value="cellular">Cellular</option><option value="sd">SD Card</option></select></div>
+      </div>
+      <div class="form-2">
+        <div><label class="field-label">Camera Facing Direction</label><select id="mCamFacing" class="field"><option value="">Unknown</option><option value="N">N</option><option value="NE">NE</option><option value="E">E</option><option value="SE">SE</option><option value="S">S</option><option value="SW">SW</option><option value="W">W</option><option value="NW">NW</option></select></div>
+        <div></div>
+      </div>
+      <div class="form-row"><label class="field-label">Notes (habitat, trail, food source, etc.)</label><textarea id="mCamNotes" class="field" placeholder="e.g. On scrape line between bedding and food plot..."></textarea></div>
+      <div style="background:var(--green-light);border:1px solid var(--green-border);border-radius:6px;padding:9px 12px;font-size:12px;color:var(--green);">💡 After adding, go to Map and click 📷 to pin this camera on your property map.</div>
+    </div>
+    <div class="modal-footer"><button class="btn-outline" onclick="closeModal('camModal')">Cancel</button><button class="btn-green" onclick="saveCam()">Add Camera</button></div>
+  </div>
+</div>
+
+<!-- BUCK MODAL -->
+<div class="modal-overlay" id="buckModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="buckModalTitle">Add Buck Profile</div><button class="modal-close" onclick="closeModal('buckModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label class="field-label">Nickname / ID</label><input type="text" id="mBuckName" class="field" placeholder="e.g. Splitbrow, Tank, 8-Point Main Frame"></div>
+      <div class="form-2">
+        <div><label class="field-label">Estimated Age</label><select id="mBuckAge" class="field"><option value="">Unknown</option><option>1.5 yr</option><option>2.5 yr</option><option>3.5 yr</option><option>4.5 yr</option><option>5.5+ yr</option></select></div>
+        <div><label class="field-label">Emoji / Icon</label><input type="text" id="mBuckEmoji" class="field" placeholder="🦌" maxlength="4" style="font-size:20px;text-align:center"></div>
+      </div>
+      <div class="form-row"><label class="field-label">First Year on Property</label><input type="number" id="mBuckYear" class="field" placeholder="e.g. 2023" min="2000" max="2099"></div>
+      <div class="form-row"><label class="field-label">Identifying Features</label><textarea id="mBuckFeatures" class="field" placeholder="e.g. Sticker on left G2, kicker off right beam..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn-outline" onclick="closeModal('buckModal')">Cancel</button><button class="btn-green" id="buckSaveBtn" onclick="saveBuck()">Add Buck</button></div>
+  </div>
+</div>
+
+<!-- SIGHTING MODAL -->
+<div class="modal-overlay" id="sightModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="sightModalTitle">Log Sighting</div><button class="modal-close" onclick="closeModal('sightModal')">✕</button></div>
+    <div class="modal-body" id="sightFormBody"></div>
+    <div class="modal-footer"><button class="btn-outline" onclick="closeModal('sightModal')">Cancel</button><button class="btn-green" id="sightSaveBtn" onclick="saveSighting()">Log Sighting</button></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const DEFAULT_STATE = {
+  cameras: [], bucks: [], sightings: [],
+  annotations: [],
+  mapDataUrl: null,
+  propertySettings: { name:'', hunter:'T-Stone', lat:46.2504, lon:-91.07529 },
+  camFields: {
+    builtins: {
+      facing:  { label:'Facing Direction', enabled:true },
+      type:    { label:'Camera Type',      enabled:true },
+      notes:   { label:'Notes / Habitat',  enabled:true }
+    },
+    custom: []
+  },
+  fieldSettings: {
+    builtins: {
+      season:   { label:'Season',                  enabled:true, options:['Summer','Early Season','Pre-Rut','Rut','Late Season'] },
+      temp:     { label:'Temperature (°F)',         enabled:true },
+      windDir:  { label:'Wind Direction',           enabled:true },
+      windSpeed:{ label:'Wind Speed (mph)',         enabled:true },
+      pressure: { label:'Barometric Pressure (inHg)', enabled:true },
+      rut:      { label:'Rut Stage',               enabled:true, options:['Pre-Rut','Seeking','Peak Rut','Lock-Down','Post-Rut'] },
+      notes:    { label:'Behavior / Notes',         enabled:true }
+    },
+    custom: []
+  }
+};
+
+let S = JSON.parse(JSON.stringify(DEFAULT_STATE)); // working state
+let gSeason = '', gYear = '';
+let aiHistory = [];
+let placingMode = false;
+
+// ── persist ──────────────────────────────────────────────
+function save() { try { localStorage.setItem('bt_v2', JSON.stringify(S)); } catch(e){} }
+function load() {
+  try {
+    const raw = localStorage.getItem('bt_v2');
+    if (raw) {
+      const saved = JSON.parse(raw);
+      S = saved;
+      // Ensure all default keys exist (for users upgrading from older saves)
+      if (!S.annotations) S.annotations = [];
+      if (!S.camFields) S.camFields = JSON.parse(JSON.stringify(DEFAULT_STATE.camFields));
+      if (!S.camFields.custom) S.camFields.custom = [];
+      if (!S.propertySettings) S.propertySettings = DEFAULT_STATE.propertySettings;
+      if (!S.fieldSettings) S.fieldSettings = JSON.parse(JSON.stringify(DEFAULT_STATE.fieldSettings));
+      if (!S.fieldSettings.builtins) S.fieldSettings.builtins = JSON.parse(JSON.stringify(DEFAULT_STATE.fieldSettings.builtins));
+      if (!S.fieldSettings.custom) S.fieldSettings.custom = [];
+      // Ensure each builtin key exists
+      Object.keys(DEFAULT_STATE.fieldSettings.builtins).forEach(k => {
+        if (!S.fieldSettings.builtins[k]) S.fieldSettings.builtins[k] = JSON.parse(JSON.stringify(DEFAULT_STATE.fieldSettings.builtins[k]));
+      });
+    }
+  } catch(e) { S = JSON.parse(JSON.stringify(DEFAULT_STATE)); }
+}
+
+// ── filters ──────────────────────────────────────────────
+function filtered() {
+  return S.sightings.filter(s => {
+    if (gSeason && s.season !== gSeason) return false;
+    if (gYear && (s.year||'') !== gYear) return false;
+    return true;
+  });
+}
+
+function onFilter() {
+  gSeason = document.getElementById('gSeason').value;
+  gYear = document.getElementById('gYear').value;
+  const v = document.querySelector('.view.active')?.id?.replace('view-','');
+  if (v === 'dashboard') renderDashboard();
+  if (v === 'log') renderLog();
+  if (v === 'patterns') renderPatterns();
+  if (v === 'ai') updateAIBadge();
+}
+
+function populateFilters() {
+  const seasonSel = document.getElementById('gSeason');
+  const yearSel = document.getElementById('gYear');
+  const opts = S.fieldSettings.builtins.season?.options || [];
+  seasonSel.innerHTML = `<option value="" style="background:#1a2e1c;color:#fff">All Seasons</option>` +
+    opts.map(o => `<option value="${o}" style="background:#1a2e1c;color:#fff" ${o===gSeason?'selected':''}>${o}</option>`).join('');
+  const years = [...new Set([new Date().getFullYear().toString(), ...S.sightings.map(s=>s.year).filter(Boolean)])].sort((a,b)=>b-a);
+  yearSel.innerHTML = `<option value="" style="background:#1a2e1c;color:#fff">All Years</option>` +
+    years.map(y => `<option value="${y}" style="background:#1a2e1c;color:#fff" ${y===gYear?'selected':''}>${y}</option>`).join('');
+}
+
+// ── navigation ────────────────────────────────────────────
+function go(v) {
+  document.querySelectorAll('.view').forEach(el => { el.classList.remove('active'); });
+  document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('view-'+v);
+  if (el) el.classList.add('active');
+  const btn = document.getElementById('nav-'+v);
+  if (btn) btn.classList.add('active');
+  sessionStorage.setItem('bt_view', v);
+  if (v === 'dashboard') renderDashboard();
+  if (v === 'log') { populateLogFilters(); renderLog(); updateLogStats(); }
+  if (v === 'patterns') renderPatterns();
+  if (v === 'ai') updateAIBadge();
+  if (v === 'settings') renderSettings();
+  if (v === 'map') { if (S.mapDataUrl) showMap(); }
+}
+
+// ── helpers ───────────────────────────────────────────────
+function fmtTime(t) {
+  if (!t) return '—';
+  const [h,m] = t.split(':').map(Number);
+  return `${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;
+}
+function daysSince(dateStr) {
+  if (!dateStr) return 999;
+  return Math.floor((Date.now() - new Date(dateStr)) / 86400000);
+}
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard() {
+  const container = document.getElementById('dashContent');
+  if (!container) return;
+  const sightings = filtered();
+  const hasBucks = S.bucks.length > 0;
+  const hasCams = S.cameras.length > 0;
+  const hasSightings = sightings.length > 0;
+
+  if (!hasBucks && !hasCams && !hasSightings) {
+    container.innerHTML = `<div class="dash-empty">
+      <div class="dash-empty-icon">🦌</div>
+      <div class="dash-empty-title">Welcome to BuckTrack</div>
+      <div class="dash-empty-sub">Add cameras and buck profiles in Settings, then log your first sighting — your dashboard will come alive with movement patterns and insights.</div>
+    </div>`;
+    return;
+  }
+
+  // KPIs
+  const camCounts = {};
+  sightings.forEach(s => { camCounts[s.camId] = (camCounts[s.camId]||0)+1; });
+  const topCamEntry = Object.entries(camCounts).sort((a,b)=>b[1]-a[1])[0];
+  const topCam = topCamEntry ? S.cameras.find(c=>c.id===topCamEntry[0]) : null;
+  const hourCounts = new Array(24).fill(0);
+  sightings.forEach(s => { if (s.time) hourCounts[parseInt(s.time)]++; });
+  const maxH = Math.max(...hourCounts, 1);
+  const peakHourIdx = hourCounts.indexOf(Math.max(...hourCounts));
+  const peakHourStr = sightings.length > 0 && hourCounts[peakHourIdx] > 0 ? fmtTime(peakHourIdx+':00') : '—';
+  const lastSighting = [...sightings].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time))[0];
+  const lastBuck = lastSighting ? S.bucks.find(b=>b.id===lastSighting.buckId) : null;
+
+  // Hour bars
+  const hourBars = hourCounts.map((c,i) => {
+    const pct = Math.round((c/maxH)*100);
+    const isPeak = c > 0 && c === Math.max(...hourCounts);
+    const isHigh = !isPeak && pct > 50;
+    return `<div class="hour-bar ${isPeak?'peak':isHigh?'high':''}" style="height:${Math.max(pct,2)}%" title="${fmtTime(i+':00')}: ${c}"></div>`;
+  }).join('');
+
+  // Buck status
+  const buckRows = S.bucks.length === 0 ? '<div style="color:var(--text-3);font-size:12px;padding:4px">No bucks added yet — add them in Settings.</div>' :
+    S.bucks.map(b => {
+      const bs = sightings.filter(s=>s.buckId===b.id);
+      const lastS = [...bs].sort((a,z)=>(z.date+z.time).localeCompare(a.date+a.time))[0];
+      const days = lastS ? daysSince(lastS.date) : 999;
+      const daysStr = days===999?'Never':days===0?'Today':days+'d ago';
+      const cls = days<=3?'fresh':days<=10?'stale':'cold';
+      const bc={};bs.forEach(s=>{bc[s.camId]=(bc[s.camId]||0)+1;});
+      const topBC = Object.entries(bc).sort((a,z)=>z[1]-a[1])[0];
+      const topBCam = topBC ? S.cameras.find(c=>c.id===topBC[0])?.name : '—';
+      return `<div class="buck-row">
+        <div class="buck-avi">${b.emoji||'🦌'}</div>
+        <div style="flex:1;min-width:0">
+          <div class="buck-row-name">${b.name}</div>
+          <div class="buck-row-detail">${b.age?b.age+' · ':''}Best cam: ${topBCam||'—'}</div>
+        </div>
+        <div>
+          <div class="buck-row-count">${bs.length}</div>
+          <div class="buck-row-last">${lastS?lastS.date:'Never'}</div>
+          <div class="badge ${cls}">${daysStr}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+  // Camera leaderboard
+  const topCams = Object.entries(camCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxCC = topCams[0]?.[1]||1;
+  const camRows = topCams.length === 0 ? '<div style="color:var(--text-3);font-size:12px;">No sightings yet.</div>' :
+    topCams.map(([id,cnt],i) => {
+      const cam = S.cameras.find(c=>c.id===id);
+      return `<div class="cam-rank-row">
+        <div class="cam-rank-num">${i+1}</div>
+        <div class="cam-rank-dot" style="background:${cam?.color||'var(--green-mid)'}"></div>
+        <div class="cam-rank-name">${cam?.name||'Unknown'}</div>
+        <div class="cam-rank-bar-wrap"><div class="cam-rank-bar" style="width:${Math.round(cnt/maxCC*100)}%;background:${cam?.color||'var(--green-mid)'}"></div></div>
+        <div class="cam-rank-count">${cnt}</div>
+      </div>`;
+    }).join('');
+
+  // Wind
+  const windC={};
+  sightings.forEach(s=>{if(s.windDir)windC[s.windDir]=(windC[s.windDir]||0)+1;});
+  const maxW = Math.max(...Object.values(windC),1);
+  const windRows = Object.entries(windC).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([d,c])=>
+    `<div class="wind-row"><div class="wind-dir">${d}</div><div class="wind-bar-wrap"><div class="wind-bar" style="width:${Math.round(c/maxW*100)}%"></div></div><div class="wind-count">${c}</div></div>`
+  ).join('') || '<div style="color:var(--text-3);font-size:12px;">No wind data.</div>';
+
+  // Rut breakdown
+  const rutC={};
+  sightings.forEach(s=>{if(s.rut)rutC[s.rut]=(rutC[s.rut]||0)+1;});
+  const rutTotal = Math.max(Object.values(rutC).reduce((a,b)=>a+b,0),1);
+  const rutOpts = S.fieldSettings.builtins.rut?.options||['Pre-Rut','Seeking','Peak Rut','Lock-Down','Post-Rut'];
+  const rutColors = ['#3d7a2a','#b45309','#a83030','#6d28d9','#6a7a5a'];
+  const rutRows = rutOpts.map((r,i)=>{
+    const c=rutC[r]||0;
+    return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <div style="font-size:10px;font-weight:700;color:var(--text-3);width:72px;text-align:right">${r}</div>
+      <div style="flex:1;height:6px;background:var(--border);border-radius:3px"><div style="width:${Math.round(c/rutTotal*100)}%;height:100%;background:${rutColors[i%rutColors.length]};border-radius:3px"></div></div>
+      <div style="font-size:11px;font-weight:700;color:var(--text);width:16px">${c}</div>
+    </div>`;
+  }).join('');
+
+  // Recent feed
+  const recent = [...sightings].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)).slice(0,6);
+  const feedRows = recent.length===0 ? '<div style="color:var(--text-3);font-size:12px;padding:8px 0">No sightings yet.</div>' :
+    recent.map(s=>{
+      const buck=S.bucks.find(b=>b.id===s.buckId);
+      const cam=S.cameras.find(c=>c.id===s.camId);
+      const isRut=['Peak Rut','Seeking','peak','seek'].includes(s.rut);
+      return `<div class="feed-row">
+        <div class="feed-dot ${isRut?'rut':''}"></div>
+        <div style="flex:1;min-width:0">
+          <div class="feed-title">${buck?.emoji||'🦌'} ${buck?.name||'Unknown Buck'}</div>
+          <div class="feed-detail">${cam?.name||'Unknown'}${s.temp?' · '+s.temp+'°F':''}${s.windDir?' · '+s.windDir:''}${s.season?' · '+s.season:''}</div>
+        </div>
+        <div class="feed-time">${s.date}<br>${s.time?fmtTime(s.time):''}</div>
+      </div>`;
+    }).join('');
+
+  // Year-over-year
+  const allYears=[...new Set(S.sightings.map(s=>s.year).filter(Boolean))].sort((a,b)=>b-a);
+  let yoyHtml='';
+  if (allYears.length>=2) {
+    const seasonF = gSeason ? S.sightings.filter(s=>s.season===gSeason) : S.sightings;
+    const maxY = Math.max(...allYears.map(y=>seasonF.filter(s=>s.year===y).length),1);
+    yoyHtml = allYears.map(y=>{
+      const cnt=seasonF.filter(s=>s.year===y).length;
+      const dawn=seasonF.filter(s=>s.year===y&&s.time&&parseInt(s.time)>=5&&parseInt(s.time)<9).length;
+      const dusk=seasonF.filter(s=>s.year===y&&s.time&&parseInt(s.time)>=17&&parseInt(s.time)<=20).length;
+      return `<div class="yoy-row">
+        <div class="yoy-year">${y}</div>
+        <div style="flex:1"><div class="yoy-bar-wrap"><div class="yoy-bar" style="width:${Math.round(cnt/maxY*100)}%"></div></div><div class="yoy-detail">🌅 ${dawn} dawn · 🌇 ${dusk} dusk</div></div>
+        <div class="yoy-count">${cnt}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Pattern alert
+  let alertTitle='📡 Keep logging data', alertText='Aim for 20+ sightings to start seeing reliable trends.';
+  if (sightings.length>=5) {
+    const dawn=hourCounts.slice(5,9).reduce((a,b)=>a+b,0);
+    const dusk=hourCounts.slice(17,21).reduce((a,b)=>a+b,0);
+    const mid=hourCounts.slice(10,15).reduce((a,b)=>a+b,0);
+    if (peakHourIdx>=5&&peakHourIdx<=8) { alertTitle='🌅 Classic Dawn Pattern'; alertText=`Peak movement at ${peakHourStr}. Be in your stand by ${fmtTime((peakHourIdx-1)+':00')} at the latest.`; }
+    else if (peakHourIdx>=17&&peakHourIdx<=19) { alertTitle='🌇 Evening Feed Pattern'; alertText=`Bucks most active around ${peakHourStr}. Set up near food sources and check wind direction before entry.`; }
+    else if (peakHourIdx>=20||peakHourIdx<=4) { alertTitle='🌙 Nocturnal Tendency'; alertText='Peak movement is after dark. These bucks may be pressured. Consider mobile setups closer to bedding.'; }
+    else if (mid>dawn&&mid>dusk) { alertTitle='⚠️ Possible Pressure Alert'; alertText='Unusual midday movement detected. Hunting pressure may be pushing deer off normal patterns.'; }
+  }
+
+  const seasonCtx = gSeason ? ` · ${gSeason}` : '';
+  container.innerHTML = `
+    <div class="kpi-row">
+      <div class="card kpi k-green"><div class="kpi-label">Total Sightings</div><div class="kpi-value">${sightings.length}</div><div class="kpi-sub">${lastBuck?lastBuck.name+' last seen':'No sightings yet'}</div></div>
+      <div class="card kpi k-slate"><div class="kpi-label">Bucks Tracked</div><div class="kpi-value">${S.bucks.length}</div><div class="kpi-sub">${S.cameras.length} cameras active</div></div>
+      <div class="card kpi k-brown"><div class="kpi-label">Peak Movement</div><div class="kpi-value" style="font-size:18px;margin-top:4px">${peakHourStr}</div><div class="kpi-sub">Hour of peak activity</div></div>
+      <div class="card kpi k-red"><div class="kpi-label">Hottest Camera</div><div class="kpi-value" style="font-size:14px;margin-top:6px;line-height:1.2">${topCam?.name||'—'}</div><div class="kpi-sub">${topCamEntry?topCamEntry[1]+' sightings':'—'}</div></div>
+    </div>
+    <div class="alert-bar"><div class="alert-icon">🎯</div><div><div class="alert-title">${alertTitle}</div><div class="alert-text">${alertText}</div></div></div>
+    <div class="dash-grid">
+      <div class="card dash-card span2">
+        <div class="card-title">Movement by Hour</div><div class="card-sub">All sightings · 24hr · Red = peak</div>
+        <div class="hour-bars">${hourBars}</div>
+        <div class="hour-labels"><span>12AM</span><span>3AM</span><span>6AM</span><span>9AM</span><span>12PM</span><span>3PM</span><span>6PM</span><span>9PM</span><span>11PM</span></div>
+      </div>
+      <div class="card dash-card">
+        <div class="card-title">Wind at Sighting</div><div class="card-sub">Direction frequency</div>
+        ${windRows}
+      </div>
+      <div class="card dash-card span2">
+        <div class="card-title">Buck Status</div><div class="card-sub">Activity · Last seen · Freshness</div>
+        ${buckRows}
+      </div>
+      <div class="card dash-card">
+        <div class="card-title">Camera Leaderboard</div><div class="card-sub">By sighting count</div>
+        ${camRows}
+      </div>
+      <div class="card dash-card">
+        <div class="card-title">Rut Stage Breakdown</div><div class="card-sub">Sightings by phase</div>
+        ${rutRows||'<div style="color:var(--text-3);font-size:12px">No rut data logged.</div>'}
+      </div>
+      <div class="card dash-card span2">
+        <div class="card-title">Recent Sightings</div><div class="card-sub">Last 6 entries</div>
+        ${feedRows}
+      </div>
+      ${yoyHtml ? `<div class="card dash-card span3"><div class="card-title">Year-Over-Year${seasonCtx}</div><div class="card-sub">Sightings per year</div>${yoyHtml}</div>` : ''}
+    </div>`;
+}
+
+// ============================================================
+// MAP — ZOOM/PAN + PINS + ANNOTATIONS
+// ============================================================
+const ANNOT_TYPES = {
+  food_plot:{ icon:'🌽', color:'#b8940a', label:'Food Plot' },
+  stand:    { icon:'🪑', color:'#5a3a1a', label:'Stand' },
+  bedding:  { icon:'💤', color:'#6b4a8a', label:'Bedding' },
+  scrape:   { icon:'🦌', color:'#8b4513', label:'Scrape/Rub' },
+  water:    { icon:'💧', color:'#2a6a9a', label:'Water' },
+  funnel:   { icon:'↗',  color:'#1a6a3a', label:'Funnel' },
+  custom:   { icon:'📌', color:'#666',    label:'Custom' },
+};
+
+// Viewport state
+let mapScale = 1, mapOffX = 0, mapOffY = 0;
+let mapImgW = 0, mapImgH = 0;
+let mapIsDragging = false, mapDragStartX = 0, mapDragStartY = 0, mapDragOffX = 0, mapDragOffY = 0;
+let mapActiveTool = null; // 'cam' | 'food_plot' | 'stand' etc.
+let mapMovingPinId = null; // camera id being repositioned
+let mapPopup = null;
+
+function loadMap(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { S.mapDataUrl = e.target.result; save(); initMap(); };
+  reader.readAsDataURL(file);
+}
+
+function initMap() {
+  if (!S.mapDataUrl) return;
+  const box = document.getElementById('mapUploadBox');
+  if (box) box.style.display = 'none';
+  const img = document.getElementById('propertyMap');
+  img.src = S.mapDataUrl;
+  img.style.display = 'block';
+  img.onload = () => {
+    mapImgW = img.naturalWidth;
+    mapImgH = img.naturalHeight;
+    mapResetView();
+    renderAllPins();
+  };
+  if (img.complete && img.naturalWidth) {
+    mapImgW = img.naturalWidth;
+    mapImgH = img.naturalHeight;
+    mapResetView();
+    renderAllPins();
+  }
+}
+
+function mapApplyTransform() {
+  const canvas = document.getElementById('mapCanvas');
+  if (canvas) canvas.style.transform = 'translate(' + mapOffX + 'px,' + mapOffY + 'px) scale(' + mapScale + ')';
+  const zl = document.getElementById('zoomLevel');
+  if (zl) zl.textContent = Math.round(mapScale * 100) + '%';
+}
+
+function mapResetView() {
+  const vp = document.getElementById('mapViewport');
+  const img = document.getElementById('propertyMap');
+  if (!vp || !img || !mapImgW) return;
+  const vpW = vp.clientWidth, vpH = vp.clientHeight;
+  const scaleX = vpW / mapImgW, scaleY = vpH / mapImgH;
+  mapScale = Math.min(scaleX, scaleY, 1);
+  mapOffX = (vpW - mapImgW * mapScale) / 2;
+  mapOffY = (vpH - mapImgH * mapScale) / 2;
+  mapApplyTransform();
+}
+
+function mapZoom(delta) {
+  const vp = document.getElementById('mapViewport');
+  if (!vp) return;
+  const vpW = vp.clientWidth, vpH = vp.clientHeight;
+  const cx = vpW / 2, cy = vpH / 2;
+  const newScale = Math.min(Math.max(mapScale + delta, 0.1), 8);
+  const ratio = newScale / mapScale;
+  mapOffX = cx - (cx - mapOffX) * ratio;
+  mapOffY = cy - (cy - mapOffY) * ratio;
+  mapScale = newScale;
+  mapApplyTransform();
+  renderAllPins();
+}
+
+// ── Pan (drag) ────────────────────────────────────────────
+function initMapPan() {
+  const vp = document.getElementById('mapViewport');
+  if (!vp) return;
+
+  vp.addEventListener('mousedown', e => {
+    if (e.target.closest('.pin-el,.annot-el,.pin-popup,.cam-picker,.zoom-btn,.zoom-level,.map-upload-box')) return;
+    if (mapActiveTool) return; // don't pan when placing
+    mapIsDragging = true;
+    mapDragStartX = e.clientX; mapDragStartY = e.clientY;
+    mapDragOffX = mapOffX; mapDragOffY = mapOffY;
+    vp.classList.add('grabbing');
+    e.preventDefault();
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!mapIsDragging) return;
+    mapOffX = mapDragOffX + (e.clientX - mapDragStartX);
+    mapOffY = mapDragOffY + (e.clientY - mapDragStartY);
+    mapApplyTransform();
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (mapIsDragging) {
+      mapIsDragging = false;
+      const vp = document.getElementById('mapViewport');
+      if (vp) vp.classList.remove('grabbing');
+    }
+  });
+
+  vp.addEventListener('wheel', e => {
+    e.preventDefault();
+    const rect = vp.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+    const delta = e.deltaY < 0 ? 0.15 : -0.15;
+    const newScale = Math.min(Math.max(mapScale + delta, 0.1), 8);
+    const ratio = newScale / mapScale;
+    mapOffX = cx - (cx - mapOffX) * ratio;
+    mapOffY = cy - (cy - mapOffY) * ratio;
+    mapScale = newScale;
+    mapApplyTransform();
+    renderAllPins();
+  }, { passive: false });
+
+  // Click to place
+  vp.addEventListener('click', e => {
+    if (mapIsDragging) return;
+    if (!mapActiveTool) return;
+    if (e.target.closest('.pin-el,.annot-el,.pin-popup,.cam-picker,.zoom-btn,.zoom-level,.map-upload-box')) return;
+    if (!S.mapDataUrl) return;
+
+    // Convert viewport click to image-relative percent
+    const rect = vp.getBoundingClientRect();
+    const cx = (e.clientX - rect.left - mapOffX) / mapScale;
+    const cy = (e.clientY - rect.top  - mapOffY) / mapScale;
+    const xPct = cx / mapImgW * 100;
+    const yPct = cy / mapImgH * 100;
+    if (xPct < 0 || xPct > 100 || yPct < 0 || yPct > 100) return;
+
+    if (mapActiveTool === 'cam') {
+      handleCamPlace(xPct, yPct, e);
+    } else {
+      handleAnnotPlace(mapActiveTool, xPct, yPct);
+    }
+  });
+}
+
+// ── Tool management ───────────────────────────────────────
+function startMapTool(tool) {
+  if (!S.mapDataUrl) { alert('Upload a property map first.'); return; }
+  if (mapActiveTool === tool) { cancelMapTool(); return; }
+  cancelMapTool();
+  mapActiveTool = tool;
+  closePopup();
+  document.querySelectorAll('.map-tool-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('mBtn-' + tool);
+  if (btn) btn.classList.add('active');
+  const vp = document.getElementById('mapViewport');
+  if (vp) vp.classList.add('crosshair');
+  const hint = document.getElementById('mapHint');
+  if (hint) {
+    if (tool === 'cam') {
+      hint.textContent = '📷 Click map to place camera — choose from popup';
+    } else {
+      hint.textContent = (ANNOT_TYPES[tool]?.icon || '📌') + ' Click map to place ' + (ANNOT_TYPES[tool]?.label || tool) + ' — click again to place another · ESC to cancel';
+    }
+    hint.style.display = 'block';
+  }
+  renderAllPins(); // update pin opacity/pointer-events
+}
+
+function cancelMapTool() {
+  mapActiveTool = null;
+  mapMovingPinId = null;
+  document.querySelectorAll('.map-tool-btn').forEach(b => b.classList.remove('active'));
+  const vp = document.getElementById('mapViewport');
+  if (vp) vp.classList.remove('crosshair');
+  const hint = document.getElementById('mapHint');
+  if (hint) hint.style.display = 'none';
+  removeCamPicker();
+  renderAllPins(); // restore pin interactivity
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { cancelMapTool(); closePopup(); } });
+
+// ── Camera placement ──────────────────────────────────────
+function handleCamPlace(xPct, yPct, e) {
+  const unplaced = S.cameras.filter(c => c.x == null);
+  const placed   = S.cameras.filter(c => c.x != null);
+
+  if (S.cameras.length === 0) {
+    alert('Add cameras in Settings first.');
+    cancelMapTool(); return;
+  }
+
+  // Show cam picker popup
+  removeCamPicker();
+  const vp = document.getElementById('mapViewport');
+  const rect = vp.getBoundingClientRect();
+  const picker = document.createElement('div');
+  picker.className = 'cam-picker';
+  picker.id = 'camPicker';
+  picker.style.left = Math.min(e.clientX - rect.left + 10, rect.width - 260) + 'px';
+  picker.style.top  = Math.min(e.clientY - rect.top  + 10, rect.height - 300) + 'px';
+
+  let html = '<h4>📷 Select Camera to Place</h4>';
+  S.cameras.forEach(cam => {
+    const isPlaced = cam.x != null;
+    html += '<div class="cam-picker-item" data-xpct="' + xPct + '" data-ypct="' + yPct + '" data-camid="' + cam.id + '" onclick="placeCamAt(+this.dataset.xpct,+this.dataset.ypct,this.dataset.camid)">' +
+      '<div class="cam-dot-sm cam-picker-dot" style="background:' + cam.color + '"></div>' +
+      '<div class="cam-picker-name">' + cam.name + '</div>' +
+      '<div class="cam-picker-placed">' + (isPlaced ? '↺ Move' : '＋ Place') + '</div>' +
+      '</div>';
+  });
+  html += '<button onclick="removeCamPicker();cancelMapTool();" style="margin-top:6px;background:none;border:none;font-size:12px;color:var(--text-3);cursor:pointer;padding:4px">Cancel</button>';
+  picker.innerHTML = html;
+  vp.appendChild(picker);
+}
+
+function placeCamAt(xPct, yPct, camId) {
+  const cam = S.cameras.find(c => c.id === camId);
+  if (!cam) return;
+  cam.x = xPct; cam.y = yPct;
+  save(); removeCamPicker(); renderAllPins();
+  // Stay in cam tool so user can place next camera
+  const remaining = S.cameras.filter(c => c.x == null);
+  const hint = document.getElementById('mapHint');
+  if (remaining.length > 0 && hint) {
+    hint.textContent = '📷 ' + cam.name + ' placed! Click to place another camera.';
+  } else if (hint) {
+    hint.textContent = '✅ All cameras placed! Click ESC or another tool to finish.';
+  }
+}
+
+function removeCamPicker() {
+  const p = document.getElementById('camPicker');
+  if (p) p.remove();
+}
+
+// ── Annotation placement ──────────────────────────────────
+function handleAnnotPlace(type, xPct, yPct) {
+  let label = ANNOT_TYPES[type]?.label || 'Custom';
+  if (type === 'custom') {
+    const input = prompt('Label for this marker:', '');
+    if (input === null) return;
+    label = input.trim() || 'Custom';
+  }
+  S.annotations.push({ id:'a_'+Date.now(), type, x:xPct, y:yPct, label });
+  save(); renderAllPins();
+}
+
+function clearAllAnnots() {
+  if (!S.annotations.length) return;
+  if (!confirm('Clear all map annotations?')) return;
+  S.annotations = []; save(); renderAllPins();
+}
+
+// ── Pin popup ─────────────────────────────────────────────
+function closePopup() {
+  if (mapPopup) { mapPopup.remove(); mapPopup = null; }
+}
+
+function showPinPopup(type, id, label, xPct, yPct) {
+  closePopup();
+  removeCamPicker();
+  const vp = document.getElementById('mapViewport');
+  const px = (xPct / 100 * mapImgW * mapScale + mapOffX);
+  const py = (yPct / 100 * mapImgH * mapScale + mapOffY);
+
+  const popup = document.createElement('div');
+  popup.className = 'pin-popup';
+  mapPopup = popup;
+  popup.style.left = Math.min(px + 14, vp.clientWidth - 180) + 'px';
+  popup.style.top  = Math.max(py - 60, 8) + 'px';
+
+  if (type === 'cam') {
+    popup.innerHTML = '<div class="pin-popup-name">📷 ' + label + '</div>' +
+      '<button class="pin-popup-btn" onclick="startMapTool(\'cam\')">↺ Move camera</button>' +
+      '<button class="pin-popup-btn danger" data-cid="' + id + '" onclick="removeCamPin(this.dataset.cid);closePopup()">✕ Remove from map</button>' +
+      '<button class="pin-popup-btn" onclick="closePopup()" style="color:var(--text-3)">Cancel</button>';
+  } else {
+    popup.innerHTML = '<div class="pin-popup-name">' + (ANNOT_TYPES[type]?.icon||'📌') + ' ' + label + '</div>' +
+      '<button class="pin-popup-btn danger" data-aid="' + id + '" onclick="removeAnnot(this.dataset.aid);closePopup()">✕ Remove</button>' +
+      '<button class="pin-popup-btn" onclick="closePopup()" style="color:var(--text-3)">Cancel</button>';
+  }
+  vp.appendChild(popup);
+}
+
+function removeCamPin(camId) {
+  const cam = S.cameras.find(c => c.id === camId);
+  if (cam) { cam.x = null; cam.y = null; }
+  save(); renderAllPins();
+}
+
+function removeAnnot(id) {
+  S.annotations = S.annotations.filter(a => a.id !== id);
+  save(); renderAllPins();
+}
+
+// ── Render all pins to canvas ─────────────────────────────
+function renderAllPins() {
+  const canvas = document.getElementById('mapCanvas');
+  const img = document.getElementById('propertyMap');
+  if (!canvas || !img || !mapImgW) return;
+
+  // Remove existing pins (keep only the img)
+  Array.from(canvas.children).forEach(el => { if (el !== img) el.remove(); });
+
+  // When a tool is active, pins are visual only — pointer-events:none so they never block placement
+  const toolActive = !!mapActiveTool;
+
+  // Camera pins
+  S.cameras.filter(c => c.x != null).forEach(cam => {
+    const pin = document.createElement('div');
+    pin.className = 'pin-el';
+    pin.style.left = (cam.x / 100 * mapImgW) + 'px';
+    pin.style.top  = (cam.y / 100 * mapImgH) + 'px';
+    pin.style.pointerEvents = toolActive ? 'none' : 'all';
+    pin.style.opacity = toolActive ? '0.5' : '1';
+    pin.innerHTML = '<div class="pin-body" style="background:' + cam.color + '"><div class="pin-icon">📷</div></div>' +
+      '<div class="pin-lbl">' + cam.name + '</div>';
+    pin.addEventListener('click', e => {
+      e.stopPropagation();
+      showPinPopup('cam', cam.id, cam.name, cam.x, cam.y);
+    });
+    canvas.appendChild(pin);
+  });
+
+  // Annotation pins
+  S.annotations.forEach(a => {
+    const t = ANNOT_TYPES[a.type] || ANNOT_TYPES.custom;
+    const pin = document.createElement('div');
+    pin.className = 'annot-el';
+    pin.style.left = (a.x / 100 * mapImgW) + 'px';
+    pin.style.top  = (a.y / 100 * mapImgH) + 'px';
+    pin.style.pointerEvents = toolActive ? 'none' : 'all';
+    pin.style.opacity = toolActive ? '0.5' : '1';
+    pin.innerHTML = '<div class="annot-ico" style="background:' + t.color + '">' + t.icon + '</div>' +
+      '<div class="annot-lbl">' + (a.label || t.label) + '</div>';
+    pin.addEventListener('click', e => {
+      e.stopPropagation();
+      showPinPopup(a.type, a.id, a.label || t.label, a.x, a.y);
+    });
+    canvas.appendChild(pin);
+  });
+}
+
+function resetAllPins() {
+  if (!confirm('Reset all camera positions?')) return;
+  S.cameras.forEach(c => { c.x = null; c.y = null; });
+  save(); renderAllPins();
+}
+
+function showMap() {
+  if (!S.mapDataUrl) return;
+  initMap();
+}
+
+window.addEventListener('resize', () => {
+  if (S.mapDataUrl && mapImgW) { mapResetView(); renderAllPins(); }
+});
+
+
+
+// ============================================================
+// MAP — PROPERTY ANALYSIS
+// ============================================================
+function compressImage(dataUrl, maxDim, quality) {
+  return new Promise(function(resolve) {
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var w = img.width, h = img.height;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+        else { w = Math.round(w * maxDim / h); h = maxDim; }
+      }
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = dataUrl;
+  });
+}
+
+async function analyzeProperty() {
+  if (!S.mapDataUrl) { alert('Upload a property map first.'); return; }
+  var body = document.getElementById('analysisBody');
+  var btn = document.getElementById('analyzeBtn');
+  if (!body || !btn) return;
+
+  btn.disabled = true;
+  btn.textContent = '...';
+  body.innerHTML = '<div class="map-analysis-loading"><div class="analysis-spinner"></div><div style="font-size:13px;font-weight:600;color:var(--text-2);margin-top:8px">Analyzing your property...</div><div style="font-size:12px;color:var(--text-3);margin-top:4px">Reading terrain, cover types, and water features</div></div>';
+
+  var placedCams = S.cameras.filter(function(c){ return c.x != null; });
+  var camLines = placedCams.map(function(c){
+    return '- ' + c.name + ' at ' + Math.round(c.x) + '% L, ' + Math.round(c.y) + '% T' + (c.facing ? ' facing ' + c.facing : '') + (c.notes ? ', ' + c.notes : '');
+  });
+  var camContext = camLines.length > 0 ? camLines.join('\n') : 'No cameras pinned on map yet.';
+
+  var annotLines = S.annotations.map(function(a){
+    var t = ANNOT_TYPES[a.type] || ANNOT_TYPES.custom;
+    return '- ' + (a.label || t.label) + ' (' + t.label + ') at ' + Math.round(a.x) + '% L, ' + Math.round(a.y) + '% T';
+  });
+  var annotContext = annotLines.length > 0 ? annotLines.join('\n') : 'No annotations yet.';
+  var sightContext = S.sightings.length > 0 ? (S.sightings.length + ' sightings across ' + S.cameras.length + ' cameras.') : 'No sightings yet.';
+
+  var systemPrompt = [
+    'You are an expert whitetail deer hunting guide and land manager with deep knowledge of deer behavior, terrain reading, and stand placement strategy.',
+    'You are analyzing an aerial/satellite image of a hunting property in northern Wisconsin near Cable, WI (Chequamegon-Nicolet National Forest area).',
+    '',
+    'Analyze the image carefully and provide:',
+    '1. **Terrain & Cover Overview** - timber types, openings, water features, ridges, valleys, edges',
+    '2. **Likely Bedding Areas** - where deer are probably bedding based on terrain and cover',
+    '3. **Likely Food Sources** - food plots, agricultural fields, mast-producing areas, browse',
+    '4. **Natural Funnels & Travel Corridors** - pinch points and terrain features that funnel deer movement',
+    '5. **Camera Placement Assessment** - evaluate current camera positions and suggest improvements',
+    '6. **Top Stand Locations** - your top 3-5 recommended stand locations with reasoning',
+    '7. **Key Observations** - anything notable that would affect hunting strategy',
+    '',
+    'Be specific and practical. Reference actual features visible in the image. This hunter tracks patterns seriously and wants actionable intelligence.'
+  ].join('\n');
+
+  var userPrompt = [
+    'Here is my hunting property aerial map. Please analyze the terrain and give me your full assessment.',
+    '',
+    'Camera locations on map:',
+    camContext,
+    '',
+    'Map annotations (food plots, stands, etc.):',
+    annotContext,
+    '',
+    'Sighting data: ' + sightContext,
+    '',
+    'What do you see and what would you recommend?'
+  ].join('\n');
+
+  try {
+    var compressedDataUrl = await compressImage(S.mapDataUrl, 1200, 0.75);
+    var base64 = compressedDataUrl.split(',')[1];
+
+    var response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1500,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: base64 } },
+          { type: 'text', text: userPrompt }
+        ]}]
+      })
+    });
+
+    var data = await response.json();
+    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+    var text = data.content && data.content[0] ? data.content[0].text : 'No response received.';
+
+    var formatted = text
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+
+    body.innerHTML = '<div style="padding-bottom:20px;font-size:13px;line-height:1.65;color:var(--text)">' + formatted + '</div>';
+
+  } catch(err) {
+    body.innerHTML = '<div class="map-analysis-empty"><div class="map-analysis-icon">⚠️</div><div style="font-size:13px;font-weight:600;color:var(--red)">Analysis failed</div><div style="font-size:12px;color:var(--text-3);margin-top:4px">' + (err.message || 'Unknown error') + '</div><div style="font-size:11px;color:var(--text-3);margin-top:8px;line-height:1.5">Check your connection and try again. If it persists, try a smaller map image.</div></div>';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Re-analyze';
+}
+
+// ============================================================
+// SIGHTING LOG
+// ============================================================
+function populateLogFilters() {
+  const fb=document.getElementById('fBuck'), fc=document.getElementById('fCam'), fr=document.getElementById('fRut');
+  fb.innerHTML='<option value="">All Bucks</option>'+S.bucks.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  fc.innerHTML='<option value="">All Cameras</option>'+S.cameras.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  const rutOpts = S.fieldSettings.builtins.rut?.options||[];
+  fr.innerHTML='<option value="">All Rut Stages</option>'+rutOpts.map(r=>`<option value="${r}">${r}</option>`).join('');
+}
+function renderLog() {
+  const fBuck=document.getElementById('fBuck')?.value||'';
+  const fCam=document.getElementById('fCam')?.value||'';
+  const fRut=document.getElementById('fRut')?.value||'';
+  let sightings=[...filtered()].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+  if(fBuck) sightings=sightings.filter(s=>s.buckId===fBuck);
+  if(fCam) sightings=sightings.filter(s=>s.camId===fCam);
+  if(fRut) sightings=sightings.filter(s=>s.rut===fRut);
+  const tbody=document.getElementById('logBody');
+  if(!tbody) return;
+  if(!sightings.length) { tbody.innerHTML=`<tr><td colspan="10"><div class="empty"><div class="empty-icon">🦌</div><div class="empty-text">No sightings match your filters</div></div></td></tr>`; return; }
+  tbody.innerHTML=sightings.map(s=>{
+    const buck=S.bucks.find(b=>b.id===s.buckId);
+    const cam=S.cameras.find(c=>c.id===s.camId);
+    return `<tr style="cursor:pointer" ondblclick="editSighting('${s.id}')">
+      <td><div class="td-mono">${s.date}</div><div class="td-mono" style="color:var(--text-3)">${s.time?fmtTime(s.time):''}</div></td>
+      <td class="td-bold">${buck?buck.emoji+' '+buck.name:'Unknown'}</td>
+      <td><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:${cam?.color||'#ccc'};display:inline-block"></span>${cam?.name||'Unknown'}</span></td>
+      <td class="td-mono">${s.year||'—'}</td>
+      <td class="td-mono">${s.season||'—'}</td>
+      <td class="td-mono">${s.temp?s.temp+'°F':'—'}</td>
+      <td class="td-mono">${[s.windDir,s.windSpeed?s.windSpeed+'mph':''].filter(Boolean).join(' ')||'—'}</td>
+      <td class="td-mono">${s.pressure?s.pressure+' inHg':'—'}</td>
+      <td class="td-mono">${s.rut||'—'}</td>
+      <td class="td-mono">${s.buckHeading||'—'}</td>
+      <td class="td-mono">${s.buckBehavior||'—'}</td>
+      <td style="font-size:12px;color:var(--text-2);max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.notes||'—'}</td>
+      <td><button onclick="event.stopPropagation();editSighting('${s.id}')" style="background:none;border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer;color:var(--text-2)" title="Edit sighting">✏️</button>
+      <button onclick="event.stopPropagation();deleteSighting('${s.id}')" style="background:none;border:1px solid var(--red-border);border-radius:4px;padding:3px 8px;font-size:11px;cursor:pointer;color:var(--red)" title="Delete sighting">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+function updateLogStats() {
+  const s=S.sightings;
+  document.getElementById('sTot').textContent=s.length;
+  document.getElementById('sBucks').textContent=new Set(s.map(x=>x.buckId)).size;
+  document.getElementById('sCams').textContent=new Set(s.map(x=>x.camId)).size;
+  if(s.length>0){const dates=s.map(x=>new Date(x.date));const days=Math.round((Math.max(...dates)-Math.min(...dates))/86400000)+1;document.getElementById('sDays').textContent=days;}
+}
+
+// ============================================================
+// PATTERNS
+// ============================================================
+function renderPatterns() {
+  const content = document.getElementById('patternsContent');
+  if (!content) return;
+  const sightings = filtered();
+  if (!sightings.length) {
+    content.innerHTML='<div class="empty"><div class="empty-icon">📊</div><div class="empty-text">No data yet</div><div class="empty-sub">Log sightings to start seeing patterns.</div></div>';
+    document.getElementById('pPeak').textContent='—'; document.getElementById('pCam').textContent='—';
+    document.getElementById('pBuck').textContent='—'; document.getElementById('pTemp').textContent='—';
+    return;
+  }
+  const hourC=new Array(24).fill(0);
+  sightings.forEach(s=>{if(s.time)hourC[parseInt(s.time)]++;});
+  const maxH=Math.max(...hourC,1);
+  const peakIdx=hourC.indexOf(Math.max(...hourC));
+  document.getElementById('pPeak').textContent=hourC[peakIdx]>0?fmtTime(peakIdx+':00'):'—';
+  const camC={};sightings.forEach(s=>{camC[s.camId]=(camC[s.camId]||0)+1;});
+  const topCE=Object.entries(camC).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('pCam').textContent=topCE?S.cameras.find(c=>c.id===topCE[0])?.name||'?':'—';
+  const buckC={};sightings.forEach(s=>{buckC[s.buckId]=(buckC[s.buckId]||0)+1;});
+  const topBE=Object.entries(buckC).sort((a,b)=>b[1]-a[1])[0];
+  document.getElementById('pBuck').textContent=topBE?S.bucks.find(b=>b.id===topBE[0])?.name||'?':'—';
+  const temps=sightings.filter(s=>s.temp).map(s=>Number(s.temp));
+  document.getElementById('pTemp').textContent=temps.length?Math.round(temps.reduce((a,b)=>a+b)/temps.length)+'°F':'—';
+
+  const hourBars=hourC.map((c,i)=>{const p=Math.round(c/maxH*100);const ip=c>0&&c===Math.max(...hourC);return`<div class="hour-bar ${ip?'peak':p>50?'high':''}" style="height:${Math.max(p,2)}%" title="${fmtTime(i+':00')}: ${c}"></div>`;}).join('');
+  const windC={};sightings.forEach(s=>{if(s.windDir)windC[s.windDir]=(windC[s.windDir]||0)+1;});
+  const maxW=Math.max(...Object.values(windC),1);
+  const windRows=['N','NE','E','SE','S','SW','W','NW'].map(d=>{const c=windC[d]||0;return`<div class="wind-row"><div class="wind-dir">${d}</div><div class="wind-bar-wrap"><div class="wind-bar" style="width:${Math.round(c/maxW*100)}%"></div></div><div class="wind-count">${c}</div></div>`;}).join('');
+  const topCams=Object.entries(camC).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxCC=topCams[0]?.[1]||1;
+  const camRows=topCams.map(([id,cnt],i)=>{const cam=S.cameras.find(c=>c.id===id);return`<div class="cam-rank-row"><div class="cam-rank-num">${i+1}</div><div class="cam-rank-dot" style="background:${cam?.color||'var(--green-mid)'}"></div><div class="cam-rank-name">${cam?.name||'Unknown'}</div><div class="cam-rank-bar-wrap"><div class="cam-rank-bar" style="width:${Math.round(cnt/maxCC*100)}%;background:${cam?.color||'var(--green-mid)'}"></div></div><div class="cam-rank-count">${cnt}</div></div>`;}).join('');
+  const topBucks=Object.entries(buckC).sort((a,b)=>b[1]-a[1]);
+  const maxBC=topBucks[0]?.[1]||1;
+  const buckRows=topBucks.map(([id,cnt])=>{const b=S.bucks.find(x=>x.id===id);return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="font-size:15px">${b?.emoji||'🦌'}</div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">${b?.name||'Unknown'}</div><div style="height:4px;background:var(--border);border-radius:2px;margin-top:4px"><div style="width:${Math.round(cnt/maxBC*100)}%;height:100%;background:var(--green-mid);border-radius:2px"></div></div></div><div style="font-size:13px;font-weight:700;color:var(--text)">${cnt}</div></div>`;}).join('');
+  const rutC={};sightings.forEach(s=>{if(s.rut)rutC[s.rut]=(rutC[s.rut]||0)+1;});
+  const rutTotal=Math.max(Object.values(rutC).reduce((a,b)=>a+b,0),1);
+  const rutColors=['#3d7a2a','#b45309','#a83030','#6d28d9','#6a7a5a'];
+  const rutOpts=S.fieldSettings.builtins.rut?.options||[];
+  const rutRows=rutOpts.map((r,i)=>{const c=rutC[r]||0;return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="font-size:10px;font-weight:700;color:var(--text-3);width:72px;text-align:right">${r}</div><div style="flex:1;height:6px;background:var(--border);border-radius:3px"><div style="width:${Math.round(c/rutTotal*100)}%;height:100%;background:${rutColors[i%rutColors.length]};border-radius:3px"></div></div><div style="font-size:11px;font-weight:700;color:var(--text);width:16px">${c}</div></div>`;}).join('');
+
+  const allYears=[...new Set(S.sightings.map(s=>s.year).filter(Boolean))].sort((a,b)=>b-a);
+  let yoyCard='';
+  if(allYears.length>=2){
+    const sf=gSeason?S.sightings.filter(s=>s.season===gSeason):S.sightings;
+    const maxY=Math.max(...allYears.map(y=>sf.filter(s=>s.year===y).length),1);
+    const yoyRows=allYears.map(y=>{const cnt=sf.filter(s=>s.year===y).length;const dawn=sf.filter(s=>s.year===y&&s.time&&parseInt(s.time)>=5&&parseInt(s.time)<9).length;const dusk=sf.filter(s=>s.year===y&&s.time&&parseInt(s.time)>=17&&parseInt(s.time)<=20).length;return`<div class="yoy-row" style="${gYear&&gYear!==y?'opacity:0.4':''}"><div class="yoy-year">${y}</div><div style="flex:1"><div class="yoy-bar-wrap"><div class="yoy-bar" style="width:${Math.round(cnt/maxY*100)}%"></div></div><div class="yoy-detail">🌅 ${dawn} dawn · 🌇 ${dusk} dusk</div></div><div class="yoy-count">${cnt}</div></div>`;}).join('');
+    yoyCard=`<div class="card pattern-card full"><div class="card-title">Year-Over-Year${gSeason?' · '+gSeason:''}</div><div class="card-sub">Sightings per year — compare across seasons</div>${yoyRows}</div>`;
+  }
+
+  content.innerHTML=`<div class="patterns-grid">
+    <div class="card pattern-card span" style="grid-column:1/-1"><div class="card-title">Movement by Hour</div><div class="card-sub">All sightings · 24hr view · Red = peak</div><div class="hour-bars">${hourBars}</div><div class="hour-labels"><span>12AM</span><span>3AM</span><span>6AM</span><span>9AM</span><span>12PM</span><span>3PM</span><span>6PM</span><span>9PM</span><span>11PM</span></div></div>
+    <div class="card pattern-card"><div class="card-title">Wind at Sighting</div><div class="card-sub">Direction frequency</div>${windRows}</div>
+    <div class="card pattern-card"><div class="card-title">Camera Hotspots</div><div class="card-sub">By sighting count</div>${camRows||'<div style="color:var(--text-3);font-size:12px">No data</div>'}</div>
+    <div class="card pattern-card"><div class="card-title">Rut Breakdown</div><div class="card-sub">Sightings by phase</div>${rutRows||'<div style="color:var(--text-3);font-size:12px">No rut data</div>'}</div>
+    <div class="card pattern-card full"><div class="card-title">Buck Activity</div><div class="card-sub">Total sightings per buck</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px">${buckRows||'<div style="color:var(--text-3);font-size:12px">No data</div>'}</div></div>
+    ${yoyCard}
+  </div>`;
+}
+
+// ============================================================
+// AI ANALYST
+// ============================================================
+function updateAIBadge() {
+  const el=document.getElementById('aiBadge');
+  if(el) el.textContent=`📊 ${S.sightings.length} sightings · ${S.bucks.length} bucks · ${S.cameras.length} cameras`;
+}
+function askAI(btn) { document.getElementById('aiInput').value=btn.textContent.trim(); sendAI(); }
+function buildAIContext() {
+  const camMap=Object.fromEntries(S.cameras.map(c=>[c.id,c.name]));
+  const buckMap=Object.fromEntries(S.bucks.map(b=>[b.id,`${b.name}${b.age?' (est. '+b.age+')':''}`]));
+  const filterCtx=[gSeason?`Season filter: ${gSeason}`:'No season filter',gYear?`Year filter: ${gYear}`:'No year filter'].join(' · ');
+  const camSummary=S.cameras.map(c=>`- ${c.name} (${c.type}${c.facing?', facing '+c.facing:''}, ${S.sightings.filter(s=>s.camId===c.id).length} sightings${c.notes?', '+c.notes:''})`).join('\n')||'None';
+  const buckSummary=S.bucks.map(b=>{const bs=S.sightings.filter(s=>s.buckId===b.id);const last=[...bs].sort((a,z)=>(z.date+z.time).localeCompare(a.date+a.time))[0];return`- ${b.name}: ${b.age||'unknown age'}, ${bs.length} sightings, last seen ${last?last.date:'never'}${b.features?', '+b.features:''}`;}).join('\n')||'None';
+  const sightSummary=S.sightings.length===0?'None':S.sightings.map(s=>`- ${s.date} ${s.time||''} | ${buckMap[s.buckId]||'Unknown'} @ ${camMap[s.camId]||'Unknown'} | ${s.year||''} ${s.season||''} | ${s.temp?s.temp+'°F':''} ${s.windDir||''} ${s.windSpeed?s.windSpeed+'mph':''} ${s.pressure?s.pressure+'inHg':''} | Rut: ${s.rut||'—'} | Heading: ${s.buckHeading||'—'} | Behavior: ${s.buckBehavior||'—'} | ${s.notes||''}`).join('\n');
+  return `You are an expert whitetail deer hunting analyst with access to real trail camera data from this hunter's property near Cable, WI. Be specific — reference actual camera names, buck names, dates, and numbers. Be direct and practical like a seasoned hunting buddy who also knows deer science.
+
+=== ACTIVE FILTERS ===
+${filterCtx}
+
+=== CAMERAS (${S.cameras.length}) ===
+${camSummary}
+
+=== BUCKS (${S.bucks.length}) ===
+${buckSummary}
+
+=== SIGHTINGS (${S.sightings.length} total, showing all) ===
+${sightSummary}
+
+Answer the hunter's question using this data. If there isn't enough data for a confident answer, say so and explain what additional data would help.`;
+}
+async function sendAI() {
+  const input=document.getElementById('aiInput');
+  const send=document.getElementById('aiSend');
+  const text=input.value.trim(); if(!text) return;
+  input.value=''; input.style.height='auto'; send.disabled=true;
+  document.getElementById('aiWelcome')?.remove();
+  appendMsg('user',text);
+  aiHistory.push({role:'user',content:text});
+  const typing=appendTyping();
+  try {
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:buildAIContext(),messages:aiHistory.slice(-12)})});
+    const data=await res.json();
+    typing.remove();
+    const reply=data.content?.[0]?.text||'Error getting response.';
+    aiHistory.push({role:'assistant',content:reply});
+    appendMsg('ai',reply);
+  } catch(e) { typing.remove(); appendMsg('ai','Connection error: '+e.message); }
+  send.disabled=false;
+  document.getElementById('aiMessages').scrollTop=99999;
+}
+function appendMsg(role,text) {
+  const msgs=document.getElementById('aiMessages');
+  const d=document.createElement('div'); d.className='msg';
+  d.innerHTML=`<div class="msg-avi ${role}">${role==='user'?'👤':'🦌'}</div><div><div class="msg-sender ${role}">${role==='user'?'You':'AI Analyst'}</div><div class="msg-bubble">${escHtml(text)}</div></div>`;
+  msgs.appendChild(d); msgs.scrollTop=99999; return d;
+}
+function appendTyping() {
+  const msgs=document.getElementById('aiMessages');
+  const d=document.createElement('div'); d.className='msg';
+  d.innerHTML=`<div class="msg-avi ai">🦌</div><div><div class="msg-sender ai">AI Analyst</div><div class="msg-bubble"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div></div>`;
+  msgs.appendChild(d); msgs.scrollTop=99999; return d;
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function renderCamFields() {
+  // Built-in camera fields
+  const bf = document.getElementById('camBuiltinFields'); 
+  if (!bf) return;
+  const builtins = S.camFields?.builtins || {};
+  const defs = [
+    {key:'facing', desc:'Compass direction camera points'},
+    {key:'type',   desc:'Cellular or SD card'},
+    {key:'notes',  desc:'Habitat, trail, food source notes'},
+  ];
+  bf.innerHTML = defs.map(({key,desc}) => {
+    const b = builtins[key] || {enabled:true};
+    return '<div class="field-toggle-row"><div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">' + (b.label||key) + '</div><div style="font-size:11px;color:var(--text-3)">' + desc + '</div></div>' +
+      '<label class="toggle-switch"><input type="checkbox" ' + (b.enabled!==false?'checked':'') + ' data-key="' + key + '" onchange="toggleCamBuiltin(this.dataset.key,this.checked)"><span class="toggle-slider"></span></label></div>';
+  }).join('');
+
+  // Custom camera fields
+  const cf = document.getElementById('camCustomFields');
+  if (!cf) return;
+  const custom = S.camFields?.custom || [];
+  cf.innerHTML = custom.length === 0
+    ? '<div style="color:var(--text-3);font-size:12px;padding:4px">No custom camera fields yet.</div>'
+    : custom.map(f => '<div class="custom-field-card"><div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--text)">' + f.label + '</div>' +
+        '<div style="font-size:11px;color:var(--text-3)">' + (f.type==='dropdown'?'Options: '+(f.options||[]).join(', '):f.type) + '</div></div>' +
+        '<span class="cf-type-badge">' + f.type + '</span>' +
+        '<label class="toggle-switch"><input type="checkbox" ' + (f.enabled!==false?'checked':'') + ' data-fid="' + f.id + '" onchange="toggleCamCF(this.dataset.fid,this.checked)"><span class="toggle-slider"></span></label>' +
+        '<button class="btn-danger" data-cfid="' + f.id + '" onclick="deleteCamCF(this.dataset.cfid)">Remove</button></div>').join('');
+}
+
+function toggleCamBuiltin(key, val) {
+  if (!S.camFields) S.camFields = JSON.parse(JSON.stringify(DEFAULT_STATE.camFields));
+  if (!S.camFields.builtins[key]) S.camFields.builtins[key] = {enabled:true};
+  S.camFields.builtins[key].enabled = val; save();
+}
+function toggleCamCF(id, val) {
+  const f = (S.camFields?.custom||[]).find(x=>x.id===id); if(f){f.enabled=val;save();}
+}
+function deleteCamCF(id) {
+  if(!confirm('Remove this camera field?')) return;
+  if(S.camFields?.custom) S.camFields.custom = S.camFields.custom.filter(x=>x.id!==id);
+  save(); renderCamFields();
+}
+function addCamCustomField() {
+  const label = document.getElementById('ccfLabel').value.trim(); if(!label){alert('Enter a label.');return;}
+  const type = document.getElementById('ccfType').value;
+  const opts = type==='dropdown' ? document.getElementById('ccfOpts').value.split('\n').map(s=>s.trim()).filter(Boolean) : [];
+  if(type==='dropdown'&&!opts.length){alert('Add at least one option.');return;}
+  if(!S.camFields) S.camFields = JSON.parse(JSON.stringify(DEFAULT_STATE.camFields));
+  if(!S.camFields.custom) S.camFields.custom = [];
+  S.camFields.custom.push({id:'ccf_'+Date.now(),label,type,options:opts,enabled:true});
+  save(); document.getElementById('ccfLabel').value=''; document.getElementById('ccfOpts').value='';
+  renderCamFields();
+}
+
+function renderSettings() {
+  renderSettingsBucks();
+  renderSettingsCams();
+  renderBuiltinFields();
+  renderCustomFields();
+  renderCamFields();
+  const ps=S.propertySettings||{};
+  if(document.getElementById('sPropName')) document.getElementById('sPropName').value=ps.name||'';
+  if(document.getElementById('sHunterTag')) document.getElementById('sHunterTag').value=ps.hunter||'';
+  if(document.getElementById('sLat')) document.getElementById('sLat').value=ps.lat||46.2504;
+  if(document.getElementById('sLon')) document.getElementById('sLon').value=ps.lon||-91.07529;
+}
+function renderSettingsBucks() {
+  const el=document.getElementById('sBuckList'); if(!el) return;
+  el.innerHTML=S.bucks.length===0?'<div style="color:var(--text-3);font-size:12px;padding:4px">No bucks yet.</div>':
+    S.bucks.map(b=>{const cnt=S.sightings.filter(s=>s.buckId===b.id).length;return`<div class="settings-item"><div style="font-size:18px">${b.emoji||'🦌'}</div><div style="flex:1"><div class="settings-item-name">${b.name}</div><div class="settings-item-meta">${b.age?b.age+' · ':''}${cnt} sightings${b.features?' · '+b.features:''}</div></div><button class="btn-danger" onclick="deleteBuck('${b.id}')">Remove</button></div>`;}).join('');
+}
+function renderSettingsCams() {
+  const el=document.getElementById('sCamList'); if(!el) return;
+  el.innerHTML=S.cameras.length===0?'<div style="color:var(--text-3);font-size:12px;padding:4px">No cameras yet.</div>':
+    S.cameras.map(c=>{const cnt=S.sightings.filter(s=>s.camId===c.id).length;return`<div class="settings-item"><div class="cam-dot-sm" style="background:${c.color}"></div><div style="flex:1"><div class="settings-item-name">${c.name}</div><div class="settings-item-meta">${c.type}${c.facing?' · Facing '+c.facing:''} · ${cnt} sightings${c.notes?' · '+c.notes:''}</div></div><button class="btn-danger" onclick="deleteCam('${c.id}')">Remove</button></div>`;}).join('');
+}
+function renderBuiltinFields() {
+  const el=document.getElementById('builtinFields'); if(!el) return;
+  const defs=[
+    {key:'season',desc:'Season dropdown',hasEdit:true},
+    {key:'temp',desc:'Auto-filled from weather'},
+    {key:'windDir',desc:'Auto-filled from weather'},
+    {key:'windSpeed',desc:'Auto-filled from weather'},
+    {key:'pressure',desc:'Auto-filled from weather'},
+    {key:'rut',desc:'Rut stage dropdown',hasEdit:true},
+    {key:'notes',desc:'Free text notes'},
+  ];
+  el.innerHTML=defs.map(({key,desc,hasEdit})=>{
+    const b=S.fieldSettings.builtins[key]||{};
+    return`<div class="field-toggle-row"><div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">${b.label||key}</div><div style="font-size:11px;color:var(--text-3)">${desc}</div></div>${hasEdit?`<button class="edit-options-btn" onclick="toggleOptEditor('${key}')">Edit Options</button>`:''}<label class="toggle-switch"><input type="checkbox" ${b.enabled!==false?'checked':''} onchange="toggleBuiltin('${key}',this.checked)"><span class="toggle-slider"></span></label></div>`;
+  }).join('');
+}
+function renderCustomFields() {
+  const el=document.getElementById('customFieldsList'); if(!el) return;
+  const cf=S.fieldSettings.custom||[];
+  el.innerHTML=cf.length===0?'<div style="color:var(--text-3);font-size:12px;padding:4px">No custom fields yet.</div>':
+    cf.map(f=>`<div class="custom-field-card"><div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--text)">${f.label}</div><div style="font-size:11px;color:var(--text-3)">${f.type==='dropdown'?'Options: '+(f.options||[]).join(', '):f.type}</div></div><span class="cf-type-badge">${f.type}</span><label class="toggle-switch"><input type="checkbox" ${f.enabled!==false?'checked':''} onchange="toggleCF('${f.id}',this.checked)"><span class="toggle-slider"></span></label><button class="btn-danger" onclick="deleteCF('${f.id}')">Remove</button></div>`).join('');
+}
+function toggleOptEditor(key) {
+  const edId=key==='season'?'seasonEditor':'rutEditor';
+  const listId=key==='season'?'seasonOptList':'rutOptList';
+  ['seasonEditor','rutEditor'].forEach(id=>{ if(id!==edId) document.getElementById(id).style.display='none'; });
+  const ed=document.getElementById(edId);
+  ed.style.display=ed.style.display==='none'||!ed.style.display?'block':'none';
+  renderOptList(key,listId);
+}
+function renderOptList(key,listId) {
+  const opts=S.fieldSettings.builtins[key]?.options||[];
+  document.getElementById(listId).innerHTML=opts.map((o,i)=>`<div style="display:flex;gap:8px"><input type="text" value="${o}" class="field" style="flex:1" onchange="updateOpt('${key}',${i},this.value)"><button class="btn-danger" onclick="deleteOpt('${key}',${i})">✕</button></div>`).join('');
+}
+function addOpt(key) {
+  const inputId=key==='season'?'newSeasonOpt':'newRutOpt';
+  const listId=key==='season'?'seasonOptList':'rutOptList';
+  const val=document.getElementById(inputId).value.trim(); if(!val) return;
+  if(!S.fieldSettings.builtins[key].options) S.fieldSettings.builtins[key].options=[];
+  S.fieldSettings.builtins[key].options.push(val);
+  document.getElementById(inputId).value='';
+  save(); renderOptList(key,listId); populateFilters();
+}
+function updateOpt(key,i,val) { S.fieldSettings.builtins[key].options[i]=val; save(); }
+function deleteOpt(key,i) {
+  S.fieldSettings.builtins[key].options.splice(i,1);
+  save(); renderOptList(key,key==='season'?'seasonOptList':'rutOptList'); populateFilters();
+}
+function toggleBuiltin(key,val) { S.fieldSettings.builtins[key].enabled=val; save(); }
+function addCustomField() {
+  const label=document.getElementById('cfLabel').value.trim(); if(!label){alert('Enter a label.');return;}
+  const type=document.getElementById('cfType').value;
+  const opts=type==='dropdown'?document.getElementById('cfOpts').value.split('\n').map(s=>s.trim()).filter(Boolean):[];
+  if(type==='dropdown'&&!opts.length){alert('Add at least one option.');return;}
+  if(!S.fieldSettings.custom) S.fieldSettings.custom=[];
+  S.fieldSettings.custom.push({id:'cf_'+Date.now(),label,type,options:opts,enabled:true});
+  save(); document.getElementById('cfLabel').value=''; document.getElementById('cfOpts').value=''; renderCustomFields();
+}
+function toggleCF(id,val) { const f=S.fieldSettings.custom.find(x=>x.id===id); if(f){f.enabled=val;save();} }
+function deleteCF(id) { if(!confirm('Remove this custom field?')) return; S.fieldSettings.custom=S.fieldSettings.custom.filter(x=>x.id!==id); save(); renderCustomFields(); }
+function addBuckSettings() {
+  const name=document.getElementById('nBuckName').value.trim(); if(!name){alert('Enter a name.');return;}
+  S.bucks.push({id:'b_'+Date.now(),name,emoji:document.getElementById('nBuckEmoji').value.trim()||'🦌',age:document.getElementById('nBuckAge').value,features:document.getElementById('nBuckFeatures').value.trim()});
+  save(); ['nBuckName','nBuckEmoji','nBuckFeatures'].forEach(id=>document.getElementById(id).value=''); document.getElementById('nBuckAge').value='';
+  renderSettingsBucks(); renderDashboard();
+}
+function addCamSettings() {
+  const name=document.getElementById('nCamName').value.trim(); if(!name){alert('Enter a name.');return;}
+  S.cameras.push({
+    id:'c_'+Date.now(), name,
+    color:document.getElementById('nCamColor').value,
+    type:document.getElementById('nCamType').value,
+    facing:document.getElementById('nCamFacing').value,
+    notes:document.getElementById('nCamNotes').value.trim(),
+    x:null, y:null
+  });
+  save();
+  document.getElementById('nCamName').value='';
+  document.getElementById('nCamNotes').value='';
+  document.getElementById('nCamFacing').value='';
+  renderSettingsCams(); renderDashboard();
+}
+function deleteBuck(id) {
+  const b=S.bucks.find(x=>x.id===id); const cnt=S.sightings.filter(s=>s.buckId===id).length;
+  if(!confirm(`Remove "${b?.name}"?${cnt>0?' ('+cnt+' sightings will remain)':''}`)) return;
+  S.bucks=S.bucks.filter(x=>x.id!==id); save(); renderSettingsBucks(); renderDashboard();
+}
+function deleteCam(id) {
+  const c=S.cameras.find(x=>x.id===id); const cnt=S.sightings.filter(s=>s.camId===id).length;
+  if(!confirm(`Remove "${c?.name}"?${cnt>0?' ('+cnt+' sightings will remain)':''}`)) return;
+  S.cameras=S.cameras.filter(x=>x.id!==id); save(); renderSettingsCams(); renderDashboard(); renderPins();
+}
+function savePropSettings() {
+  S.propertySettings={name:document.getElementById('sPropName').value.trim(),hunter:document.getElementById('sHunterTag').value.trim()||'T-Stone',lat:parseFloat(document.getElementById('sLat').value)||46.2504,lon:parseFloat(document.getElementById('sLon').value)||-91.07529};
+  save(); const btn=document.querySelector('#view-settings .btn-green'); if(btn){btn.textContent='✅ Saved!';setTimeout(()=>btn.textContent='Save Property Settings',2000);}
+}
+function exportCSV() {
+  const headers=['Date','Time','Buck','Camera','Year','Season','Temp(F)','WindDir','WindSpeed(mph)','Pressure(inHg)','RutStage','BuckHeading','BuckBehavior','Notes'];
+  const rows=S.sightings.map(s=>{const b=S.bucks.find(x=>x.id===s.buckId)?.name||'Unknown';const c=S.cameras.find(x=>x.id===s.camId)?.name||'Unknown';return[s.date,s.time,b,c,s.year||'',s.season||'',s.temp||'',s.windDir||'',s.windSpeed||'',s.pressure||'',s.rut||'',`"${(s.notes||'').replace(/"/g,'""')}"`].join(',');});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([[headers.join(','),...rows].join('\n')],{type:'text/csv'})); a.download='bucktrack-sightings.csv'; a.click();
+}
+function backupJSON() {
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:'application/json'})); a.download='bucktrack-backup.json'; a.click();
+}
+function clearAll() {
+  if(!confirm('Delete ALL data? This cannot be undone.')) return;
+  if(!confirm('Last chance — are you sure?')) return;
+  S=JSON.parse(JSON.stringify(DEFAULT_STATE)); save(); renderSettings(); renderDashboard();
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function openModal(id) {
+  if(id==='sightModal') buildSightingForm();
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  if (id === 'sightModal') {
+    editingSightingId = null;
+    const titleEl = document.getElementById('sightModalTitle');
+    const btnEl = document.getElementById('sightSaveBtn');
+    if (titleEl) titleEl.textContent = 'Log Sighting';
+    if (btnEl) btnEl.textContent = 'Log Sighting';
+  }
+  if (id === 'buckModal') {
+    editingBuckId = null;
+    const titleEl = document.getElementById('buckModalTitle');
+    const btnEl = document.getElementById('buckSaveBtn');
+    if (titleEl) titleEl.textContent = 'Add Buck Profile';
+    if (btnEl) btnEl.textContent = 'Add Buck';
+  }
+  if (id === 'camModal') {
+    editingCamId = null;
+    const h = document.querySelector('#camModal .modal-title');
+    if (h) h.textContent = 'Add Camera';
+    const btn = document.querySelector('#camModal .btn-green');
+    if (btn) btn.textContent = 'Add Camera';
+  }
+}
+document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
+
+let editingCamId = null;
+
+function editCam(id) {
+  const c = S.cameras.find(x => x.id === id);
+  if (!c) return;
+  editingCamId = id;
+  document.getElementById('mCamName').value = c.name || '';
+  document.getElementById('mCamColor').value = c.color || '#3d7a2a';
+  document.getElementById('mCamType').value = c.type || 'cellular';
+  if (document.getElementById('mCamFacing')) document.getElementById('mCamFacing').value = c.facing || '';
+  document.getElementById('mCamNotes').value = c.notes || '';
+  // Update modal title
+  const h = document.querySelector('#camModal .modal-title');
+  if (h) h.textContent = 'Edit Camera';
+  const btn = document.querySelector('#camModal .btn-green');
+  if (btn) btn.textContent = 'Save Changes';
+  document.getElementById('camModal').classList.add('open');
+}
+
+function saveCam() {
+  const name=document.getElementById('mCamName').value.trim(); if(!name){alert('Enter a camera name.');return;}
+  const camData = {
+    name,
+    color: document.getElementById('mCamColor').value,
+    type: document.getElementById('mCamType').value,
+    facing: document.getElementById('mCamFacing')?.value || '',
+    notes: document.getElementById('mCamNotes').value.trim()
+  };
+  if (editingCamId) {
+    const idx = S.cameras.findIndex(x => x.id === editingCamId);
+    if (idx >= 0) S.cameras[idx] = { ...S.cameras[idx], ...camData };
+    editingCamId = null;
+  } else {
+    S.cameras.push({ id: 'c_' + Date.now(), ...camData, x: null, y: null });
+  }
+  save(); closeModal('camModal');
+  document.getElementById('mCamName').value = '';
+  document.getElementById('mCamNotes').value = '';
+  // Reset modal title
+  const h = document.querySelector('#camModal .modal-title');
+  if (h) h.textContent = 'Add Camera';
+  const btn = document.querySelector('#camModal .btn-green');
+  if (btn) btn.textContent = 'Add Camera';
+  renderDashboard(); renderAllPins(); renderSettingsCams();
+}
+let editingBuckId = null;
+
+function editBuck(id) {
+  const b = S.bucks.find(x => x.id === id);
+  if (!b) return;
+  editingBuckId = id;
+  document.getElementById('buckModalTitle').textContent = 'Edit Buck Profile';
+  document.getElementById('buckSaveBtn').textContent = 'Save Changes';
+  document.getElementById('mBuckName').value = b.name || '';
+  document.getElementById('mBuckAge').value = b.age || '';
+  document.getElementById('mBuckEmoji').value = b.emoji || '🦌';
+  document.getElementById('mBuckYear').value = b.year || '';
+  document.getElementById('mBuckFeatures').value = b.features || '';
+  document.getElementById('buckModal').classList.add('open');
+}
+
+function saveBuck() {
+  const name=document.getElementById('mBuckName').value.trim(); if(!name){alert('Enter a buck name.');return;}
+  const buckData = {
+    name,
+    age: document.getElementById('mBuckAge').value,
+    emoji: document.getElementById('mBuckEmoji').value.trim() || '🦌',
+    year: document.getElementById('mBuckYear').value,
+    features: document.getElementById('mBuckFeatures').value.trim()
+  };
+  if (editingBuckId) {
+    const idx = S.bucks.findIndex(x => x.id === editingBuckId);
+    if (idx >= 0) S.bucks[idx] = { ...S.bucks[idx], ...buckData };
+    editingBuckId = null;
+  } else {
+    S.bucks.push({ id: 'b_' + Date.now(), ...buckData });
+  }
+  save();
+  closeModal('buckModal');
+  document.getElementById('mBuckName').value = '';
+  document.getElementById('mBuckFeatures').value = '';
+  document.getElementById('mBuckEmoji').value = '';
+  document.getElementById('mBuckYear').value = '';
+  document.getElementById('buckModalTitle').textContent = 'Add Buck Profile';
+  document.getElementById('buckSaveBtn').textContent = 'Add Buck';
+  renderDashboard(); renderSettingsBucks();
+}
+
+// ── Sighting Form ─────────────────────────────────────────
+function buildSightingForm() {
+  const body=document.getElementById('sightFormBody'); if(!body) return;
+  const b=S.fieldSettings.builtins||{};
+  const cf=(S.fieldSettings.custom||[]).filter(f=>f.enabled!==false);
+  const now=new Date();
+  const yr=now.getFullYear();
+  const bucks=S.bucks.map(x=>`<option value="${x.id}">${x.emoji||'🦌'} ${x.name}</option>`).join('');
+  const cams=S.cameras.map(x=>`<option value="${x.id}">${x.name}</option>`).join('');
+  const years=[yr,yr-1,yr-2,yr-3,yr-4].map(y=>`<option value="${y}">${y}</option>`).join('');
+  const seasonOpts=(b.season?.options||[]).map(o=>`<option value="${o}">${o}</option>`).join('');
+  const windOpts=['N','NE','E','SE','S','SW','W','NW'].map(d=>`<option value="${d}">${d}</option>`).join('');
+  const rutOpts=(b.rut?.options||[]).map(o=>`<option value="${o}">${o}</option>`).join('');
+
+  let html=`<div class="weather-status" id="wStatus">⏳ Waiting for date & time...</div>
+  <div class="form-2">
+    <div><label class="field-label">Date</label><input type="date" id="sDate" class="field" value="${now.toISOString().split('T')[0]}" onchange="fetchWx()"></div>
+    <div><label class="field-label">Time</label><input type="time" id="sTime" class="field" value="${now.toTimeString().slice(0,5)}" onchange="fetchWx()"></div>
+  </div>
+  <div class="form-2">
+    <div><label class="field-label">Year</label><select id="sYear" class="field">${years}</select></div>
+    <div><label class="field-label">Buck</label><select id="sBuck" class="field"><option value="">— Select Buck —</option>${bucks}</select></div>
+  </div>
+  <div class="form-2">
+    <div><label class="field-label">Camera</label><select id="sCam" class="field"><option value="">— Select Camera —</option>${cams}</select></div>
+    ${b.season?.enabled!==false?`<div><label class="field-label">Season</label><select id="sSeason" class="field"><option value="">— Select —</option>${seasonOpts}</select></div>`:'<div></div>'}
+  </div>`;
+
+  const wxFields=[];
+  if(b.temp?.enabled!==false) wxFields.push(`<div><label class="field-label">Temp (°F)</label><input type="number" id="sTemp" class="field" placeholder="Auto-filled"></div>`);
+  if(b.windDir?.enabled!==false) wxFields.push(`<div><label class="field-label">Wind Dir</label><select id="sWind" class="field"><option value="">Unknown</option>${windOpts}</select></div>`);
+  if(b.windSpeed?.enabled!==false) wxFields.push(`<div><label class="field-label">Wind Speed (mph)</label><input type="number" id="sWindSpd" class="field" placeholder="Auto-filled"></div>`);
+  if(b.pressure?.enabled!==false) wxFields.push(`<div><label class="field-label">Pressure (inHg)</label><input type="number" id="sPress" class="field" step="0.01" placeholder="Auto-filled"></div>`);
+  for(let i=0;i<wxFields.length;i+=2) html+=`<div class="form-2">${wxFields[i]}${wxFields[i+1]||'<div></div>'}</div>`;
+
+  if(b.rut?.enabled!==false) html+=`<div class="form-2"><div><label class="field-label">Rut Stage</label><select id="sRut" class="field"><option value="">Unknown</option>${rutOpts}</select></div><div><label class="field-label">&nbsp;</label><button onclick="fetchWx()" style="width:100%;background:var(--green-light);border:1px solid var(--green-border);color:var(--green);font-size:12px;font-weight:600;padding:8px;border-radius:5px;cursor:pointer">↺ Refresh Weather</button></div></div>`;
+  html+=`<div class="form-2"><div><label class="field-label">Buck Heading</label><select id="sBuckHeading" class="field"><option value="">Unknown</option><option value="N">N — heading North</option><option value="NE">NE — heading NE</option><option value="E">E — heading East</option><option value="SE">SE — heading SE</option><option value="S">S — heading South</option><option value="SW">SW — heading SW</option><option value="W">W — heading West</option><option value="NW">NW — heading NW</option></select></div><div><label class="field-label">Buck Behavior</label><select id="sBuckBehavior" class="field"><option value="">Unknown</option><option value="Feeding">Feeding</option><option value="Travelling">Travelling</option><option value="Nose to ground">Nose to ground</option><option value="Chasing">Chasing</option><option value="Tending doe">Tending doe</option><option value="Sparring">Sparring</option><option value="Scraping">Scraping</option><option value="Rubbing">Rubbing</option><option value="Bedded">Bedded</option><option value="Alert">Alert / Spooked</option></select></div></div>`;
+
+  // Custom fields
+  for(let i=0;i<cf.length;i+=2) {
+    const pair=[cf[i],cf[i+1]].filter(Boolean);
+    html+=`<div class="form-2">${pair.map(f=>`<div><label class="field-label">${f.label}</label>${buildCFInput(f)}</div>`).join('')}${pair.length===1?'<div></div>':''}</div>`;
+  }
+  if(b.notes?.enabled!==false) html+=`<div class="form-row"><label class="field-label">Behavior / Notes</label><textarea id="sNotes" class="field" placeholder="e.g. Feeding, nose to ground, moving NW..."></textarea></div>`;
+  body.innerHTML=html;
+  setTimeout(fetchWx,100);
+}
+function buildCFInput(f) {
+  const id=`cf_${f.id}`;
+  if(f.type==='dropdown') return`<select id="${id}" class="field"><option value="">— Select —</option>${(f.options||[]).map(o=>`<option value="${o}">${o}</option>`).join('')}</select>`;
+  if(f.type==='yesno') return`<select id="${id}" class="field"><option value="">Unknown</option><option>Yes</option><option>No</option></select>`;
+  if(f.type==='number') return`<input type="number" id="${id}" class="field" placeholder="Enter value">`;
+  return`<input type="text" id="${id}" class="field" placeholder="Enter ${f.label.toLowerCase()}">`;
+}
+
+// ── Weather fetch ──────────────────────────────────────────
+async function fetchWx() {
+  const status=document.getElementById('wStatus'); if(!status) return;
+  const date=document.getElementById('sDate')?.value;
+  const time=document.getElementById('sTime')?.value;
+  if(!date||!time){status.textContent='📅 Enter date and time to auto-fill weather.';status.style.color='var(--text-3)';return;}
+  const lat=(S.propertySettings?.lat)||46.2504;
+  const lon=(S.propertySettings?.lon)||-91.07529;
+  const sightingDt=new Date(`${date}T${time}:00`);
+  const diffHours=(Date.now()-sightingDt)/3600000;
+  status.textContent=`⏳ Fetching conditions for ${date} at ${fmtTime(time)}...`;
+  status.style.color='var(--text-3)';
+  try {
+    let c;
+    if(diffHours<1) {
+      const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,wind_direction_10m,surface_pressure&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Chicago`);
+      const d=await r.json();
+      c={temp:d.current.temperature_2m,ws:d.current.wind_speed_10m,wd:d.current.wind_direction_10m,sp:d.current.surface_pressure};
+    } else {
+      const r=await fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${date}&end_date=${date}&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,surface_pressure&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Chicago`);
+      const d=await r.json();
+      const idx=parseInt(time.split(':')[0]);
+      c={temp:d.hourly.temperature_2m[idx],ws:d.hourly.wind_speed_10m[idx],wd:d.hourly.wind_direction_10m[idx],sp:d.hourly.surface_pressure[idx]};
+    }
+    const dirs=['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+    const dir16=dirs[Math.round(c.wd/22.5)%16];
+    const dirs8=['N','NE','E','SE','S','SW','W','NW'];
+    const dir8=dirs8.reduce((b,d)=>{const a=x=>({N:0,NE:45,E:90,SE:135,S:180,SW:225,W:270,NW:315})[x];const diff=x=>Math.abs(((c.wd-a(x))+540)%360-180);return diff(d)<diff(b)?d:b;},'N');
+    const temp=Math.round(c.temp), ws=Math.round(c.ws), press=Math.round(c.sp*0.02953*100)/100;
+    if(document.getElementById('sTemp')) document.getElementById('sTemp').value=temp;
+    if(document.getElementById('sWind')) document.getElementById('sWind').value=dir8;
+    if(document.getElementById('sWindSpd')) document.getElementById('sWindSpd').value=ws;
+    if(document.getElementById('sPress')) document.getElementById('sPress').value=press;
+    status.innerHTML=`✅ <strong>${temp}°F · ${dir16} ${ws}mph · ${press} inHg</strong> <span style="color:var(--text-3);font-size:10px">at ${date} ${fmtTime(time)} · edit if needed</span>`;
+    status.style.color='var(--green)';
+  } catch(e) {
+    status.textContent='⚠️ Could not fetch weather — enter manually.';
+    status.style.color='var(--text-3)';
+  }
+}
+
+let editingSightingId = null;
+
+function editSighting(id) {
+  editingSightingId = id;
+  const s = S.sightings.find(x => x.id === id);
+  if (!s) return;
+  // Open the modal in edit mode
+  buildSightingForm();
+  document.getElementById('sightModalTitle').textContent = 'Edit Sighting';
+  document.getElementById('sightSaveBtn').textContent = 'Save Changes';
+  document.getElementById('sightModal').classList.add('open');
+  // Pre-fill all fields
+  setTimeout(() => {
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+    setVal('sDate', s.date);
+    setVal('sTime', s.time);
+    setVal('sYear', s.year || new Date().getFullYear());
+    setVal('sBuck', s.buckId);
+    setVal('sCam', s.camId);
+    setVal('sSeason', s.season);
+    setVal('sTemp', s.temp);
+    setVal('sWind', s.windDir);
+    setVal('sWindSpd', s.windSpeed);
+    setVal('sPress', s.pressure);
+    setVal('sRut', s.rut);
+    setVal('sBuckHeading', s.buckHeading);
+    setVal('sBuckBehavior', s.buckBehavior);
+    setVal('sNotes', s.notes);
+    // Custom fields
+    if (s.customFields) {
+      Object.entries(s.customFields).forEach(([fid, val]) => {
+        const el = document.getElementById('cf_' + fid);
+        if (el) el.value = val || '';
+      });
+    }
+    // Clear weather status since we're editing
+    const ws = document.getElementById('wStatus');
+    if (ws) { ws.textContent = '✏️ Editing existing sighting — adjust fields as needed.'; ws.style.color = 'var(--text-3)'; }
+  }, 50);
+}
+
+function deleteSighting(id) {
+  const s = S.sightings.find(x => x.id === id);
+  const buck = S.bucks.find(b => b.id === s?.buckId);
+  if (!confirm('Delete this sighting' + (buck ? ' for ' + buck.name : '') + ' on ' + (s?.date || '') + '?')) return;
+  S.sightings = S.sightings.filter(x => x.id !== id);
+  save(); renderLog(); updateLogStats(); renderDashboard();
+}
+
+function saveSighting() {
+  const buckId=document.getElementById('sBuck')?.value;
+  const camId=document.getElementById('sCam')?.value;
+  const date=document.getElementById('sDate')?.value;
+  if(!buckId||!camId||!date){alert('Please select a Buck, Camera, and Date.');return;}
+  const b=S.fieldSettings.builtins||{};
+  const cf=(S.fieldSettings.custom||[]).filter(f=>f.enabled!==false);
+  const s={
+    id:'s_'+Date.now(),
+    buckId,camId,date,
+    time:document.getElementById('sTime')?.value||'',
+    year:document.getElementById('sYear')?.value||new Date().getFullYear().toString(),
+    season:b.season?.enabled!==false?(document.getElementById('sSeason')?.value||''):'',
+    temp:b.temp?.enabled!==false?(document.getElementById('sTemp')?.value||''):'',
+    windDir:b.windDir?.enabled!==false?(document.getElementById('sWind')?.value||''):'',
+    windSpeed:b.windSpeed?.enabled!==false?(document.getElementById('sWindSpd')?.value||''):'',
+    pressure:b.pressure?.enabled!==false?(document.getElementById('sPress')?.value||''):'',
+    rut:b.rut?.enabled!==false?(document.getElementById('sRut')?.value||''):'',
+    buckHeading:document.getElementById('sBuckHeading')?.value||'',
+    buckBehavior:document.getElementById('sBuckBehavior')?.value||'',
+    notes:b.notes?.enabled!==false?(document.getElementById('sNotes')?.value.trim()||''):'',
+    customFields:{}
+  };
+  cf.forEach(f=>{const el=document.getElementById('cf_'+f.id);if(el)s.customFields[f.id]=el.value;});
+  if (editingSightingId) {
+    // Edit mode — replace existing sighting
+    const idx = S.sightings.findIndex(x => x.id === editingSightingId);
+    if (idx >= 0) { s.id = editingSightingId; S.sightings[idx] = s; }
+    editingSightingId = null;
+  } else {
+    S.sightings.push(s);
+  }
+  save();
+  closeModal('sightModal');
+  // Reset modal title/button for next use
+  const titleEl = document.getElementById('sightModalTitle');
+  const btnEl = document.getElementById('sightSaveBtn');
+  if (titleEl) titleEl.textContent = 'Log Sighting';
+  if (btnEl) btnEl.textContent = 'Log Sighting';
+  populateFilters(); renderDashboard(); renderLog(); updateLogStats();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+load();
+populateFilters();
+
+// Restore last view
+const lastView = sessionStorage.getItem('bt_view') || 'dashboard';
+// Small timeout ensures DOM is fully ready
+setTimeout(() => {
+  initMapPan(); // set up zoom/pan event listeners
+  go(lastView);
+  if (S.mapDataUrl) showMap();
+}, 10);
+</script>
+</body>
+</html>
