@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BuckTrack</title>
+<title>CampTrack</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -143,7 +143,7 @@ textarea.field { resize:vertical; min-height:60px; }
 .dash-empty-sub { font-size:12px; color:var(--text-3); line-height:1.5; max-width:280px; }
 
 /* ── MAP ── */
-#view-map { position:relative; overflow:hidden; flex-direction:row !important; }
+#view-map { position:relative; overflow:hidden; flex-direction:column !important; }
 .map-area { flex:1; position:relative; overflow:hidden; background:#e0ddd4; display:flex; align-items:center; justify-content:center; min-height:0; }
 /* ── MAP VIEWPORT ── */
 .map-viewport { flex:1; position:relative; overflow:hidden; background:#2a2e24; cursor:grab; user-select:none; }
@@ -333,9 +333,23 @@ tr:hover td { background:var(--green-light); }
 
 <header>
   <div class="logo">
-    <div class="logo-icon">🦌</div>
+    <div class="logo-icon" style="background:#1a2e1c;border:2px solid rgba(255,255,255,0.2)">
+  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Outer circle -->
+    <circle cx="9" cy="9" r="7.5" stroke="#c8d8a0" stroke-width="1.2" fill="none"/>
+    <!-- Inner circle -->
+    <circle cx="9" cy="9" r="3" stroke="#c8d8a0" stroke-width="1" fill="none"/>
+    <!-- Center dot -->
+    <circle cx="9" cy="9" r="1" fill="#c8d8a0"/>
+    <!-- Crosshair lines -->
+    <line x1="9" y1="1" x2="9" y2="5.5" stroke="#c8d8a0" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="9" y1="12.5" x2="9" y2="17" stroke="#c8d8a0" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="1" y1="9" x2="5.5" y2="9" stroke="#c8d8a0" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="12.5" y1="9" x2="17" y2="9" stroke="#c8d8a0" stroke-width="1.2" stroke-linecap="round"/>
+  </svg>
+</div>
     <div>
-      <div class="logo-text">BuckTrack</div>
+      <div class="logo-text">CampTrack</div>
       <div class="logo-sub">BY T-STONE</div>
     </div>
   </div>
@@ -447,13 +461,14 @@ tr:hover td { background:var(--green-light); }
     <select id="fBuck" onchange="renderLog()"><option value="">All Bucks</option></select>
     <select id="fCam" onchange="renderLog()"><option value="">All Cameras</option></select>
     <select id="fRut" onchange="renderLog()"><option value="">All Rut Stages</option></select>
+    <span style="font-size:11px;color:var(--text-3);margin-left:8px">Double-click or ✏️ to edit</span>
     <button class="btn-green" style="margin-left:auto;padding:6px 14px;font-size:12px;" onclick="renderLog()">Refresh</button>
   </div>
   <div class="log-table-wrap">
     <table>
       <thead><tr>
         <th>Date / Time</th><th>Buck</th><th>Camera</th><th>Year</th><th>Season</th>
-        <th>Temp</th><th>Wind</th><th>Pressure</th><th>Rut Stage</th><th>Heading</th><th>Behavior</th><th>Notes</th>
+        <th>Temp</th><th>Wind</th><th>Pressure</th><th>Rut Stage</th><th>Heading</th><th>Behavior</th><th>Notes</th><th></th>
       </tr></thead>
       <tbody id="logBody"></tbody>
     </table>
@@ -670,25 +685,26 @@ tr:hover td { background:var(--green-light); }
 <!-- BUCK MODAL -->
 <div class="modal-overlay" id="buckModal">
   <div class="modal">
-    <div class="modal-header"><div class="modal-title">Add Buck Profile</div><button class="modal-close" onclick="closeModal('buckModal')">✕</button></div>
+    <div class="modal-header"><div class="modal-title" id="buckModalTitle">Add Buck Profile</div><button class="modal-close" onclick="closeModal('buckModal')">✕</button></div>
     <div class="modal-body">
       <div class="form-row"><label class="field-label">Nickname / ID</label><input type="text" id="mBuckName" class="field" placeholder="e.g. Splitbrow, Tank, 8-Point Main Frame"></div>
       <div class="form-2">
         <div><label class="field-label">Estimated Age</label><select id="mBuckAge" class="field"><option value="">Unknown</option><option>1.5 yr</option><option>2.5 yr</option><option>3.5 yr</option><option>4.5 yr</option><option>5.5+ yr</option></select></div>
         <div><label class="field-label">Emoji / Icon</label><input type="text" id="mBuckEmoji" class="field" placeholder="🦌" maxlength="4" style="font-size:20px;text-align:center"></div>
       </div>
+      <div class="form-row"><label class="field-label">First Year on Property</label><input type="number" id="mBuckYear" class="field" placeholder="e.g. 2023" min="2000" max="2099"></div>
       <div class="form-row"><label class="field-label">Identifying Features</label><textarea id="mBuckFeatures" class="field" placeholder="e.g. Sticker on left G2, kicker off right beam..."></textarea></div>
     </div>
-    <div class="modal-footer"><button class="btn-outline" onclick="closeModal('buckModal')">Cancel</button><button class="btn-green" onclick="saveBuck()">Add Buck</button></div>
+    <div class="modal-footer"><button class="btn-outline" onclick="closeModal('buckModal')">Cancel</button><button class="btn-green" id="buckSaveBtn" onclick="saveBuck()">Add Buck</button></div>
   </div>
 </div>
 
 <!-- SIGHTING MODAL -->
 <div class="modal-overlay" id="sightModal">
   <div class="modal">
-    <div class="modal-header"><div class="modal-title">Log Sighting</div><button class="modal-close" onclick="closeModal('sightModal')">✕</button></div>
+    <div class="modal-header"><div class="modal-title" id="sightModalTitle">Log Sighting</div><button class="modal-close" onclick="closeModal('sightModal')">✕</button></div>
     <div class="modal-body" id="sightFormBody"></div>
-    <div class="modal-footer"><button class="btn-outline" onclick="closeModal('sightModal')">Cancel</button><button class="btn-green" onclick="saveSighting()">Log Sighting</button></div>
+    <div class="modal-footer"><button class="btn-outline" onclick="closeModal('sightModal')">Cancel</button><button class="btn-green" id="sightSaveBtn" onclick="saveSighting()">Log Sighting</button></div>
   </div>
 </div>
 
@@ -766,7 +782,7 @@ function onFilter() {
   gYear = document.getElementById('gYear').value;
   const v = document.querySelector('.view.active')?.id?.replace('view-','');
   if (v === 'dashboard') renderDashboard();
-  if (v === 'log') renderLog();
+  if (v === 'log') { populateLogFilters(); renderLog(); updateLogStats(); }
   if (v === 'patterns') renderPatterns();
   if (v === 'ai') updateAIBadge();
 }
@@ -828,7 +844,7 @@ function renderDashboard() {
   if (!hasBucks && !hasCams && !hasSightings) {
     container.innerHTML = `<div class="dash-empty">
       <div class="dash-empty-icon">🦌</div>
-      <div class="dash-empty-title">Welcome to BuckTrack</div>
+      <div class="dash-empty-title">Welcome to CampTrack</div>
       <div class="dash-empty-sub">Add cameras and buck profiles in Settings, then log your first sighting — your dashboard will come alive with movement patterns and insights.</div>
     </div>`;
     return;
@@ -1175,6 +1191,7 @@ function startMapTool(tool) {
     }
     hint.style.display = 'block';
   }
+  renderAllPins(); // update pin opacity/pointer-events
 }
 
 function cancelMapTool() {
@@ -1186,6 +1203,7 @@ function cancelMapTool() {
   const hint = document.getElementById('mapHint');
   if (hint) hint.style.display = 'none';
   removeCamPicker();
+  renderAllPins(); // restore pin interactivity
 }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { cancelMapTool(); closePopup(); } });
@@ -1313,17 +1331,21 @@ function renderAllPins() {
   // Remove existing pins (keep only the img)
   Array.from(canvas.children).forEach(el => { if (el !== img) el.remove(); });
 
+  // When a tool is active, pins are visual only — pointer-events:none so they never block placement
+  const toolActive = !!mapActiveTool;
+
   // Camera pins
   S.cameras.filter(c => c.x != null).forEach(cam => {
     const pin = document.createElement('div');
     pin.className = 'pin-el';
     pin.style.left = (cam.x / 100 * mapImgW) + 'px';
     pin.style.top  = (cam.y / 100 * mapImgH) + 'px';
+    pin.style.pointerEvents = toolActive ? 'none' : 'all';
+    pin.style.opacity = toolActive ? '0.5' : '1';
     pin.innerHTML = '<div class="pin-body" style="background:' + cam.color + '"><div class="pin-icon">📷</div></div>' +
       '<div class="pin-lbl">' + cam.name + '</div>';
     pin.addEventListener('click', e => {
       e.stopPropagation();
-      if (mapActiveTool) return;
       showPinPopup('cam', cam.id, cam.name, cam.x, cam.y);
     });
     canvas.appendChild(pin);
@@ -1336,11 +1358,12 @@ function renderAllPins() {
     pin.className = 'annot-el';
     pin.style.left = (a.x / 100 * mapImgW) + 'px';
     pin.style.top  = (a.y / 100 * mapImgH) + 'px';
+    pin.style.pointerEvents = toolActive ? 'none' : 'all';
+    pin.style.opacity = toolActive ? '0.5' : '1';
     pin.innerHTML = '<div class="annot-ico" style="background:' + t.color + '">' + t.icon + '</div>' +
       '<div class="annot-lbl">' + (a.label || t.label) + '</div>';
     pin.addEventListener('click', e => {
       e.stopPropagation();
-      if (mapActiveTool) return;
       showPinPopup(a.type, a.id, a.label || t.label, a.x, a.y);
     });
     canvas.appendChild(pin);
@@ -1499,7 +1522,7 @@ function renderLog() {
   tbody.innerHTML=sightings.map(s=>{
     const buck=S.bucks.find(b=>b.id===s.buckId);
     const cam=S.cameras.find(c=>c.id===s.camId);
-    return `<tr>
+    return `<tr style="cursor:pointer" data-sid="${s.id}" ondblclick="editSighting(this.dataset.sid)">
       <td><div class="td-mono">${s.date}</div><div class="td-mono" style="color:var(--text-3)">${s.time?fmtTime(s.time):''}</div></td>
       <td class="td-bold">${buck?buck.emoji+' '+buck.name:'Unknown'}</td>
       <td><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:${cam?.color||'#ccc'};display:inline-block"></span>${cam?.name||'Unknown'}</span></td>
@@ -1511,7 +1534,8 @@ function renderLog() {
       <td class="td-mono">${s.rut||'—'}</td>
       <td class="td-mono">${s.buckHeading||'—'}</td>
       <td class="td-mono">${s.buckBehavior||'—'}</td>
-      <td style="font-size:12px;color:var(--text-2);max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.notes||'—'}</td>
+      <td style="font-size:12px;color:var(--text-2);max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.notes||'—'}</td>
+      <td style="white-space:nowrap"><button data-sid="${s.id}" onclick="event.stopPropagation();editSighting(this.dataset.sid)" style="background:var(--green-light);border:1px solid var(--green-border);border-radius:4px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--green);font-weight:600;margin-right:4px">✏️ Edit</button><button data-sid="${s.id}" onclick="event.stopPropagation();deleteSighting(this.dataset.sid)" style="background:var(--red-light);border:1px solid var(--red-border);border-radius:4px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--red);font-weight:600">✕</button></td>
     </tr>`;
   }).join('');
 }
@@ -1827,10 +1851,10 @@ function savePropSettings() {
 function exportCSV() {
   const headers=['Date','Time','Buck','Camera','Year','Season','Temp(F)','WindDir','WindSpeed(mph)','Pressure(inHg)','RutStage','BuckHeading','BuckBehavior','Notes'];
   const rows=S.sightings.map(s=>{const b=S.bucks.find(x=>x.id===s.buckId)?.name||'Unknown';const c=S.cameras.find(x=>x.id===s.camId)?.name||'Unknown';return[s.date,s.time,b,c,s.year||'',s.season||'',s.temp||'',s.windDir||'',s.windSpeed||'',s.pressure||'',s.rut||'',`"${(s.notes||'').replace(/"/g,'""')}"`].join(',');});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([[headers.join(','),...rows].join('\n')],{type:'text/csv'})); a.download='bucktrack-sightings.csv'; a.click();
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([[headers.join(','),...rows].join('\n')],{type:'text/csv'})); a.download='camptrack-sightings.csv'; a.click();
 }
 function backupJSON() {
-  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:'application/json'})); a.download='bucktrack-backup.json'; a.click();
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:'application/json'})); a.download='camptrack-backup.json'; a.click();
 }
 function clearAll() {
   if(!confirm('Delete ALL data? This cannot be undone.')) return;
@@ -1845,29 +1869,118 @@ function openModal(id) {
   if(id==='sightModal') buildSightingForm();
   document.getElementById(id).classList.add('open');
 }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  if (id === 'sightModal') {
+    editingSightingId = null;
+    const titleEl = document.getElementById('sightModalTitle');
+    const btnEl = document.getElementById('sightSaveBtn');
+    if (titleEl) titleEl.textContent = 'Log Sighting';
+    if (btnEl) btnEl.textContent = 'Log Sighting';
+  }
+  if (id === 'buckModal') {
+    editingBuckId = null;
+    const titleEl = document.getElementById('buckModalTitle');
+    const btnEl = document.getElementById('buckSaveBtn');
+    if (titleEl) titleEl.textContent = 'Add Buck Profile';
+    if (btnEl) btnEl.textContent = 'Add Buck';
+  }
+  if (id === 'camModal') {
+    editingCamId = null;
+    const h = document.querySelector('#camModal .modal-title');
+    if (h) h.textContent = 'Add Camera';
+    const btn = document.querySelector('#camModal .btn-green');
+    if (btn) btn.textContent = 'Add Camera';
+  }
+}
 document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
+
+let editingCamId = null;
+
+function editCam(id) {
+  const c = S.cameras.find(x => x.id === id);
+  if (!c) return;
+  editingCamId = id;
+  document.getElementById('mCamName').value = c.name || '';
+  document.getElementById('mCamColor').value = c.color || '#3d7a2a';
+  document.getElementById('mCamType').value = c.type || 'cellular';
+  if (document.getElementById('mCamFacing')) document.getElementById('mCamFacing').value = c.facing || '';
+  document.getElementById('mCamNotes').value = c.notes || '';
+  // Update modal title
+  const h = document.querySelector('#camModal .modal-title');
+  if (h) h.textContent = 'Edit Camera';
+  const btn = document.querySelector('#camModal .btn-green');
+  if (btn) btn.textContent = 'Save Changes';
+  document.getElementById('camModal').classList.add('open');
+}
 
 function saveCam() {
   const name=document.getElementById('mCamName').value.trim(); if(!name){alert('Enter a camera name.');return;}
-  S.cameras.push({
-    id:'c_'+Date.now(), name,
-    color:document.getElementById('mCamColor').value,
-    type:document.getElementById('mCamType').value,
-    facing:document.getElementById('mCamFacing')?.value||'',
-    notes:document.getElementById('mCamNotes').value.trim(),
-    x:null, y:null
-  });
+  const camData = {
+    name,
+    color: document.getElementById('mCamColor').value,
+    type: document.getElementById('mCamType').value,
+    facing: document.getElementById('mCamFacing')?.value || '',
+    notes: document.getElementById('mCamNotes').value.trim()
+  };
+  if (editingCamId) {
+    const idx = S.cameras.findIndex(x => x.id === editingCamId);
+    if (idx >= 0) S.cameras[idx] = { ...S.cameras[idx], ...camData };
+    editingCamId = null;
+  } else {
+    S.cameras.push({ id: 'c_' + Date.now(), ...camData, x: null, y: null });
+  }
   save(); closeModal('camModal');
-  document.getElementById('mCamName').value='';
-  document.getElementById('mCamNotes').value='';
-  renderDashboard(); renderPins();
+  document.getElementById('mCamName').value = '';
+  document.getElementById('mCamNotes').value = '';
+  // Reset modal title
+  const h = document.querySelector('#camModal .modal-title');
+  if (h) h.textContent = 'Add Camera';
+  const btn = document.querySelector('#camModal .btn-green');
+  if (btn) btn.textContent = 'Add Camera';
+  renderDashboard(); renderAllPins(); renderSettingsCams();
 }
+let editingBuckId = null;
+
+function editBuck(id) {
+  const b = S.bucks.find(x => x.id === id);
+  if (!b) return;
+  editingBuckId = id;
+  document.getElementById('buckModalTitle').textContent = 'Edit Buck Profile';
+  document.getElementById('buckSaveBtn').textContent = 'Save Changes';
+  document.getElementById('mBuckName').value = b.name || '';
+  document.getElementById('mBuckAge').value = b.age || '';
+  document.getElementById('mBuckEmoji').value = b.emoji || '🦌';
+  document.getElementById('mBuckYear').value = b.year || '';
+  document.getElementById('mBuckFeatures').value = b.features || '';
+  document.getElementById('buckModal').classList.add('open');
+}
+
 function saveBuck() {
   const name=document.getElementById('mBuckName').value.trim(); if(!name){alert('Enter a buck name.');return;}
-  S.bucks.push({id:'b_'+Date.now(),name,age:document.getElementById('mBuckAge').value,emoji:document.getElementById('mBuckEmoji').value.trim()||'🦌',features:document.getElementById('mBuckFeatures').value.trim()});
-  save(); closeModal('buckModal'); document.getElementById('mBuckName').value=''; document.getElementById('mBuckFeatures').value=''; document.getElementById('mBuckEmoji').value='';
-  renderDashboard();
+  const buckData = {
+    name,
+    age: document.getElementById('mBuckAge').value,
+    emoji: document.getElementById('mBuckEmoji').value.trim() || '🦌',
+    year: document.getElementById('mBuckYear').value,
+    features: document.getElementById('mBuckFeatures').value.trim()
+  };
+  if (editingBuckId) {
+    const idx = S.bucks.findIndex(x => x.id === editingBuckId);
+    if (idx >= 0) S.bucks[idx] = { ...S.bucks[idx], ...buckData };
+    editingBuckId = null;
+  } else {
+    S.bucks.push({ id: 'b_' + Date.now(), ...buckData });
+  }
+  save();
+  closeModal('buckModal');
+  document.getElementById('mBuckName').value = '';
+  document.getElementById('mBuckFeatures').value = '';
+  document.getElementById('mBuckEmoji').value = '';
+  document.getElementById('mBuckYear').value = '';
+  document.getElementById('buckModalTitle').textContent = 'Add Buck Profile';
+  document.getElementById('buckSaveBtn').textContent = 'Add Buck';
+  renderDashboard(); renderSettingsBucks();
 }
 
 // ── Sighting Form ─────────────────────────────────────────
@@ -1966,6 +2079,55 @@ async function fetchWx() {
   }
 }
 
+let editingSightingId = null;
+
+function editSighting(id) {
+  editingSightingId = id;
+  const s = S.sightings.find(x => x.id === id);
+  if (!s) return;
+  // Open the modal in edit mode
+  buildSightingForm();
+  document.getElementById('sightModalTitle').textContent = 'Edit Sighting';
+  document.getElementById('sightSaveBtn').textContent = 'Save Changes';
+  document.getElementById('sightModal').classList.add('open');
+  // Pre-fill all fields
+  setTimeout(() => {
+    const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+    setVal('sDate', s.date);
+    setVal('sTime', s.time);
+    setVal('sYear', s.year || new Date().getFullYear());
+    setVal('sBuck', s.buckId);
+    setVal('sCam', s.camId);
+    setVal('sSeason', s.season);
+    setVal('sTemp', s.temp);
+    setVal('sWind', s.windDir);
+    setVal('sWindSpd', s.windSpeed);
+    setVal('sPress', s.pressure);
+    setVal('sRut', s.rut);
+    setVal('sBuckHeading', s.buckHeading);
+    setVal('sBuckBehavior', s.buckBehavior);
+    setVal('sNotes', s.notes);
+    // Custom fields
+    if (s.customFields) {
+      Object.entries(s.customFields).forEach(([fid, val]) => {
+        const el = document.getElementById('cf_' + fid);
+        if (el) el.value = val || '';
+      });
+    }
+    // Clear weather status since we're editing
+    const ws = document.getElementById('wStatus');
+    if (ws) { ws.textContent = '✏️ Editing existing sighting — adjust fields as needed.'; ws.style.color = 'var(--text-3)'; }
+  }, 50);
+}
+
+function deleteSighting(id) {
+  const s = S.sightings.find(x => x.id === id);
+  const buck = S.bucks.find(b => b.id === s?.buckId);
+  if (!confirm('Delete this sighting' + (buck ? ' for ' + buck.name : '') + ' on ' + (s?.date || '') + '?')) return;
+  S.sightings = S.sightings.filter(x => x.id !== id);
+  save(); renderLog(); updateLogStats(); renderDashboard();
+}
+
 function saveSighting() {
   const buckId=document.getElementById('sBuck')?.value;
   const camId=document.getElementById('sCam')?.value;
@@ -1990,9 +2152,22 @@ function saveSighting() {
     customFields:{}
   };
   cf.forEach(f=>{const el=document.getElementById('cf_'+f.id);if(el)s.customFields[f.id]=el.value;});
-  S.sightings.push(s); save();
+  if (editingSightingId) {
+    // Edit mode — replace existing sighting
+    const idx = S.sightings.findIndex(x => x.id === editingSightingId);
+    if (idx >= 0) { s.id = editingSightingId; S.sightings[idx] = s; }
+    editingSightingId = null;
+  } else {
+    S.sightings.push(s);
+  }
+  save();
   closeModal('sightModal');
-  populateFilters(); renderDashboard();
+  // Reset modal title/button for next use
+  const titleEl = document.getElementById('sightModalTitle');
+  const btnEl = document.getElementById('sightSaveBtn');
+  if (titleEl) titleEl.textContent = 'Log Sighting';
+  if (btnEl) btnEl.textContent = 'Log Sighting';
+  populateFilters(); renderDashboard(); renderLog(); updateLogStats();
 }
 
 // ============================================================
