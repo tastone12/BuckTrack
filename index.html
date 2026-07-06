@@ -491,10 +491,24 @@ tr:hover td { background:var(--green-light); }
   <div class="ai-chat">
     <div class="ai-messages" id="aiMessages">
       <div class="ai-welcome" id="aiWelcome">
-        <div style="font-size:40px;opacity:0.4">🦌</div>
+        <div style="font-size:40px;opacity:0.4">🎯</div>
         <h3>Your Hunting Analyst</h3>
         <p>I have full access to your cameras, bucks, and every sighting logged. Ask me anything about patterns, stand timing, or buck behavior.</p>
         <div class="ai-badge" id="aiBadge">📊 0 sightings · 0 bucks · 0 cameras</div>
+        <div id="apiKeySection" style="margin-top:16px;width:100%;max-width:380px">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;">
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">🔑 Anthropic API Key Required</div>
+            <div style="font-size:12px;color:var(--text-3);margin-bottom:12px;line-height:1.5">Get your key at <strong>console.anthropic.com</strong> → API Keys. Stored only on this device, never shared.</div>
+            <div style="display:flex;gap:8px;margin-bottom:10px">
+              <input type="password" id="apiKeyInput" class="field" placeholder="sk-ant-..." style="flex:1;font-size:12px">
+              <button class="btn-green" onclick="saveApiKey()" style="padding:8px 14px;font-size:12px;white-space:nowrap">Unlock AI</button>
+            </div>
+            <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:var(--text-2)">
+              <input type="checkbox" id="rememberKey" checked style="width:14px;height:14px;cursor:pointer">
+              Remember on this device
+            </label>
+          </div>
+        </div>
       </div>
     </div>
     <div class="ai-input-area">
@@ -505,7 +519,10 @@ tr:hover td { background:var(--green-light); }
     </div>
   </div>
   <div class="ai-sidebar">
-    <div class="ai-sidebar-head">Suggested Questions</div>
+    <div class="ai-sidebar-head" style="display:flex;align-items:center;justify-content:space-between">
+      <span>Suggested Questions</span>
+      <button onclick="resetApiKey()" style="background:none;border:none;font-size:10px;color:var(--text-3);cursor:pointer;padding:0" title="Change API key">🔑 Key</button>
+    </div>
     <div class="ai-suggestions">
       <div class="suggest-group">
         <div class="suggest-group-label">Pattern Analysis</div>
@@ -1465,9 +1482,20 @@ async function analyzeProperty() {
     var compressedDataUrl = await compressImage(S.mapDataUrl, 1200, 0.75);
     var base64 = compressedDataUrl.split(',')[1];
 
+    var apiKey = getApiKey();
+    if (!apiKey) {
+      body.innerHTML = '<div class="map-analysis-empty"><div class="map-analysis-icon">🔑</div><div style="font-size:13px;font-weight:600;color:var(--text-2)">API Key Required</div><div style="font-size:12px;color:var(--text-3);margin-top:4px">Enter your Anthropic API key in the AI Analyst tab first.</div></div>';
+      btn.disabled = false; btn.textContent = 'Analyze';
+      return;
+    }
     var response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1500,
@@ -1612,10 +1640,63 @@ function renderPatterns() {
 // ============================================================
 // AI ANALYST
 // ============================================================
+// ── API KEY MANAGEMENT ───────────────────────────────────
+function getApiKey() {
+  return sessionStorage.getItem('ct_apikey') || localStorage.getItem('ct_apikey') || '';
+}
+
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput')?.value.trim();
+  if (!key || !key.startsWith('sk-ant-')) {
+    alert('Please enter a valid Anthropic API key (starts with sk-ant-)');
+    return;
+  }
+  const remember = document.getElementById('rememberKey')?.checked;
+  sessionStorage.setItem('ct_apikey', key);
+  if (remember) localStorage.setItem('ct_apikey', key);
+  // Hide the key section and show success
+  const section = document.getElementById('apiKeySection');
+  if (section) {
+    section.innerHTML = '<div style="background:var(--green-light);border:1px solid var(--green-border);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:600;color:var(--green)">✅ API key saved' + (remember ? ' on this device' : ' for this session') + ' — you\'re ready to chat!</div>';
+  }
+}
+
+function checkApiKeyOnLoad() {
+  const key = getApiKey();
+  if (key) {
+    // Key already saved — hide the key section
+    const section = document.getElementById('apiKeySection');
+    if (section) section.style.display = 'none';
+  }
+}
+
 function updateAIBadge() {
   const el=document.getElementById('aiBadge');
   if(el) el.textContent=`📊 ${S.sightings.length} sightings · ${S.bucks.length} bucks · ${S.cameras.length} cameras`;
 }
+function resetApiKey() {
+  if (!confirm('Clear saved API key? You will need to re-enter it.')) return;
+  localStorage.removeItem('ct_apikey');
+  sessionStorage.removeItem('ct_apikey');
+  // Show the key section again
+  const section = document.getElementById('apiKeySection');
+  if (section) {
+    section.style.display = 'block';
+    section.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 18px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">🔑 Anthropic API Key Required</div>
+      <div style="font-size:12px;color:var(--text-3);margin-bottom:12px;line-height:1.5">Get your key at <strong>console.anthropic.com</strong> → API Keys.</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input type="password" id="apiKeyInput" class="field" placeholder="sk-ant-..." style="flex:1;font-size:12px">
+        <button class="btn-green" onclick="saveApiKey()" style="padding:8px 14px;font-size:12px;white-space:nowrap">Unlock AI</button>
+      </div>
+      <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;color:var(--text-2)">
+        <input type="checkbox" id="rememberKey" checked style="width:14px;height:14px;cursor:pointer">
+        Remember on this device
+      </label>
+    </div>`;
+  }
+}
+
 function askAI(btn) { document.getElementById('aiInput').value=btn.textContent.trim(); sendAI(); }
 function buildAIContext() {
   const camMap=Object.fromEntries(S.cameras.map(c=>[c.id,c.name]));
@@ -2180,9 +2261,10 @@ populateFilters();
 const lastView = sessionStorage.getItem('bt_view') || 'dashboard';
 // Small timeout ensures DOM is fully ready
 setTimeout(() => {
-  initMapPan(); // set up zoom/pan event listeners
+  initMapPan();
   go(lastView);
   if (S.mapDataUrl) showMap();
+  checkApiKeyOnLoad();
 }, 10);
 </script>
 </body>
