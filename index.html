@@ -145,6 +145,41 @@ textarea.field { resize:vertical; min-height:60px; }
 /* ── MAP ── */
 #view-map { position:relative; overflow:hidden; flex-direction:column !important; }
 .map-area { flex:1; position:relative; overflow:hidden; background:#e0ddd4; display:flex; align-items:center; justify-content:center; min-height:0; }
+/* ── PREDICT ── */
+#view-predict { overflow-y:auto; background:var(--bg); flex-direction:column; }
+.predict-body { padding:18px 22px; display:flex; flex-direction:column; gap:16px; max-width:1100px; }
+.predict-section-title { font-size:11px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-3); margin-bottom:10px; }
+.outlook-card { background:linear-gradient(135deg,#1a2e1c 0%,#2a3818 100%); border-radius:var(--r); padding:18px 20px; color:#fff; }
+.outlook-title { font-size:16px; font-weight:800; color:#c8d8a0; margin-bottom:4px; }
+.outlook-sub { font-size:12px; color:rgba(255,255,255,0.6); margin-bottom:14px; }
+.outlook-cond-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+.outlook-cond { background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); border-radius:6px; padding:5px 12px; font-size:12px; font-weight:600; color:#fff; }
+.outlook-result { background:rgba(255,255,255,0.08); border-radius:6px; padding:12px 14px; margin-bottom:8px; }
+.outlook-result-name { font-size:13px; font-weight:700; color:#c8d8a0; margin-bottom:3px; }
+.outlook-result-detail { font-size:12px; color:rgba(255,255,255,0.75); line-height:1.5; }
+.outlook-score { font-size:20px; font-weight:800; color:#c8d8a0; }
+.match-bar { height:6px; background:rgba(255,255,255,0.15); border-radius:3px; margin-top:6px; }
+.match-bar-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,#6db33f,#c8d8a0); }
+.condition-inputs { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.buck-dossier { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; box-shadow:var(--shadow); margin-bottom:12px; }
+.buck-dossier-header { display:flex; align-items:center; gap:12px; padding:14px 16px; background:var(--surface); border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.12s; }
+.buck-dossier-header:hover { background:var(--green-light); }
+.buck-dossier-body { padding:16px; display:none; }
+.buck-dossier-body.open { display:block; }
+.buck-stat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+.buck-stat { background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:10px 12px; }
+.buck-stat-label { font-size:10px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:var(--text-3); margin-bottom:4px; }
+.buck-stat-value { font-size:16px; font-weight:800; color:var(--text); }
+.buck-stat-sub { font-size:11px; color:var(--text-3); margin-top:2px; }
+.kill-shot { background:var(--red-light); border:1px solid var(--red-border); border-radius:6px; padding:12px 14px; margin-top:12px; }
+.kill-shot-title { font-size:12px; font-weight:700; color:var(--red); margin-bottom:5px; }
+.kill-shot-text { font-size:12px; color:var(--text-2); line-height:1.55; }
+.cam-affinity { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+.cam-affinity-item { background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:7px 10px; font-size:12px; }
+.cam-affinity-name { font-weight:700; color:var(--text); }
+.cam-affinity-detail { color:var(--text-3); font-size:11px; margin-top:2px; }
+
+/* ── MAP VIEWPORT ── */
 /* ── MAP VIEWPORT ── */
 .map-viewport { flex:1; position:relative; overflow:hidden; background:#2a2e24; cursor:grab; user-select:none; }
 .map-viewport.grabbing { cursor:grabbing; }
@@ -359,6 +394,7 @@ tr:hover td { background:var(--green-light); }
     <button onclick="go('log')" id="nav-log">Sighting Log</button>
     <button onclick="go('patterns')" id="nav-patterns">Patterns</button>
     <button onclick="go('ai')" id="nav-ai">✦ AI Analyst</button>
+    <button onclick="go('predict')" id="nav-predict">🎯 Predict</button>
     <button onclick="go('settings')" id="nav-settings">⚙ Settings</button>
   </nav>
   <div class="header-right">
@@ -547,6 +583,16 @@ tr:hover td { background:var(--green-light); }
         <button class="suggest-btn" onclick="askAI(this)">What information am I missing that would help your analysis?</button>
         <button class="suggest-btn" onclick="askAI(this)">Where should I consider adding another camera?</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- PREDICT -->
+<div class="view" id="view-predict">
+  <div class="predict-body" id="predictBody">
+    <div class="empty" style="margin-top:40px">
+      <div class="empty-icon">🎯</div>
+      <div class="empty-text">Loading predictions...</div>
     </div>
   </div>
 </div>
@@ -830,6 +876,7 @@ function go(v) {
   if (v === 'ai') updateAIBadge();
   if (v === 'settings') renderSettings();
   if (v === 'map') { if (S.mapDataUrl) showMap(); }
+  if (v === 'predict') renderPredict();
 }
 
 // ── helpers ───────────────────────────────────────────────
@@ -1582,59 +1629,509 @@ function renderPatterns() {
   const content = document.getElementById('patternsContent');
   if (!content) return;
   const sightings = filtered();
+
   if (!sightings.length) {
     content.innerHTML='<div class="empty"><div class="empty-icon">📊</div><div class="empty-text">No data yet</div><div class="empty-sub">Log sightings to start seeing patterns.</div></div>';
-    document.getElementById('pPeak').textContent='—'; document.getElementById('pCam').textContent='—';
-    document.getElementById('pBuck').textContent='—'; document.getElementById('pTemp').textContent='—';
+    ['pPeak','pCam','pBuck','pTemp'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent='—'; });
     return;
   }
+
+  // ── Stat bar ──────────────────────────────────────────
   const hourC=new Array(24).fill(0);
   sightings.forEach(s=>{if(s.time)hourC[parseInt(s.time)]++;});
-  const maxH=Math.max(...hourC,1);
   const peakIdx=hourC.indexOf(Math.max(...hourC));
-  document.getElementById('pPeak').textContent=hourC[peakIdx]>0?fmtTime(peakIdx+':00'):'—';
+  const el_pPeak = document.getElementById('pPeak');
+  if(el_pPeak) el_pPeak.textContent = hourC[peakIdx]>0 ? fmtTime(peakIdx+':00') : '—';
+
   const camC={};sightings.forEach(s=>{camC[s.camId]=(camC[s.camId]||0)+1;});
   const topCE=Object.entries(camC).sort((a,b)=>b[1]-a[1])[0];
-  document.getElementById('pCam').textContent=topCE?S.cameras.find(c=>c.id===topCE[0])?.name||'?':'—';
+  const el_pCam = document.getElementById('pCam');
+  if(el_pCam) el_pCam.textContent = topCE ? S.cameras.find(c=>c.id===topCE[0])?.name||'?' : '—';
+
   const buckC={};sightings.forEach(s=>{buckC[s.buckId]=(buckC[s.buckId]||0)+1;});
   const topBE=Object.entries(buckC).sort((a,b)=>b[1]-a[1])[0];
-  document.getElementById('pBuck').textContent=topBE?S.bucks.find(b=>b.id===topBE[0])?.name||'?':'—';
-  const temps=sightings.filter(s=>s.temp).map(s=>Number(s.temp));
-  document.getElementById('pTemp').textContent=temps.length?Math.round(temps.reduce((a,b)=>a+b)/temps.length)+'°F':'—';
+  const el_pBuck = document.getElementById('pBuck');
+  if(el_pBuck) el_pBuck.textContent = topBE ? S.bucks.find(b=>b.id===topBE[0])?.name||'?' : '—';
 
-  const hourBars=hourC.map((c,i)=>{const p=Math.round(c/maxH*100);const ip=c>0&&c===Math.max(...hourC);return`<div class="hour-bar ${ip?'peak':p>50?'high':''}" style="height:${Math.max(p,2)}%" title="${fmtTime(i+':00')}: ${c}"></div>`;}).join('');
-  const windC={};sightings.forEach(s=>{if(s.windDir)windC[s.windDir]=(windC[s.windDir]||0)+1;});
-  const maxW=Math.max(...Object.values(windC),1);
-  const windRows=['N','NE','E','SE','S','SW','W','NW'].map(d=>{const c=windC[d]||0;return`<div class="wind-row"><div class="wind-dir">${d}</div><div class="wind-bar-wrap"><div class="wind-bar" style="width:${Math.round(c/maxW*100)}%"></div></div><div class="wind-count">${c}</div></div>`;}).join('');
-  const topCams=Object.entries(camC).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const maxCC=topCams[0]?.[1]||1;
-  const camRows=topCams.map(([id,cnt],i)=>{const cam=S.cameras.find(c=>c.id===id);return`<div class="cam-rank-row"><div class="cam-rank-num">${i+1}</div><div class="cam-rank-dot" style="background:${cam?.color||'var(--green-mid)'}"></div><div class="cam-rank-name">${cam?.name||'Unknown'}</div><div class="cam-rank-bar-wrap"><div class="cam-rank-bar" style="width:${Math.round(cnt/maxCC*100)}%;background:${cam?.color||'var(--green-mid)'}"></div></div><div class="cam-rank-count">${cnt}</div></div>`;}).join('');
-  const topBucks=Object.entries(buckC).sort((a,b)=>b[1]-a[1]);
-  const maxBC=topBucks[0]?.[1]||1;
-  const buckRows=topBucks.map(([id,cnt])=>{const b=S.bucks.find(x=>x.id===id);return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="font-size:15px">${b?.emoji||'🦌'}</div><div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--text)">${b?.name||'Unknown'}</div><div style="height:4px;background:var(--border);border-radius:2px;margin-top:4px"><div style="width:${Math.round(cnt/maxBC*100)}%;height:100%;background:var(--green-mid);border-radius:2px"></div></div></div><div style="font-size:13px;font-weight:700;color:var(--text)">${cnt}</div></div>`;}).join('');
-  const rutC={};sightings.forEach(s=>{if(s.rut)rutC[s.rut]=(rutC[s.rut]||0)+1;});
-  const rutTotal=Math.max(Object.values(rutC).reduce((a,b)=>a+b,0),1);
-  const rutColors=['#3d7a2a','#b45309','#a83030','#6d28d9','#6a7a5a'];
-  const rutOpts=S.fieldSettings.builtins.rut?.options||[];
-  const rutRows=rutOpts.map((r,i)=>{const c=rutC[r]||0;return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div style="font-size:10px;font-weight:700;color:var(--text-3);width:72px;text-align:right">${r}</div><div style="flex:1;height:6px;background:var(--border);border-radius:3px"><div style="width:${Math.round(c/rutTotal*100)}%;height:100%;background:${rutColors[i%rutColors.length]};border-radius:3px"></div></div><div style="font-size:11px;font-weight:700;color:var(--text);width:16px">${c}</div></div>`;}).join('');
+  const temps=sightings.filter(s=>s.temp).map(s=>Number(s.temp));
+  const el_pTemp = document.getElementById('pTemp');
+  if(el_pTemp) el_pTemp.textContent = temps.length ? Math.round(temps.reduce((a,b)=>a+b)/temps.length)+'°F' : '—';
+
+  // ── Build per-camera deep analysis ─────────────────────
+  const camsWithData = S.cameras.filter(c => sightings.some(s=>s.camId===c.id));
+
+  function topN(arr, n) {
+    const counts = {};
+    arr.filter(Boolean).forEach(v => { counts[v]=(counts[v]||0)+1; });
+    return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,n);
+  }
+
+  function peakHourRange(camSightings) {
+    const hc = new Array(24).fill(0);
+    camSightings.forEach(s=>{if(s.time)hc[parseInt(s.time)]++;});
+    const max = Math.max(...hc);
+    if (!max) return '—';
+    // find contiguous peak block
+    const peaks = hc.map((c,i)=>({c,i})).filter(x=>x.c>=max*0.7).map(x=>x.i);
+    if (!peaks.length) return '—';
+    if (peaks.length===1) return fmtTime(peaks[0]+':00');
+    return fmtTime(peaks[0]+':00') + ' – ' + fmtTime(peaks[peaks.length-1]+':00');
+  }
+
+  function tempRange(camSightings) {
+    const ts = camSightings.filter(s=>s.temp).map(s=>Number(s.temp));
+    if (!ts.length) return '—';
+    const avg = Math.round(ts.reduce((a,b)=>a+b)/ts.length);
+    const min = Math.min(...ts), max = Math.max(...ts);
+    return avg + '°F avg (' + min + '–' + max + '°F range)';
+  }
+
+  function bestConditions(camSightings) {
+    // Find the wind+temp combo with most sightings
+    const combos = {};
+    camSightings.forEach(s => {
+      if (!s.windDir) return;
+      const tempBucket = !s.temp ? 'any temp' : Number(s.temp) < 35 ? 'below 35°F' : Number(s.temp) < 45 ? '35–45°F' : Number(s.temp) < 55 ? '45–55°F' : 'above 55°F';
+      const key = s.windDir + ' wind, ' + tempBucket;
+      combos[key] = (combos[key]||0)+1;
+    });
+    const sorted = Object.entries(combos).sort((a,b)=>b[1]-a[1]);
+    return sorted.slice(0,2).map(([k,v])=>`${k} (${v} sighting${v>1?'s':''})`);
+  }
+
+  function headingInsight(camSightings) {
+    const headings = camSightings.filter(s=>s.buckHeading).map(s=>s.buckHeading);
+    if (!headings.length) return null;
+    const top = topN(headings, 2);
+    if (!top.length) return null;
+    const cam = S.cameras.find(c => c.id === camSightings[0]?.camId);
+    const facing = cam?.facing;
+    let insight = 'Bucks most often heading ' + top.map(([d,c])=>d+' ('+c+'x)').join(', ');
+    if (facing) {
+      // Infer travel direction
+      const opposite = {N:'S',S:'N',E:'W',W:'E',NE:'SW',SW:'NE',NW:'SE',SE:'NW'};
+      const topDir = top[0][0];
+      insight += '. Camera faces ' + facing + ', so deer are likely coming from the ' + (opposite[topDir]||'opposite direction') + '.';
+    }
+    return insight;
+  }
+
+  function rutInsight(camSightings) {
+    const ruts = camSightings.filter(s=>s.rut).map(s=>s.rut);
+    if (!ruts.length) return null;
+    const top = topN(ruts,1)[0];
+    return top ? 'Most active during ' + top[0] + ' (' + top[1] + ' sightings)' : null;
+  }
+
+  function behaviorInsight(camSightings) {
+    const behaviors = camSightings.filter(s=>s.buckBehavior).map(s=>s.buckBehavior);
+    if (!behaviors.length) return null;
+    const top = topN(behaviors,2);
+    return top.length ? 'Behavior: ' + top.map(([b,c])=>b+' ('+c+'x)').join(', ') : null;
+  }
+
+  function miniHourBars(camSightings) {
+    const hc = new Array(24).fill(0);
+    camSightings.forEach(s=>{if(s.time)hc[parseInt(s.time)]++;});
+    const max = Math.max(...hc,1);
+    return hc.map((c,i)=>{
+      const pct = Math.round(c/max*100);
+      const isPeak = c>0 && c===Math.max(...hc);
+      return '<div style="flex:1;height:'+Math.max(pct,2)+'%;background:'+(isPeak?'var(--red-mid)':'var(--green-light)')+';border-top:1px solid '+(isPeak?'var(--red)':'var(--green-border)')+';border-radius:1px 1px 0 0" title="'+fmtTime(i+':00')+': '+c+'"></div>';
+    }).join('');
+  }
+
+  // ── Camera breakdown cards ──────────────────────────────
+  const camCards = camsWithData.map(cam => {
+    const cs = sightings.filter(s=>s.camId===cam.id);
+    const bucks = [...new Set(cs.map(s=>s.buckId))].map(id=>S.bucks.find(b=>b.id===id)).filter(Boolean);
+    const topWinds = topN(cs.map(s=>s.windDir), 3);
+    const bestConds = bestConditions(cs);
+    const heading = headingInsight(cs);
+    const rut = rutInsight(cs);
+    const behavior = behaviorInsight(cs);
+    const peak = peakHourRange(cs);
+    const temp = tempRange(cs);
+
+    // Wind summary bar
+    const windBar = topWinds.length ? topWinds.map(([dir,cnt])=>
+      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">'+
+      '<div style="font-size:12px;font-weight:700;color:var(--green);width:28px">'+dir+'</div>'+
+      '<div style="flex:1;height:5px;background:var(--border);border-radius:3px">'+
+        '<div style="width:'+Math.round(cnt/topWinds[0][1]*100)+'%;height:100%;background:var(--green-mid);border-radius:3px"></div>'+
+      '</div>'+
+      '<div style="font-size:11px;color:var(--text-3);width:18px;text-align:right">'+cnt+'</div>'+
+      '</div>'
+    ).join('') : '<div style="font-size:12px;color:var(--text-3)">No wind data logged</div>';
+
+    // Best condition callout
+    const condCallout = bestConds.length ?
+      '<div style="background:var(--green-light);border:1px solid var(--green-border);border-radius:6px;padding:9px 12px;margin-top:10px">'+
+      '<div style="font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--green);margin-bottom:4px">🎯 Best Conditions</div>'+
+      bestConds.map(c=>'<div style="font-size:12px;color:var(--text);font-weight:600">'+c+'</div>').join('')+
+      '</div>' : '';
+
+    // Insights list
+    const insights = [heading, rut, behavior].filter(Boolean);
+    const insightHtml = insights.length ?
+      '<div style="margin-top:10px">'+
+      insights.map(i=>'<div style="display:flex;gap:7px;margin-bottom:5px;font-size:12px;color:var(--text-2)"><span style="color:var(--green-mid);flex-shrink:0">→</span><span>'+i+'</span></div>').join('')+
+      '</div>' : '';
+
+    // Buck list
+    const buckList = bucks.length ?
+      '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px">'+
+      bucks.map(b=>'<span style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:2px 9px;font-size:11px;font-weight:600">'+b.emoji+' '+b.name+'</span>').join('')+
+      '</div>' : '';
+
+    return '<div class="card" style="padding:16px 18px;margin-bottom:14px">'+
+      // Header
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'+
+        '<div style="width:12px;height:12px;border-radius:50%;background:'+cam.color+';flex-shrink:0"></div>'+
+        '<div style="flex:1">'+
+          '<div style="font-size:15px;font-weight:800;color:var(--text)">'+cam.name+'</div>'+
+          '<div style="font-size:11px;color:var(--text-3)">'+cs.length+' sightings'+(cam.facing?' · Faces '+cam.facing:'')+(cam.notes?' · '+cam.notes:'')+'</div>'+
+        '</div>'+
+        '<div style="text-align:right">'+
+          '<div style="font-size:22px;font-weight:800;color:var(--green-mid)">'+cs.length+'</div>'+
+          '<div style="font-size:10px;color:var(--text-3)">sightings</div>'+
+        '</div>'+
+      '</div>'+
+
+      // Two-column layout
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">'+
+
+        // Left col
+        '<div>'+
+          '<div style="font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">Activity by Hour</div>'+
+          '<div style="display:flex;align-items:flex-end;height:48px;gap:1px;margin-bottom:4px">'+miniHourBars(cs)+'</div>'+
+          '<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-3)"><span>12AM</span><span>6AM</span><span>12PM</span><span>6PM</span><span>11PM</span></div>'+
+          '<div style="margin-top:10px;font-size:11px;color:var(--text-2)">⏰ Peak: <strong>'+peak+'</strong></div>'+
+          '<div style="font-size:11px;color:var(--text-2);margin-top:3px">🌡 Temp: <strong>'+temp+'</strong></div>'+
+        '</div>'+
+
+        // Right col
+        '<div>'+
+          '<div style="font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">Wind at Sighting</div>'+
+          windBar+
+        '</div>'+
+
+      '</div>'+
+
+      condCallout +
+      insightHtml +
+      buckList +
+    '</div>';
+  }).join('');
+
+  // ── Overview cards (keep but compact) ──────────────────
+  const maxH = Math.max(...hourC,1);
+  const hourBarsAll = hourC.map((c,i)=>{
+    const p=Math.round(c/maxH*100);
+    const ip=c>0&&c===Math.max(...hourC);
+    return '<div style="flex:1;height:'+Math.max(p,2)+'%;background:'+(ip?'var(--red-mid)':'var(--green-light)')+';border-top:1px solid '+(ip?'var(--red)':'var(--green-border)')+';border-radius:1px 1px 0 0" title="'+fmtTime(i+':00')+': '+c+'"></div>';
+  }).join('');
+
+  const windAll={};sightings.forEach(s=>{if(s.windDir)windAll[s.windDir]=(windAll[s.windDir]||0)+1;});
+  const maxW=Math.max(...Object.values(windAll),1);
+  const windRowsAll=['N','NE','E','SE','S','SW','W','NW'].map(d=>{
+    const c=windAll[d]||0;
+    return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">'+
+      '<div style="font-size:12px;font-weight:700;color:var(--green);width:28px">'+d+'</div>'+
+      '<div style="flex:1;height:5px;background:var(--border);border-radius:3px"><div style="width:'+Math.round(c/maxW*100)+'%;height:100%;background:var(--green-mid);border-radius:3px"></div></div>'+
+      '<div style="font-size:11px;color:var(--text-3);width:18px;text-align:right">'+c+'</div></div>';
+  }).join('');
 
   const allYears=[...new Set(S.sightings.map(s=>s.year).filter(Boolean))].sort((a,b)=>b-a);
-  let yoyCard='';
+  let yoyHtml='';
   if(allYears.length>=2){
     const sf=gSeason?S.sightings.filter(s=>s.season===gSeason):S.sightings;
     const maxY=Math.max(...allYears.map(y=>sf.filter(s=>s.year===y).length),1);
-    const yoyRows=allYears.map(y=>{const cnt=sf.filter(s=>s.year===y).length;const dawn=sf.filter(s=>s.year===y&&s.time&&parseInt(s.time)>=5&&parseInt(s.time)<9).length;const dusk=sf.filter(s=>s.year===y&&s.time&&parseInt(s.time)>=17&&parseInt(s.time)<=20).length;return`<div class="yoy-row" style="${gYear&&gYear!==y?'opacity:0.4':''}"><div class="yoy-year">${y}</div><div style="flex:1"><div class="yoy-bar-wrap"><div class="yoy-bar" style="width:${Math.round(cnt/maxY*100)}%"></div></div><div class="yoy-detail">🌅 ${dawn} dawn · 🌇 ${dusk} dusk</div></div><div class="yoy-count">${cnt}</div></div>`;}).join('');
-    yoyCard=`<div class="card pattern-card full"><div class="card-title">Year-Over-Year${gSeason?' · '+gSeason:''}</div><div class="card-sub">Sightings per year — compare across seasons</div>${yoyRows}</div>`;
+    yoyHtml='<div class="card" style="padding:16px 18px;margin-bottom:14px"><div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Year-Over-Year'+(gSeason?' · '+gSeason:'')+'</div><div style="font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-3);margin-bottom:12px">Sightings per year</div>'+
+      allYears.map(y=>{
+        const cnt=sf.filter(s=>s.year===y).length;
+        const dawn=sf.filter(s=>s.year===y&&s.time&&parseInt(s.time)>=5&&parseInt(s.time)<9).length;
+        const dusk=sf.filter(s=>s.year===y&&s.time&&parseInt(s.time)>=17&&parseInt(s.time)<=20).length;
+        return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px'+(gYear&&gYear!==y?';opacity:0.4':'')+'">'+
+          '<div style="font-size:13px;font-weight:800;color:var(--text);width:44px">'+y+'</div>'+
+          '<div style="flex:1"><div style="height:8px;background:var(--border);border-radius:4px"><div style="width:'+Math.round(cnt/maxY*100)+'%;height:100%;background:var(--green-mid);border-radius:4px"></div></div>'+
+          '<div style="font-size:10px;color:var(--text-3);margin-top:3px">🌅 '+dawn+' dawn · 🌇 '+dusk+' dusk</div></div>'+
+          '<div style="font-size:14px;font-weight:700;color:var(--text);width:28px;text-align:right">'+cnt+'</div></div>';
+      }).join('')+
+    '</div>';
   }
 
-  content.innerHTML=`<div class="patterns-grid">
-    <div class="card pattern-card span" style="grid-column:1/-1"><div class="card-title">Movement by Hour</div><div class="card-sub">All sightings · 24hr view · Red = peak</div><div class="hour-bars">${hourBars}</div><div class="hour-labels"><span>12AM</span><span>3AM</span><span>6AM</span><span>9AM</span><span>12PM</span><span>3PM</span><span>6PM</span><span>9PM</span><span>11PM</span></div></div>
-    <div class="card pattern-card"><div class="card-title">Wind at Sighting</div><div class="card-sub">Direction frequency</div>${windRows}</div>
-    <div class="card pattern-card"><div class="card-title">Camera Hotspots</div><div class="card-sub">By sighting count</div>${camRows||'<div style="color:var(--text-3);font-size:12px">No data</div>'}</div>
-    <div class="card pattern-card"><div class="card-title">Rut Breakdown</div><div class="card-sub">Sightings by phase</div>${rutRows||'<div style="color:var(--text-3);font-size:12px">No rut data</div>'}</div>
-    <div class="card pattern-card full"><div class="card-title">Buck Activity</div><div class="card-sub">Total sightings per buck</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px">${buckRows||'<div style="color:var(--text-3);font-size:12px">No data</div>'}</div></div>
-    ${yoyCard}
-  </div>`;
+  const overviewGrid =
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">'+
+      '<div class="card" style="padding:16px 18px">'+
+        '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Overall Movement by Hour</div>'+
+        '<div style="font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px">All cameras combined · Red = peak</div>'+
+        '<div style="display:flex;align-items:flex-end;height:60px;gap:1px;margin-bottom:5px">'+hourBarsAll+'</div>'+
+        '<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-3)"><span>12AM</span><span>3AM</span><span>6AM</span><span>9AM</span><span>12PM</span><span>3PM</span><span>6PM</span><span>9PM</span><span>11PM</span></div>'+
+      '</div>'+
+      '<div class="card" style="padding:16px 18px">'+
+        '<div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Overall Wind at Sighting</div>'+
+        '<div style="font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-3);margin-bottom:10px">All cameras combined</div>'+
+        windRowsAll+
+      '</div>'+
+    '</div>';
+
+  content.innerHTML =
+    '<div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:12px">📷 Camera-by-Camera Analysis</div>'+
+    camCards +
+    (camsWithData.length > 1 ? '<div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-3);margin:4px 0 12px">📊 Overall Summary</div>' + overviewGrid : '') +
+    yoyHtml;
+}
+
+
+// ============================================================
+// PREDICT — Buck Movement Predictor
+// ============================================================
+function renderPredict() {
+  const body = document.getElementById('predictBody');
+  if (!body) return;
+
+  if (S.bucks.length === 0 || S.sightings.length === 0) {
+    body.innerHTML = '<div class="empty" style="margin-top:40px"><div class="empty-icon">🎯</div><div class="empty-text">Not enough data yet</div><div class="empty-sub">Add bucks, cameras, and log sightings — the predictor needs at least 5 sightings to find patterns.</div></div>';
+    return;
+  }
+
+  // ── Helper functions ─────────────────────────────────────
+  function topEntry(arr) {
+    if (!arr.length) return null;
+    const c={};arr.forEach(v=>{if(v)c[v]=(c[v]||0)+1;});
+    return Object.entries(c).sort((a,b)=>b[1]-a[1])[0]||null;
+  }
+  function topN(arr,n) {
+    const c={};arr.forEach(v=>{if(v)c[v]=(c[v]||0)+1;});
+    return Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,n);
+  }
+  function pct(n,total) { return total ? Math.round(n/total*100) : 0; }
+  function tempBucket(t) {
+    if (!t) return null;
+    const n=Number(t);
+    return n<30?'Below 30°F':n<40?'30–40°F':n<50?'40–50°F':n<60?'50–60°F':'Above 60°F';
+  }
+  function peakHourStr(sightings) {
+    const hc=new Array(24).fill(0);
+    sightings.forEach(s=>{if(s.time)hc[parseInt(s.time)]++;});
+    const max=Math.max(...hc);
+    if(!max) return '—';
+    const peaks=hc.reduce((acc,c,i)=>{if(c>=max*0.7&&c>0)acc.push(i);return acc;},[]);
+    if(!peaks.length) return '—';
+    if(peaks.length===1) return fmtTime(peaks[0]+':00');
+    return fmtTime(peaks[0]+':00')+'–'+fmtTime(peaks[peaks.length-1]+':00');
+  }
+  function windConsistency(winds) {
+    if(!winds.length) return 0;
+    const top=topEntry(winds);
+    return top ? pct(top[1],winds.length) : 0;
+  }
+
+  // ── Condition matcher score for a buck at a camera ───────
+  function matchScore(buckSightings, inputWind, inputTemp, inputRut) {
+    if(!buckSightings.length) return 0;
+    let score=0, checks=0;
+    if(inputWind) {
+      const windMatches=buckSightings.filter(s=>s.windDir===inputWind).length;
+      score+=pct(windMatches,buckSightings.length); checks++;
+    }
+    if(inputTemp) {
+      const bucket=tempBucket(inputTemp);
+      const tempMatches=buckSightings.filter(s=>tempBucket(s.temp)===bucket).length;
+      score+=pct(tempMatches,buckSightings.length); checks++;
+    }
+    if(inputRut) {
+      const rutMatches=buckSightings.filter(s=>s.rut===inputRut).length;
+      score+=pct(rutMatches,buckSightings.length); checks++;
+    }
+    return checks ? Math.round(score/checks) : 50;
+  }
+
+  // ── Get current conditions from weather coords ────────────
+  const iWind = document.getElementById('pInputWind')?.value || '';
+  const iTemp = document.getElementById('pInputTemp')?.value || '';
+  const iRut  = document.getElementById('pInputRut')?.value  || '';
+  const iTime = document.getElementById('pInputTime')?.value || '';
+
+  // ── Today's Outlook ───────────────────────────────────────
+  function buildOutlook() {
+    if(!iWind && !iTemp && !iRut) return '<div class="outlook-sub" style="opacity:0.8">Enter today\'s conditions above to get your personalized hunting outlook.</div>';
+
+    const results = [];
+    S.bucks.forEach(buck => {
+      S.cameras.forEach(cam => {
+        const bs = S.sightings.filter(s=>s.buckId===buck.id&&s.camId===cam.id);
+        if(bs.length < 2) return;
+        const score = matchScore(bs, iWind, iTemp, iRut);
+        if(score < 20) return;
+        const topWind = topEntry(bs.map(s=>s.windDir).filter(Boolean));
+        const topHead = topEntry(bs.map(s=>s.buckHeading).filter(Boolean));
+        const peakTime = peakHourStr(bs);
+        const timeNote = iTime ? (()=>{
+          const h=parseInt(iTime);
+          const peakH=bs.filter(s=>s.time).map(s=>parseInt(s.time));
+          const inPeak=peakH.filter(ph=>Math.abs(ph-h)<=1).length;
+          return inPeak>0?' ✅ Your planned time is within his peak window.' : ' ⚠️ Your planned time is outside his normal window ('+peakTime+').';
+        })() : '';
+        results.push({ buck, cam, score, topWind, topHead, peakTime, bs, timeNote });
+      });
+    });
+
+    results.sort((a,b)=>b.score-a.score);
+    if(!results.length) return '<div class="outlook-sub" style="opacity:0.8">Not enough overlapping data for these conditions yet. Keep logging sightings.</div>';
+
+    return results.slice(0,4).map(r=>{
+      const windNote = r.topWind ? 'He hits '+r.cam.name+' most on '+r.topWind[0]+' winds ('+r.topWind[1]+' times).' : '';
+      const headNote = r.topHead ? ' When he shows, he\'s usually heading '+r.topHead[0]+'.' : '';
+      const barW = Math.min(r.score, 100);
+      const barColor = r.score>=70?'linear-gradient(90deg,#4a9a2a,#8acc50)':r.score>=40?'linear-gradient(90deg,#b8880a,#e8b830)':'linear-gradient(90deg,#a83030,#d06060)';
+      return '<div class="outlook-result">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'+
+          '<div class="outlook-result-name">'+r.buck.emoji+' '+r.buck.name+' @ '+r.cam.name+'</div>'+
+          '<div class="outlook-score">'+r.score+'%</div>'+
+        '</div>'+
+        '<div class="match-bar"><div class="match-bar-fill" style="width:'+barW+'%;background:'+barColor+'"></div></div>'+
+        '<div class="outlook-result-detail" style="margin-top:7px">'+
+          windNote+headNote+
+          (r.peakTime!=='—'?' Peak window: <strong>'+r.peakTime+'</strong>.':'')+
+          r.timeNote+
+          ' Based on '+r.bs.length+' historical sightings.'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }
+
+  // ── Buck dossiers ─────────────────────────────────────────
+  function buildDossier(buck) {
+    const bs = S.sightings.filter(s=>s.buckId===buck.id);
+    if(!bs.length) return '';
+
+    const camIds=[...new Set(bs.map(s=>s.camId))];
+    const topCamId=topEntry(bs.map(s=>s.camId))?.[0];
+    const topCam=S.cameras.find(c=>c.id===topCamId);
+    const topWind=topEntry(bs.map(s=>s.windDir).filter(Boolean));
+    const topHead=topEntry(bs.map(s=>s.buckHeading).filter(Boolean));
+    const topBehav=topEntry(bs.map(s=>s.buckBehavior).filter(Boolean));
+    const topRut=topEntry(bs.map(s=>s.rut).filter(Boolean));
+    const peak=peakHourStr(bs);
+    const temps=bs.filter(s=>s.temp).map(s=>Number(s.temp));
+    const avgTemp=temps.length?Math.round(temps.reduce((a,b)=>a+b)/temps.length):null;
+    const wCons=windConsistency(bs.map(s=>s.windDir).filter(Boolean));
+
+    // Per-camera breakdown
+    const camBreakdown=camIds.map(cid=>{
+      const cbs=bs.filter(s=>s.camId===cid);
+      const cam=S.cameras.find(c=>c.id===cid);
+      const cWind=topEntry(cbs.map(s=>s.windDir).filter(Boolean));
+      const cHead=topEntry(cbs.map(s=>s.buckHeading).filter(Boolean));
+      const cPeak=peakHourStr(cbs);
+      return '<div class="cam-affinity-item">'+
+        '<div class="cam-affinity-name"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(cam?.color||'#ccc')+';margin-right:5px"></span>'+
+        (cam?.name||'Unknown')+' <span style="color:var(--text-3);font-weight:400">('+cbs.length+')</span></div>'+
+        '<div class="cam-affinity-detail">'+
+          (cPeak!=='—'?'⏰ '+cPeak:'')+
+          (cWind?' · 💨 '+cWind[0]+' wind ('+pct(cWind[1],cbs.length)+'%)'   :'')+
+          (cHead?' · ➡ heading '+cHead[0]:'')+
+        '</div>'+
+      '</div>';
+    }).join('');
+
+    // Kill shot recommendation
+    function killShot() {
+      if(bs.length < 3) return '<div class="kill-shot"><div class="kill-shot-title">🎯 Need More Data</div><div class="kill-shot-text">Log at least 3 sightings for '+buck.name+' to generate a kill shot recommendation.</div></div>';
+      const parts=[];
+      if(topCam) parts.push('set up at <strong>'+topCam.name+'</strong>');
+      if(topWind) parts.push('wait for a <strong>'+topWind[0]+' wind</strong> (shows up '+pct(topWind[1],bs.length)+'% of the time on '+topWind[0]+' winds)');
+      if(peak!=='—') parts.push('be in your stand by <strong>'+peak+'</strong>');
+      if(avgTemp) parts.push('target days around <strong>'+avgTemp+'°F</strong>');
+      if(topHead) parts.push('expect him heading <strong>'+topHead[0]+'</strong> — set up to intercept from the opposite side');
+      if(topRut) parts.push('prime time is <strong>'+topRut[0]+'</strong>');
+      return '<div class="kill-shot"><div class="kill-shot-title">🎯 Kill Shot Recommendation</div><div class="kill-shot-text">To kill '+buck.name+': '+parts.join(', ')+'.</div></div>';
+    }
+
+    return '<div class="buck-dossier">'+
+      '<div class="buck-dossier-header" onclick="toggleDossier(\'d_'+buck.id+'\')">'+
+        '<div style="font-size:24px">'+buck.emoji+'</div>'+
+        '<div style="flex:1">'+
+          '<div style="font-size:15px;font-weight:800;color:var(--text)">'+buck.name+'</div>'+
+          '<div style="font-size:11px;color:var(--text-3)">'+bs.length+' sightings · '+camIds.length+' camera'+(camIds.length>1?'s':'')+(topCam?' · Hottest: '+topCam.name:'')+'</div>'+
+        '</div>'+
+        '<div style="font-size:12px;color:var(--text-3)">▼ expand</div>'+
+      '</div>'+
+      '<div class="buck-dossier-body" id="d_'+buck.id+'">'+
+        '<div class="buck-stat-grid">'+
+          '<div class="buck-stat"><div class="buck-stat-label">Peak Movement</div><div class="buck-stat-value" style="font-size:13px">'+peak+'</div></div>'+
+          '<div class="buck-stat"><div class="buck-stat-label">Best Wind</div><div class="buck-stat-value" style="font-size:13px">'+(topWind?topWind[0]+' ('+pct(topWind[1],bs.length)+'%)':'—')+'</div></div>'+
+          '<div class="buck-stat"><div class="buck-stat-label">Avg Temp</div><div class="buck-stat-value" style="font-size:13px">'+(avgTemp?avgTemp+'°F':'—')+'</div></div>'+
+          '<div class="buck-stat"><div class="buck-stat-label">Travel Direction</div><div class="buck-stat-value" style="font-size:13px">'+(topHead?'Heading '+topHead[0]+' ('+pct(topHead[1],bs.length)+'%)':'—')+'</div></div>'+
+          '<div class="buck-stat"><div class="buck-stat-label">Behavior</div><div class="buck-stat-value" style="font-size:13px">'+(topBehav?topBehav[0]:'—')+'</div></div>'+
+          '<div class="buck-stat"><div class="buck-stat-label">Wind Consistency</div><div class="buck-stat-value" style="font-size:13px">'+wCons+'%</div><div class="buck-stat-sub">'+(wCons>=70?'Very patternable':wCons>=50?'Moderate pattern':'Unpredictable')+'</div></div>'+
+        '</div>'+
+        '<div style="font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px">Camera Breakdown</div>'+
+        '<div class="cam-affinity">'+camBreakdown+'</div>'+
+        killShot()+
+      '</div>'+
+    '</div>';
+  }
+
+  // ── Rut options for dropdown ──────────────────────────────
+  const rutOpts = (S.fieldSettings?.builtins?.rut?.options||['Pre-Rut','Seeking','Peak Rut','Lock-Down','Post-Rut'])
+    .map(o=>'<option value="'+o+'">'+o+'</option>').join('');
+
+  const currentIWind = iWind;
+  const currentITemp = iTemp;
+  const currentIRut  = iRut;
+  const currentITime = iTime;
+
+  body.innerHTML =
+    // ── Today's Outlook ──
+    '<div class="outlook-card">'+
+      '<div class="outlook-title">🌤 Today\'s Hunting Outlook</div>'+
+      '<div class="outlook-sub">Enter today\'s conditions to match against your historical data</div>'+
+      '<div class="condition-inputs" style="margin-bottom:14px">'+
+        '<div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:5px">Wind Direction</label>'+
+          '<select id="pInputWind" class="field" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff" onchange="renderPredict()">'+
+            '<option value="">Select wind</option>'+
+            ['N','NE','E','SE','S','SW','W','NW'].map(d=>'<option value="'+d+'"'+(currentIWind===d?' selected':'')+'>'+d+'</option>').join('')+
+          '</select>'+
+        '</div>'+
+        '<div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:5px">Temperature (°F)</label>'+
+          '<input type="number" id="pInputTemp" class="field" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff" placeholder="e.g. 42" value="'+currentITemp+'" onchange="renderPredict()">'+
+        '</div>'+
+        '<div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:5px">Rut Stage</label>'+
+          '<select id="pInputRut" class="field" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff" onchange="renderPredict()">'+
+            '<option value="">Select stage</option>'+rutOpts+
+          '</select>'+
+        '</div>'+
+        '<div><label style="display:block;font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:5px">Planned Sit Time</label>'+
+          '<input type="time" id="pInputTime" class="field" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff" value="'+currentITime+'" onchange="renderPredict()">'+
+        '</div>'+
+      '</div>'+
+      (iWind||iTemp||iRut ? '<div class="outlook-cond-row">'+
+        (iWind?'<div class="outlook-cond">💨 '+iWind+' wind</div>':'')+
+        (iTemp?'<div class="outlook-cond">🌡 '+iTemp+'°F</div>':'')+
+        (iRut?'<div class="outlook-cond">🦌 '+iRut+'</div>':'')+
+        (iTime?'<div class="outlook-cond">⏰ Sitting at '+fmtTime(iTime)+'</div>':'')+
+      '</div>' : '')+
+      buildOutlook()+
+    '</div>'+
+
+    // ── Buck Dossiers ──
+    '<div class="predict-section-title">🦌 Buck Dossiers — Individual Patterns & Kill Shot Recommendations</div>'+
+    S.bucks.filter(b=>S.sightings.some(s=>s.buckId===b.id)).map(buildDossier).join('')+
+    (S.bucks.filter(b=>S.sightings.some(s=>s.buckId===b.id)).length===0 ?
+      '<div class="empty"><div class="empty-icon">🦌</div><div class="empty-text">No sighting data yet</div><div class="empty-sub">Log sightings to build buck dossiers.</div></div>' : '');
+}
+
+function toggleDossier(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('open');
+  // Update arrow
+  const header = el.previousElementSibling;
+  const arrow = header?.querySelector('div:last-child');
+  if (arrow) arrow.textContent = el.classList.contains('open') ? '▲ collapse' : '▼ expand';
 }
 
 // ============================================================
@@ -1734,7 +2231,8 @@ async function sendAI() {
     const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:buildAIContext(),messages:aiHistory.slice(-12)})});
     const data=await res.json();
     typing.remove();
-    const reply=data.content?.[0]?.text||'Error getting response.';
+    if (data.error) throw new Error('API Error: ' + data.error.type + ' — ' + data.error.message);
+    const reply=data.content?.[0]?.text||'No response received.';
     aiHistory.push({role:'assistant',content:reply});
     appendMsg('ai',reply);
   } catch(e) { typing.remove(); appendMsg('ai','Connection error: '+e.message); }
