@@ -2057,6 +2057,7 @@ function renderPredict() {
           '<div style="font-size:15px;font-weight:800;color:var(--text)">'+buck.name+'</div>'+
           '<div style="font-size:11px;color:var(--text-3)">'+bs.length+' sightings · '+camIds.length+' camera'+(camIds.length>1?'s':'')+(topCam?' · Hottest: '+topCam.name:'')+'</div>'+
         '</div>'+
+        '<button data-bid="'+buck.id+'" onclick="event.stopPropagation();editBuck(this.dataset.bid)" style="background:var(--green-mid);color:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;margin-right:8px">✏️ Edit</button>'+
         '<div style="font-size:12px;color:var(--text-3)">▼ expand</div>'+
       '</div>'+
       '<div class="buck-dossier-body" id="d_'+buck.id+'">'+
@@ -2525,13 +2526,19 @@ function editBuck(id) {
   const b = S.bucks.find(x => x.id === id);
   if (!b) return;
   editingBuckId = id;
-  document.getElementById('buckModalTitle').textContent = 'Edit Buck Profile';
-  document.getElementById('buckSaveBtn').textContent = 'Save Changes';
-  document.getElementById('mBuckName').value = b.name || '';
-  document.getElementById('mBuckAge').value = b.age || '';
-  document.getElementById('mBuckEmoji').value = b.emoji || '🦌';
-  document.getElementById('mBuckYear').value = b.year || '';
-  document.getElementById('mBuckFeatures').value = b.features || '';
+  // Update modal title and button
+  const titleEl = document.getElementById('buckModalTitle');
+  const btnEl = document.getElementById('buckSaveBtn');
+  if (titleEl) titleEl.textContent = 'Edit Buck Profile — ' + b.name;
+  if (btnEl) btnEl.textContent = 'Save Changes';
+  // Pre-fill all fields
+  const setV = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
+  setV('mBuckName', b.name);
+  setV('mBuckAge', b.age);
+  setV('mBuckEmoji', b.emoji || '🦌');
+  setV('mBuckYear', b.year);
+  setV('mBuckFeatures', b.features);
+  // Open modal
   document.getElementById('buckModal').classList.add('open');
 }
 
