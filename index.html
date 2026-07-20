@@ -145,6 +145,57 @@ textarea.field { resize:vertical; min-height:60px; }
 /* ── MAP ── */
 #view-map { position:relative; overflow:hidden; flex-direction:column !important; }
 .map-area { flex:1; position:relative; overflow:hidden; background:#e0ddd4; display:flex; align-items:center; justify-content:center; min-height:0; }
+/* ── BUCK PATTERNS ── */
+.buck-pattern-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:18px 20px; box-shadow:var(--shadow); margin-bottom:14px; }
+.bp-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border); }
+.bp-emoji { font-size:28px; }
+.bp-name { font-size:16px; font-weight:800; color:var(--text); }
+.bp-sub { font-size:11px; color:var(--text-3); margin-top:2px; }
+.bp-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:14px; }
+.bp-stat { background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:9px 11px; }
+.bp-stat-label { font-size:10px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:var(--text-3); margin-bottom:3px; }
+.bp-stat-value { font-size:15px; font-weight:800; color:var(--text); line-height:1.2; }
+.bp-stat-sub { font-size:10px; color:var(--text-3); margin-top:2px; }
+.bp-wind-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+.bp-wind-item { background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px 10px; }
+.bp-wind-dir { font-size:13px; font-weight:800; color:var(--green); margin-bottom:4px; }
+.bp-wind-bar-wrap { height:5px; background:var(--border); border-radius:3px; margin-bottom:3px; }
+.bp-wind-bar { height:100%; background:var(--green-mid); border-radius:3px; }
+.bp-wind-detail { font-size:10px; color:var(--text-3); }
+.bp-movement-summary { background:linear-gradient(135deg,#1a2e1c,#2a3818); border-radius:8px; padding:14px 16px; color:#fff; margin-bottom:12px; }
+.bp-movement-title { font-size:12px; font-weight:700; color:#c8d8a0; margin-bottom:6px; }
+.bp-movement-text { font-size:12px; color:rgba(255,255,255,0.8); line-height:1.6; }
+.bp-corridor { background:var(--green-light); border:1px solid var(--green-border); border-radius:6px; padding:10px 12px; margin-bottom:10px; }
+.bp-corridor-title { font-size:11px; font-weight:700; color:var(--green); margin-bottom:4px; letter-spacing:0.05em; text-transform:uppercase; }
+.bp-corridor-text { font-size:12px; color:var(--text-2); line-height:1.5; }
+.bp-cam-trail { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.bp-cam-chip { background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:6px 10px; font-size:11px; }
+.bp-cam-chip-name { font-weight:700; color:var(--text); }
+.bp-cam-chip-detail { color:var(--text-3); margin-top:1px; }
+.bp-no-data { color:var(--text-3); font-size:12px; font-style:italic; padding:8px 0; }
+
+/* ── 7-DAY FORECAST ── */
+.forecast-strip { display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-bottom:16px; }
+.forecast-day { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:10px 8px; text-align:center; cursor:pointer; transition:all 0.12s; position:relative; overflow:hidden; }
+.forecast-day:hover { border-color:var(--green-border); transform:translateY(-1px); box-shadow:var(--shadow-md); }
+.forecast-day.best-day { border-color:var(--green-mid); background:var(--green-light); box-shadow:0 0 0 2px rgba(61,122,42,0.2); }
+.forecast-day.good-day { border-color:#b45309; background:#fff7ed; }
+.forecast-day-label { font-size:10px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-3); margin-bottom:4px; }
+.forecast-day-date { font-size:11px; color:var(--text-3); margin-bottom:6px; }
+.forecast-day-icon { font-size:20px; margin-bottom:4px; }
+.forecast-day-temp { font-size:12px; font-weight:700; color:var(--text); }
+.forecast-day-wind { font-size:11px; color:var(--text-2); margin-top:2px; }
+.forecast-day-score { position:absolute; top:6px; right:6px; font-size:10px; font-weight:800; padding:2px 5px; border-radius:8px; }
+.forecast-day-score.high { background:var(--green-mid); color:#fff; }
+.forecast-day-score.med { background:#b45309; color:#fff; }
+.forecast-day-score.low { background:var(--border); color:var(--text-3); }
+.forecast-detail { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:16px 18px; margin-bottom:16px; }
+.forecast-detail-title { font-size:14px; font-weight:800; color:var(--text); margin-bottom:10px; }
+.forecast-buck-row { display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--bg); border:1px solid var(--border); border-radius:6px; margin-bottom:6px; }
+.forecast-buck-score-bar { height:5px; background:var(--border); border-radius:3px; margin-top:4px; }
+.forecast-buck-score-fill { height:100%; border-radius:3px; }
+.forecast-loading { display:flex; align-items:center; gap:10px; padding:14px; color:var(--text-3); font-size:13px; }
+
 /* ── PREDICT ── */
 #view-predict { overflow-y:auto; background:var(--bg); flex-direction:column; }
 .predict-body { padding:18px 22px; display:flex; flex-direction:column; gap:16px; max-width:1100px; }
@@ -513,6 +564,10 @@ tr:hover td { background:var(--green-light); }
 
 <!-- PATTERNS -->
 <div class="view" id="view-patterns">
+  <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:8px 18px;display:flex;gap:8px;flex-shrink:0">
+    <button id="pViewCam" onclick="setPatternsView('cam')" style="background:var(--green-mid);color:#fff;border:none;border-radius:5px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer">📷 Camera Patterns</button>
+    <button id="pViewBuck" onclick="setPatternsView('buck')" style="background:var(--bg);color:var(--text-2);border:1px solid var(--border);border-radius:5px;padding:6px 16px;font-size:12px;font-weight:700;cursor:pointer">🦌 Buck Patterns</button>
+  </div>
   <div class="stat-row">
     <div class="stat-item"><div class="stat-value" id="pPeak">—</div><div class="stat-label">Peak Hour</div></div>
     <div class="stat-item"><div class="stat-value" id="pCam">—</div><div class="stat-label">Hottest Camera</div></div>
@@ -876,7 +931,11 @@ function go(v) {
   if (v === 'ai') updateAIBadge();
   if (v === 'settings') renderSettings();
   if (v === 'map') { if (S.mapDataUrl) showMap(); }
-  if (v === 'predict') renderPredict();
+  if (v === 'predict') {
+    renderPredict();
+    // Load forecast after render so the section exists in DOM
+    setTimeout(loadForecast, 100);
+  }
 }
 
 // ── helpers ───────────────────────────────────────────────
@@ -1480,6 +1539,9 @@ async function analyzeProperty() {
 
   btn.disabled = true;
   btn.textContent = '...';
+  // Forecast placeholder — gets populated by loadForecast()
+  const forecastHtml = '<div id="forecastSection"><div class="forecast-loading"><div class="analysis-spinner" style="width:20px;height:20px;border-width:2px"></div>Loading 10-day forecast for Cable, WI...</div></div>';
+
   body.innerHTML = '<div class="map-analysis-loading"><div class="analysis-spinner"></div><div style="font-size:13px;font-weight:600;color:var(--text-2);margin-top:8px">Analyzing your property...</div><div style="font-size:12px;color:var(--text-3);margin-top:4px">Reading terrain, cover types, and water features</div></div>';
 
   var placedCams = S.cameras.filter(function(c){ return c.x != null; });
@@ -1531,7 +1593,10 @@ async function analyzeProperty() {
 
     var apiKey = getApiKey();
     if (!apiKey) {
-      body.innerHTML = '<div class="map-analysis-empty"><div class="map-analysis-icon">🔑</div><div style="font-size:13px;font-weight:600;color:var(--text-2)">API Key Required</div><div style="font-size:12px;color:var(--text-3);margin-top:4px">Enter your Anthropic API key in the AI Analyst tab first.</div></div>';
+      // Forecast placeholder — gets populated by loadForecast()
+  const forecastHtml = '<div id="forecastSection"><div class="forecast-loading"><div class="analysis-spinner" style="width:20px;height:20px;border-width:2px"></div>Loading 10-day forecast for Cable, WI...</div></div>';
+
+  body.innerHTML = '<div class="map-analysis-empty"><div class="map-analysis-icon">🔑</div><div style="font-size:13px;font-weight:600;color:var(--text-2)">API Key Required</div><div style="font-size:12px;color:var(--text-3);margin-top:4px">Enter your Anthropic API key in the AI Analyst tab first.</div></div>';
       btn.disabled = false; btn.textContent = 'Analyze';
       return;
     }
@@ -1563,10 +1628,16 @@ async function analyzeProperty() {
       .replace(/\n\n/g, '<br><br>')
       .replace(/\n/g, '<br>');
 
-    body.innerHTML = '<div style="padding-bottom:20px;font-size:13px;line-height:1.65;color:var(--text)">' + formatted + '</div>';
+    // Forecast placeholder — gets populated by loadForecast()
+  const forecastHtml = '<div id="forecastSection"><div class="forecast-loading"><div class="analysis-spinner" style="width:20px;height:20px;border-width:2px"></div>Loading 10-day forecast for Cable, WI...</div></div>';
+
+  body.innerHTML = '<div style="padding-bottom:20px;font-size:13px;line-height:1.65;color:var(--text)">' + formatted + '</div>';
 
   } catch(err) {
-    body.innerHTML = '<div class="map-analysis-empty"><div class="map-analysis-icon">⚠️</div><div style="font-size:13px;font-weight:600;color:var(--red)">Analysis failed</div><div style="font-size:12px;color:var(--text-3);margin-top:4px">' + (err.message || 'Unknown error') + '</div><div style="font-size:11px;color:var(--text-3);margin-top:8px;line-height:1.5">Check your connection and try again. If it persists, try a smaller map image.</div></div>';
+    // Forecast placeholder — gets populated by loadForecast()
+  const forecastHtml = '<div id="forecastSection"><div class="forecast-loading"><div class="analysis-spinner" style="width:20px;height:20px;border-width:2px"></div>Loading 10-day forecast for Cable, WI...</div></div>';
+
+  body.innerHTML = '<div class="map-analysis-empty"><div class="map-analysis-icon">⚠️</div><div style="font-size:13px;font-weight:600;color:var(--red)">Analysis failed</div><div style="font-size:12px;color:var(--text-3);margin-top:4px">' + (err.message || 'Unknown error') + '</div><div style="font-size:11px;color:var(--text-3);margin-top:8px;line-height:1.5">Check your connection and try again. If it persists, try a smaller map image.</div></div>';
   }
 
   btn.disabled = false;
@@ -1625,6 +1696,225 @@ function updateLogStats() {
 // ============================================================
 // PATTERNS
 // ============================================================
+let patternsView = 'cam'; // 'cam' or 'buck'
+
+function setPatternsView(v) {
+  patternsView = v;
+  // Toggle button styles
+  const camBtn = document.getElementById('pViewCam');
+  const buckBtn = document.getElementById('pViewBuck');
+  if (camBtn) {
+    camBtn.style.background = v==='cam' ? 'var(--green-mid)' : 'var(--bg)';
+    camBtn.style.color = v==='cam' ? '#fff' : 'var(--text-2)';
+    camBtn.style.border = v==='cam' ? 'none' : '1px solid var(--border)';
+  }
+  if (buckBtn) {
+    buckBtn.style.background = v==='buck' ? 'var(--green-mid)' : 'var(--bg)';
+    buckBtn.style.color = v==='buck' ? '#fff' : 'var(--text-2)';
+    buckBtn.style.border = v==='buck' ? 'none' : '1px solid var(--border)';
+  }
+  renderPatterns();
+}
+
+function renderBuckPatterns(sightings, content) {
+  const bucksWithData = S.bucks.filter(b => sightings.some(s=>s.buckId===b.id));
+
+  if (!bucksWithData.length) {
+    content.innerHTML = '<div class="empty"><div class="empty-icon">🦌</div><div class="empty-text">No buck data yet</div><div class="empty-sub">Log sightings and assign them to specific bucks to see individual patterns.</div></div>';
+    return;
+  }
+
+  function topEntry(arr) {
+    const c={};arr.filter(Boolean).forEach(v=>{c[v]=(c[v]||0)+1;});
+    const e=Object.entries(c).sort((a,b)=>b[1]-a[1]);
+    return e[0]||null;
+  }
+  function topN(arr,n) {
+    const c={};arr.filter(Boolean).forEach(v=>{c[v]=(c[v]||0)+1;});
+    return Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,n);
+  }
+  function pct(n,d){ return d?Math.round(n/d*100):0; }
+
+  function peakWindow(bs) {
+    const hc=new Array(24).fill(0);
+    bs.forEach(s=>{if(s.time)hc[parseInt(s.time)]++;});
+    const max=Math.max(...hc);
+    if(!max) return null;
+    const peaks=hc.reduce((a,c,i)=>{if(c>=max*0.65&&c>0)a.push(i);return a;},[]);
+    if(!peaks.length) return null;
+    if(peaks.length===1) return fmtTime(peaks[0]+':00');
+    return fmtTime(peaks[0]+':00')+' – '+fmtTime(peaks[peaks.length-1]+':00');
+  }
+
+  function tempAnalysis(bs) {
+    const ts=bs.filter(s=>s.temp).map(s=>Number(s.temp));
+    if(!ts.length) return null;
+    const avg=Math.round(ts.reduce((a,b)=>a+b)/ts.length);
+    const min=Math.min(...ts), max=Math.max(...ts);
+    // Find sweet spot bucket
+    const buckets={'Below 30°F':0,'30–40°F':0,'40–50°F':0,'50–60°F':0,'Above 60°F':0};
+    ts.forEach(t=>{
+      if(t<30)buckets['Below 30°F']++;
+      else if(t<40)buckets['30–40°F']++;
+      else if(t<50)buckets['40–50°F']++;
+      else if(t<60)buckets['50–60°F']++;
+      else buckets['Above 60°F']++;
+    });
+    const sweet=Object.entries(buckets).sort((a,b)=>b[1]-a[1])[0];
+    return { avg, min, max, sweet: sweet[0], sweetCnt: sweet[1] };
+  }
+
+  function pressureAnalysis(bs) {
+    const ps=bs.filter(s=>s.pressure).map(s=>Number(s.pressure));
+    if(ps.length<3) return null;
+    const avg=Math.round(ps.reduce((a,b)=>a+b)/ps.length*100)/100;
+    return { avg, min:Math.min(...ps), max:Math.max(...ps) };
+  }
+
+  function inferCorridor(topHead, topCam) {
+    const opposite={N:'S',S:'N',E:'W',W:'E',NE:'SW',SW:'NE',NW:'SE',SE:'NW'};
+    if(!topHead) return null;
+    const dir=topHead[0];
+    const from=opposite[dir]||'unknown';
+    return 'Likely coming FROM the '+from+', heading '+dir+'. Bedding probably to the '+from+', feeding to the '+dir+'.';
+  }
+
+  function windPlainEnglish(windData, bs) {
+    if(!windData.length) return null;
+    const top=windData[0];
+    const topPct=pct(top[1],bs.filter(s=>s.windDir).length);
+    let txt = top[0]+' wind produces the most movement ('+topPct+'% of sightings).';
+    if(windData.length>1) txt += ' Also active on '+windData[1][0]+' wind ('+pct(windData[1][1],bs.filter(s=>s.windDir).length)+'%).';
+    const deadWinds=['N','NE','E','SE','S','SW','W','NW'].filter(d=>!windData.find(([wd])=>wd===d));
+    if(deadWinds.length<=4&&deadWinds.length>0) txt += ' Rarely moves on '+deadWinds.slice(0,3).join('/')+' winds — avoid hunting him on those days.';
+    return txt;
+  }
+
+  function buildMovementSummary(buck, bs, topWind, topHead, tempData, peakW, topRut) {
+    const parts=[];
+    if(topWind) parts.push(topWind[0]+' wind ('+pct(topWind[1],bs.filter(s=>s.windDir).length)+'% of sightings)');
+    if(tempData) parts.push('temps around '+tempData.sweet);
+    if(peakW) parts.push('between '+peakW);
+    if(topRut) parts.push('during '+topRut[0]);
+    const movePart = parts.length ? buck.name+' moves best on '+parts.join(', ')+'.' : '';
+
+    const corridor = inferCorridor(topHead, null);
+    const corridorPart = corridor ? ' '+corridor : '';
+
+    const camCounts={};bs.forEach(s=>{camCounts[s.camId]=(camCounts[s.camId]||0)+1;});
+    const topCamE=Object.entries(camCounts).sort((a,b)=>b[1]-a[1])[0];
+    const topCam=topCamE?S.cameras.find(c=>c.id===topCamE[0]):null;
+    const camFacing=topCam?.facing;
+
+    let interceptPart='';
+    if(topWind&&topHead&&topCam) {
+      interceptPart=' Best intercept: '+topCam.name+(camFacing?' (faces '+camFacing+')':'')+' on a '+topWind[0]+' wind'+(peakW?', arriving by '+peakW.split('–')[0]:'')+'. Set up to cut him off heading '+topHead[0]+'.';
+    }
+
+    return movePart+corridorPart+interceptPart;
+  }
+
+  const cards = bucksWithData.map(buck => {
+    const bs = sightings.filter(s=>s.buckId===buck.id);
+    const windData = topN(bs.map(s=>s.windDir),8);
+    const topWind = windData[0]||null;
+    const topHead = topEntry(bs.map(s=>s.buckHeading));
+    const topRut  = topEntry(bs.map(s=>s.rut));
+    const topBehav= topEntry(bs.map(s=>s.buckBehavior));
+    const tempData = tempAnalysis(bs);
+    const pressData= pressureAnalysis(bs);
+    const peakW    = peakWindow(bs);
+    const summary  = buildMovementSummary(buck, bs, topWind, topHead, tempData, peakW, topRut);
+
+    // Wind breakdown bars
+    const maxW = windData[0]?.[1]||1;
+    const windBars = windData.length ? windData.slice(0,6).map(([dir,cnt])=>{
+      const p=pct(cnt,bs.filter(s=>s.windDir).length);
+      return '<div class="bp-wind-item">'+
+        '<div class="bp-wind-dir">'+dir+'</div>'+
+        '<div class="bp-wind-bar-wrap"><div class="bp-wind-bar" style="width:'+p+'%"></div></div>'+
+        '<div class="bp-wind-detail">'+cnt+' sightings · '+p+'%</div>'+
+      '</div>';
+    }).join('') : '<div class="bp-no-data">No wind data logged for this buck.</div>';
+
+    // Hour bars
+    const hc=new Array(24).fill(0);
+    bs.forEach(s=>{if(s.time)hc[parseInt(s.time)]++;});
+    const maxH=Math.max(...hc,1);
+    const hourBars=hc.map((c,i)=>{
+      const p=Math.round(c/maxH*100);
+      const ip=c>0&&c===Math.max(...hc);
+      return '<div style="flex:1;height:'+Math.max(p,2)+'%;background:'+(ip?'var(--red-mid)':'var(--green-light)')+';border-top:1px solid '+(ip?'var(--red)':'var(--green-border)')+';border-radius:1px 1px 0 0" title="'+fmtTime(i+':00')+': '+c+'"></div>';
+    }).join('');
+
+    // Camera trail
+    const camCounts={};bs.forEach(s=>{camCounts[s.camId]=(camCounts[s.camId]||0)+1;});
+    const camTrail=Object.entries(camCounts).sort((a,b)=>b[1]-a[1]).map(([cid,cnt])=>{
+      const cam=S.cameras.find(c=>c.id===cid);
+      const camBs=bs.filter(s=>s.camId===cid);
+      const camTopWind=topEntry(camBs.map(s=>s.windDir));
+      const camTopHead=topEntry(camBs.map(s=>s.buckHeading));
+      const camPeak=peakWindow(camBs);
+      return '<div class="bp-cam-chip">'+
+        '<div class="bp-cam-chip-name"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(cam?.color||'#ccc')+';margin-right:4px"></span>'+
+        (cam?.name||'Unknown')+' <span style="color:var(--text-3);font-weight:400">('+cnt+'x)</span></div>'+
+        '<div class="bp-cam-chip-detail">'+
+          (camPeak?'⏰ '+camPeak:'')+
+          (camTopWind?' · 💨 '+camTopWind[0]:'')+
+          (camTopHead?' · ➡ '+camTopHead[0]:'')+
+          (cam?.facing?' · faces '+cam.facing:'')+
+        '</div>'+
+      '</div>';
+    }).join('');
+
+    // Wind plain english
+    const windSentence = windPlainEnglish(windData, bs);
+
+    return '<div class="buck-pattern-card">'+
+      // Header
+      '<div class="bp-header">'+
+        '<div class="bp-emoji">'+buck.emoji+'</div>'+
+        '<div style="flex:1">'+
+          '<div class="bp-name">'+buck.name+'</div>'+
+          '<div class="bp-sub">'+bs.length+' sightings'+
+            (buck.age?' · Est. '+buck.age:'')+'</div>'+
+        '</div>'+
+        '<button onclick="editBuck(\''+buck.id+'\')" style="background:var(--green-mid);color:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer">✏️ Edit</button>'+
+      '</div>'+
+
+      // Movement summary
+      (summary?'<div class="bp-movement-summary"><div class="bp-movement-title">📍 Movement Profile</div><div class="bp-movement-text">'+summary+'</div></div>':'')+
+
+      // Stats grid
+      '<div class="bp-grid">'+
+        '<div class="bp-stat"><div class="bp-stat-label">Peak Movement</div><div class="bp-stat-value" style="font-size:13px">'+(peakW||'—')+'</div></div>'+
+        '<div class="bp-stat"><div class="bp-stat-label">Best Wind</div><div class="bp-stat-value" style="font-size:13px">'+(topWind?topWind[0]+' ('+pct(topWind[1],bs.filter(s=>s.windDir).length)+'%)':'—')+'</div></div>'+
+        '<div class="bp-stat"><div class="bp-stat-label">Temp Sweet Spot</div><div class="bp-stat-value" style="font-size:13px">'+(tempData?tempData.sweet:'—')+'</div><div class="bp-stat-sub">'+(tempData?'avg '+tempData.avg+'°F':'')+'</div></div>'+
+        '<div class="bp-stat"><div class="bp-stat-label">Travel Direction</div><div class="bp-stat-value" style="font-size:13px">'+(topHead?'Heading '+topHead[0]+' ('+pct(topHead[1],bs.filter(s=>s.buckHeading).length)+'%)':'—')+'</div></div>'+
+        '<div class="bp-stat"><div class="bp-stat-label">Rut Activity</div><div class="bp-stat-value" style="font-size:13px">'+(topRut?topRut[0]:'—')+'</div></div>'+
+        '<div class="bp-stat"><div class="bp-stat-label">Behavior</div><div class="bp-stat-value" style="font-size:13px">'+(topBehav?topBehav[0]:'—')+'</div></div>'+
+      '</div>'+
+
+      // Wind breakdown
+      '<div style="font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px">Wind Breakdown</div>'+
+      '<div class="bp-wind-grid">'+windBars+'</div>'+
+      (windSentence?'<div style="font-size:12px;color:var(--text-2);margin-bottom:12px;line-height:1.5;background:var(--bg);border-radius:5px;padding:8px 10px">💡 '+windSentence+'</div>':'')+
+
+      // Hour chart
+      '<div style="font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:6px">Movement by Hour</div>'+
+      '<div style="display:flex;align-items:flex-end;height:52px;gap:1px;margin-bottom:4px">'+hourBars+'</div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text-3);margin-bottom:12px"><span>12AM</span><span>3AM</span><span>6AM</span><span>9AM</span><span>12PM</span><span>3PM</span><span>6PM</span><span>9PM</span><span>11PM</span></div>'+
+
+      // Camera trail
+      '<div style="font-size:10px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px">Camera Trail — Where He Shows Up</div>'+
+      '<div class="bp-cam-trail">'+camTrail+'</div>'+
+
+    '</div>';
+  }).join('');
+
+  content.innerHTML = cards;
+}
+
 function renderPatterns() {
   const content = document.getElementById('patternsContent');
   if (!content) return;
@@ -1633,6 +1923,14 @@ function renderPatterns() {
   if (!sightings.length) {
     content.innerHTML='<div class="empty"><div class="empty-icon">📊</div><div class="empty-text">No data yet</div><div class="empty-sub">Log sightings to start seeing patterns.</div></div>';
     ['pPeak','pCam','pBuck','pTemp'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent='—'; });
+    return;
+  }
+
+  // Route to buck view if selected
+  if (patternsView === 'buck') {
+    // Clear stat bar
+    ['pPeak','pCam','pBuck','pTemp'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent='—'; });
+    renderBuckPatterns(sightings, content);
     return;
   }
 
@@ -1884,6 +2182,227 @@ function renderPatterns() {
 }
 
 
+
+// ============================================================
+// 7-DAY FORECAST + HUNT PREDICTOR
+// ============================================================
+let forecastData = null;
+let selectedForecastDay = null;
+
+async function loadForecast() {
+  const lat = (S.propertySettings && S.propertySettings.lat) || 46.2504;
+  const lon = (S.propertySettings && S.propertySettings.lon) || -91.07529;
+
+  try {
+    const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon +
+      '&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,wind_direction_10m_dominant,precipitation_sum,weathercode' +
+      '&hourly=surface_pressure' +
+      '&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Chicago&forecast_days=10';
+
+    const resp = await fetch(url);
+    const data = await resp.json();
+    forecastData = data;
+    renderForecastStrip();
+  } catch(e) {
+    const el = document.getElementById('forecastSection');
+    if (el) el.innerHTML = '<div style="color:var(--text-3);font-size:12px;padding:10px">⚠️ Could not load forecast — check connection.</div>';
+  }
+}
+
+function weatherIcon(code) {
+  if (code === 0) return '☀️';
+  if (code <= 2) return '⛅';
+  if (code <= 3) return '☁️';
+  if (code <= 49) return '🌫️';
+  if (code <= 59) return '🌦️';
+  if (code <= 69) return '🌧️';
+  if (code <= 79) return '❄️';
+  if (code <= 82) return '🌧️';
+  if (code <= 86) return '🌨️';
+  if (code <= 99) return '⛈️';
+  return '🌤️';
+}
+
+function windDegToDir(deg) {
+  const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  return dirs[Math.round(deg / 22.5) % 16];
+}
+
+function windDegTo8(deg) {
+  const dirs8 = ['N','NE','E','SE','S','SW','W','NW'];
+  return dirs8.reduce((best, d) => {
+    const toAngle = a => ({N:0,NE:45,E:90,SE:135,S:180,SW:225,W:270,NW:315})[a];
+    const diff = a => Math.abs(((deg - toAngle(a)) + 540) % 360 - 180);
+    return diff(d) < diff(best) ? d : best;
+  }, 'N');
+}
+
+function scoreDayForBuck(buck, dayWind8, dayTempAvg, dayRut) {
+  const bs = S.sightings.filter(s => s.buckId === buck.id);
+  if (bs.length < 2) return 0;
+
+  let score = 0, checks = 0;
+
+  // Wind match
+  const windSightings = bs.filter(s => s.windDir);
+  if (windSightings.length > 0) {
+    const windHits = windSightings.filter(s => s.windDir === dayWind8).length;
+    score += Math.round(windHits / windSightings.length * 100);
+    checks++;
+  }
+
+  // Temp match
+  const tempSightings = bs.filter(s => s.temp);
+  if (tempSightings.length > 0 && dayTempAvg) {
+    const tempBkt = t => t<30?0:t<40?1:t<50?2:t<60?3:4;
+    const dayBkt = tempBkt(dayTempAvg);
+    const tempHits = tempSightings.filter(s => tempBkt(Number(s.temp)) === dayBkt).length;
+    score += Math.round(tempHits / tempSightings.length * 100);
+    checks++;
+  }
+
+  return checks ? Math.round(score / checks) : 0;
+}
+
+function scoreDay(dayWind8, dayTempAvg) {
+  // Overall score across all bucks
+  const bucksWithData = S.bucks.filter(b => S.sightings.some(s => s.buckId === b.id));
+  if (!bucksWithData.length) return 0;
+  const scores = bucksWithData.map(b => scoreDayForBuck(b, dayWind8, dayTempAvg, ''));
+  return Math.round(scores.reduce((a,b) => a+b, 0) / scores.length);
+}
+
+function renderForecastStrip() {
+  if (!forecastData) return;
+  const section = document.getElementById('forecastSection');
+  if (!section) return;
+
+  const daily = forecastData.daily;
+  const days = daily.time.length;
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  let stripHtml = '<div style="margin-bottom:14px">';
+  stripHtml += '<div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px">🌤 10-Day Forecast — Cable, WI · Click a day for hunt predictions</div>';
+  stripHtml += '<div class="forecast-strip">';
+
+  const dayScores = [];
+  for (let i = 0; i < Math.min(days, 10); i++) {
+    const date = new Date(daily.time[i] + 'T12:00:00');
+    const dayName = dayNames[date.getDay()];
+    const dateStr = (date.getMonth()+1) + '/' + date.getDate();
+    const tMax = Math.round(daily.temperature_2m_max[i]);
+    const tMin = Math.round(daily.temperature_2m_min[i]);
+    const tAvg = Math.round((tMax + tMin) / 2);
+    const windSpd = Math.round(daily.wind_speed_10m_max[i]);
+    const windDeg = daily.wind_direction_10m_dominant[i];
+    const windDir = windDegToDir(windDeg);
+    const wind8 = windDegTo8(windDeg);
+    const icon = weatherIcon(daily.weathercode[i]);
+    const precip = daily.precipitation_sum[i];
+    const dayScore = scoreDay(wind8, tAvg);
+    dayScores.push({ i, date, dayName, dateStr, tMax, tMin, tAvg, windSpd, windDir, wind8, icon, precip, dayScore });
+  }
+
+  // Find best days
+  const maxScore = Math.max(...dayScores.map(d => d.dayScore));
+
+  dayScores.forEach(d => {
+    const isBest = d.dayScore >= maxScore * 0.85 && d.dayScore > 40 && S.sightings.length > 0;
+    const isGood = !isBest && d.dayScore >= maxScore * 0.6 && d.dayScore > 25 && S.sightings.length > 0;
+    const isSelected = selectedForecastDay === d.i;
+    const scoreClass = d.dayScore >= 60 ? 'high' : d.dayScore >= 35 ? 'med' : 'low';
+
+    stripHtml += '<div class="forecast-day' + (isBest?' best-day':isGood?' good-day':'') + (isSelected?' best-day':'') + '" onclick="selectForecastDay(' + d.i + ')" data-day="' + d.i + '">';
+    if (S.sightings.length > 0) stripHtml += '<div class="forecast-day-score ' + scoreClass + '">' + d.dayScore + '%</div>';
+    stripHtml += '<div class="forecast-day-label">' + d.dayName + '</div>';
+    stripHtml += '<div class="forecast-day-date">' + d.dateStr + '</div>';
+    stripHtml += '<div class="forecast-day-icon">' + d.icon + '</div>';
+    stripHtml += '<div class="forecast-day-temp">' + d.tMax + '°/' + d.tMin + '°F</div>';
+    stripHtml += '<div class="forecast-day-wind">💨 ' + d.windDir + ' ' + d.windSpd + 'mph</div>';
+    if (d.precip > 0) stripHtml += '<div style="font-size:10px;color:#2a6a9a;margin-top:2px">🌧 ' + d.precip.toFixed(1) + '"</div>';
+    stripHtml += '</div>';
+  });
+
+  stripHtml += '</div>';
+
+  // Day detail section
+  if (selectedForecastDay !== null) {
+    const d = dayScores[selectedForecastDay];
+    if (d) {
+      stripHtml += '<div class="forecast-detail">';
+      stripHtml += '<div class="forecast-detail-title">' + d.dayName + ' ' + d.dateStr + ' — ' + d.icon + ' ' + d.tMax + '°/' + d.tMin + '°F · 💨 ' + d.windDir + ' ' + d.windSpd + 'mph</div>';
+
+      const bucksWithData = S.bucks.filter(b => S.sightings.some(s => s.buckId === b.id));
+      if (!bucksWithData.length) {
+        stripHtml += '<div style="color:var(--text-3);font-size:12px">Log sightings to see buck-specific predictions for this day.</div>';
+      } else {
+        stripHtml += '<div style="font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px">Buck Movement Predictions</div>';
+
+        const buckPredictions = bucksWithData.map(buck => {
+          const bs = S.sightings.filter(s => s.buckId === buck.id);
+          const score = scoreDayForBuck(buck, d.wind8, d.tAvg, '');
+
+          // Best camera for this buck on this wind
+          const camScores = {};
+          S.cameras.forEach(cam => {
+            const camBs = bs.filter(s => s.camId === cam.id);
+            if (!camBs.length) return;
+            const windHits = camBs.filter(s => s.windDir === d.wind8).length;
+            camScores[cam.id] = windHits;
+          });
+          const topCamId = Object.entries(camScores).sort((a,b)=>b[1]-a[1])[0]?.[0];
+          const topCam = topCamId ? S.cameras.find(c=>c.id===topCamId) : null;
+
+          // Peak window for this buck
+          const hc = new Array(24).fill(0);
+          bs.filter(s=>s.windDir===d.wind8).forEach(s=>{if(s.time)hc[parseInt(s.time)]++;});
+          const anyHour = Math.max(...hc);
+          let peakStr = '';
+          if (anyHour > 0) {
+            const peaks = hc.reduce((a,c,i)=>{if(c>=anyHour*0.7&&c>0)a.push(i);return a;},[]);
+            if (peaks.length) peakStr = fmtTime(peaks[0]+':00') + (peaks.length>1?' – '+fmtTime(peaks[peaks.length-1]+':00'):'');
+          }
+
+          // Top heading on this wind
+          const headOnWind = bs.filter(s=>s.windDir===d.wind8&&s.buckHeading).map(s=>s.buckHeading);
+          const topHead = headOnWind.length ? headOnWind.reduce((a,b,i,arr)=>arr.filter(v=>v===a).length>=arr.filter(v=>v===b).length?a:b) : null;
+
+          const barColor = score>=60?'var(--green-mid)':score>=35?'#b45309':'var(--border-strong)';
+          const recommendation = score >= 50
+            ? '🟢 HUNT HIM — conditions match his historical pattern' + (topCam?' at '+topCam.name:'') + (peakStr?' between '+peakStr:'') + (topHead?', heading '+topHead:'') + '.'
+            : score >= 30
+            ? '🟡 Maybe — partial match. ' + (topCam?topCam.name+' is his best bet on a '+d.wind8+' wind.':'Check your best camera.')
+            : '🔴 Poor conditions for this buck based on his history. Consider a different sit.';
+
+          return { buck, score, recommendation, barColor };
+        }).sort((a,b) => b.score - a.score);
+
+        buckPredictions.forEach(({ buck, score, recommendation, barColor }) => {
+          stripHtml += '<div class="forecast-buck-row">';
+          stripHtml += '<div style="font-size:22px">' + buck.emoji + '</div>';
+          stripHtml += '<div style="flex:1;min-width:0">';
+          stripHtml += '<div style="font-size:13px;font-weight:700;color:var(--text)">' + buck.name + '</div>';
+          stripHtml += '<div style="font-size:12px;color:var(--text-2);margin-top:2px;line-height:1.45">' + recommendation + '</div>';
+          stripHtml += '<div class="forecast-buck-score-bar"><div class="forecast-buck-score-fill" style="width:' + score + '%;background:' + barColor + '"></div></div>';
+          stripHtml += '</div>';
+          stripHtml += '<div style="font-size:18px;font-weight:800;color:' + barColor + ';margin-left:8px;flex-shrink:0">' + score + '%</div>';
+          stripHtml += '</div>';
+        });
+      }
+
+      stripHtml += '</div>';
+    }
+  }
+
+  stripHtml += '</div>';
+  section.innerHTML = stripHtml;
+}
+
+function selectForecastDay(i) {
+  selectedForecastDay = selectedForecastDay === i ? null : i;
+  renderForecastStrip();
+}
+
 // ============================================================
 // PREDICT — Buck Movement Predictor
 // ============================================================
@@ -1892,7 +2411,10 @@ function renderPredict() {
   if (!body) return;
 
   if (S.bucks.length === 0 || S.sightings.length === 0) {
-    body.innerHTML = '<div class="empty" style="margin-top:40px"><div class="empty-icon">🎯</div><div class="empty-text">Not enough data yet</div><div class="empty-sub">Add bucks, cameras, and log sightings — the predictor needs at least 5 sightings to find patterns.</div></div>';
+    // Forecast placeholder — gets populated by loadForecast()
+  const forecastHtml = '<div id="forecastSection"><div class="forecast-loading"><div class="analysis-spinner" style="width:20px;height:20px;border-width:2px"></div>Loading 10-day forecast for Cable, WI...</div></div>';
+
+  body.innerHTML = '<div class="empty" style="margin-top:40px"><div class="empty-icon">🎯</div><div class="empty-text">Not enough data yet</div><div class="empty-sub">Add bucks, cameras, and log sightings — the predictor needs at least 5 sightings to find patterns.</div></div>';
     return;
   }
 
@@ -2085,7 +2607,13 @@ function renderPredict() {
   const currentIRut  = iRut;
   const currentITime = iTime;
 
+  // Forecast placeholder — gets populated by loadForecast()
+  const forecastHtml = '<div id="forecastSection"><div class="forecast-loading"><div class="analysis-spinner" style="width:20px;height:20px;border-width:2px"></div>Loading 10-day forecast for Cable, WI...</div></div>';
+
   body.innerHTML =
+    // ── 7-Day Forecast ──
+    '<div id="forecastSection" style="margin-bottom:4px">'+forecastHtml+'</div>'+
+
     // ── Today's Outlook ──
     '<div class="outlook-card">'+
       '<div class="outlook-title">🌤 Today\'s Hunting Outlook</div>'+
