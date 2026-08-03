@@ -575,7 +575,72 @@ function renderFS(){
   }
   const mxS=Math.max(...dd.map(d=>d.os),1);
   const fl=(gS||gY)?'<span style="background:var(--gl);border:1px solid var(--gb);border-radius:10px;padding:2px 10px;color:var(--green);font-weight:600;font-size:11px">'+(gS||'')+(gS&&gY?' - ':'')+(gY||'')+'</span>':'<span style="font-size:11px;color:var(--t3)">All seasons - All years</span>';
+  // ── Best Sit Hero Card ──────────────────────────────────────
+  function buildBestSit() {
+    if(!bwd.length) return '';
+    // Score every buck × day combination
+    const candidates = [];
+    dd.forEach(d => {
+      bwd.forEach(buck => {
+        const bs = fil().filter(s => s.buckId === buck.id);
+        const score = sDFB(buck, d.w8, d.tAv);
+        if (score < 30) return;
+        // Best camera on this wind
+        const cS = {};
+        S.cameras.forEach(cam => {
+          const c = bs.filter(s => s.camId === cam.id && s.windDir === d.w8).length;
+          if (c) cS[cam.id] = c;
+        });
+        const topCamId = Object.entries(cS).sort((a,b)=>b[1]-a[1])[0]?.[0];
+        const topCam = topCamId ? S.cameras.find(c=>c.id===topCamId) : null;
+        // Peak time on this wind
+        const hc2 = new Array(24).fill(0);
+        bs.filter(s=>s.windDir===d.w8).forEach(s=>{if(s.time)hc2[parseInt(s.time)]++;});
+        const mH2 = Math.max(...hc2);
+        let pkStr = '';
+        if(mH2>0){const pk=hc2.reduce((a,c,i)=>{if(c>=mH2*0.7&&c>0)a.push(i);return a;},[]);if(pk.length)pkStr=ft(pk[0]+':00')+(pk.length>1?' - '+ft(pk[pk.length-1]+':00'):'');}
+        // Top heading on this wind
+        const hw = bs.filter(s=>s.windDir===d.w8&&s.buckHeading).map(s=>s.buckHeading);
+        const topHead = hw.length ? hw.reduce((a,b,i,ar)=>ar.filter(v=>v===a).length>=ar.filter(v=>v===b).length?a:b,hw[0]) : null;
+        // Wind match pct
+        const ws = bs.filter(s=>s.windDir);
+        const windPct = ws.length ? Math.round(ws.filter(s=>s.windDir===d.w8).length/ws.length*100) : 0;
+        const sightCount = bs.filter(s=>s.windDir===d.w8).length;
+        candidates.push({buck, d, score, topCam, pkStr, topHead, windPct, sightCount});
+      });
+    });
+    if(!candidates.length) return '';
+    candidates.sort((a,b)=>b.score-a.score);
+    const best = candidates[0];
+    const verdict = best.score >= 55 ? '🟢 HUNT IT' : '🟡 WORTH A LOOK';
+    const verdictColor = best.score >= 55 ? 'var(--gm)' : '#b45309';
+    const dayLabel = best.d.dn + ' ' + best.d.ds;
+    let headline = verdict + ' — ' + dayLabel;
+    let detail = best.buck.name + ' has shown up on ' + best.d.wL + ' wind ' + best.windPct + '% of the time';
+    if(best.sightCount > 0) detail += ' (' + best.sightCount + ' sighting' + (best.sightCount>1?'s':'') + ' on this wind)';
+    detail += '.';
+    if(best.topCam) detail += ' Best camera: <strong>' + best.topCam.name + '</strong>.';
+    if(best.pkStr) detail += ' Be there by <strong>' + best.pkStr + '</strong>.';
+    if(best.topHead) detail += ' Set up to cut him off heading <strong>' + best.topHead + '</strong>.';
+    const wx = best.d.ico + ' ' + best.d.tMx + '°/' + best.d.tMn + '° · ' + best.d.wL + ' ' + best.d.wS + 'mph' + (best.d.pr>0.1?' · 🌧 '+best.d.pr.toFixed(1)+'"':'');
+    return '<div style="background:linear-gradient(135deg,#1a2e1c,#253020);border-radius:var(--r);padding:18px 20px;margin-bottom:18px;border:1px solid rgba(255,255,255,.08)">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">' +
+        '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5)">Best Sit This Week</div>' +
+        '<div style="font-size:11px;font-weight:800;padding:3px 10px;border-radius:10px;background:'+verdictColor+';color:#fff">'+best.score+'% match</div>' +
+      '</div>' +
+      '<div style="font-size:20px;font-weight:800;color:#c8d8a0;margin-bottom:5px">' + headline + '</div>' +
+      '<div style="font-size:12px;color:rgba(255,255,255,.55);margin-bottom:12px">' + wx + '</div>' +
+      '<div style="font-size:13px;color:rgba(255,255,255,.85);line-height:1.6">' + detail + '</div>' +
+      // Runner-up
+      (candidates.length > 1 ? (()=>{
+        const ru = candidates[1];
+        return '<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);font-size:12px;color:rgba(255,255,255,.5)">Runner-up: ' + ru.d.dn + ' ' + ru.d.ds + ' · ' + (ru.buck.emoji||'🦌') + ' ' + ru.buck.name + (ru.topCam?' @ '+ru.topCam.name:'') + ' · ' + ru.score + '% match</div>';
+      })() : '') +
+    '</div>';
+  }
+
   let html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3)">10-Day Hunt Forecast - Cable, WI</div>'+fl+'</div>';
+  html+=buildBestSit();
   html+='<div class="fg2">';
   dd.forEach(d=>{
     const iB=d.os>=mxS*0.85&&d.os>30&&bwd.length>0,isG=!iB&&d.os>=mxS*0.6&&d.os>15&&bwd.length>0;
