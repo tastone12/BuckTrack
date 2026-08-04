@@ -317,7 +317,7 @@ tr:hover td{background:var(--gl)}
     </div>
     <div class="ss">
       <div class="sti">&#128203; Sighting Form Fields</div>
-      <div class="ssu">Toggle built-in fields on/off, edit dropdown options, and add custom fields.</div>
+      <div class="ssu">Toggle built-in fields on/off, edit dropdown options, and add custom fields. <strong>Note:</strong> Rut sightings are logged but excluded from predictions — rut behavior is not repeatable year to year.</div>
       <div style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:8px">Built-in Fields</div>
       <div id="builtinFields"></div>
       <div class="oe" id="seasonEditor">
@@ -401,7 +401,7 @@ tr:hover td{background:var(--gl)}
   </div>
 </div>
 <script>
-const DS={cameras:[],bucks:[],sightings:[],propertySettings:{name:'',hunter:'T-Stone',lat:46.2504,lon:-91.07529},fieldSettings:{builtins:{season:{label:'Season',enabled:true,options:['Summer','Fall','Late Season']},temp:{label:'Temperature (F)',enabled:true},windDir:{label:'Wind Direction',enabled:true},windSpeed:{label:'Wind Speed (mph)',enabled:true},pressure:{label:'Barometric Pressure (inHg)',enabled:true},rut:{label:'Rut Stage',enabled:true,options:['Pre-Rut','Seeking','Peak Rut','Lock-Down','Post-Rut']},notes:{label:'Behavior / Notes',enabled:true}},custom:[]}};
+const DS={cameras:[],bucks:[],sightings:[],propertySettings:{name:'',hunter:'T-Stone',lat:46.2504,lon:-91.07529},fieldSettings:{builtins:{season:{label:'Season',enabled:true,options:['Summer','Fall','Rut','Late Season']},temp:{label:'Temperature (F)',enabled:true},windDir:{label:'Wind Direction',enabled:true},windSpeed:{label:'Wind Speed (mph)',enabled:true},pressure:{label:'Barometric Pressure (inHg)',enabled:true},rut:{label:'Rut Stage',enabled:true,options:['Pre-Rut','Seeking','Peak Rut','Lock-Down','Post-Rut']},notes:{label:'Behavior / Notes',enabled:true}},custom:[]}};
 let S=JSON.parse(JSON.stringify(DS));
 let gS='',gY='';
 function save(){try{localStorage.setItem('bt_v2',JSON.stringify(S));}catch(e){}}
@@ -416,6 +416,8 @@ function load(){
   catch(e){S=JSON.parse(JSON.stringify(DS));}
 }
 function fil(){return S.sightings.filter(s=>{if(gS&&s.season!==gS)return false;if(gY&&(s.year||'')!==gY)return false;return true;});}
+// predFil: same as fil() but always strips Rut sightings — rut behavior is not year-to-year repeatable
+function predFil(){return fil().filter(s=>s.season!=='Rut');}
 function onFilter(){
   gS=document.getElementById('gSeason').value;gY=document.getElementById('gYear').value;
   const v=document.querySelector('.view.active')?.id?.replace('view-','');
@@ -621,8 +623,8 @@ function buckTimeProfile(bs){
 
 // ── Main per-buck scoring function (4 factors) ───────────────
 // Weights: Wind 35%, Temp 25%, Pressure trend 20%, Time of day 20%
-function sDFB(buck,w8,ta,dayIdx){
-  const bs=fil().filter(s=>s.buckId===buck.id);
+function sDFB(buck,w8,ta,dayIdx,wSpd){
+  const bs=predFil().filter(s=>s.buckId===buck.id);
   if(bs.length<2)return 0;
   let totalScore=0,totalWeight=0;
 
@@ -680,19 +682,38 @@ function sDFB(buck,w8,ta,dayIdx){
   }
 
   if(totalWeight===0)return 0;
-  return Math.round(totalScore/totalWeight);
+  let rawScore=Math.round(totalScore/totalWeight);
+
+  // ── Wind speed suppression ────────────────────────────────
+  // High winds suppress deer movement significantly
+  // Light (<10mph): no penalty. Moderate (10-20mph): slight penalty.
+  // Strong (20-30mph): meaningful penalty. Very strong (30+mph): major penalty.
+  if(wSpd!=null){
+    let windPenalty=0;
+    if(wSpd>=30)windPenalty=25;       // 30+ mph: deer bed down, movement tanks
+    else if(wSpd>=20)windPenalty=15;  // 20-30 mph: significant suppression
+    else if(wSpd>=12)windPenalty=7;   // 12-20 mph: light suppression
+    rawScore=Math.max(0,rawScore-windPenalty);
+  }
+
+  // ── Rut exclusion flag ────────────────────────────────────
+  // Rut sightings are already filtered by fil() — if user selects Rut season
+  // predictions still work but we won't penalize or boost for rut behavior
+  // (rut movement is not repeatable year to year)
+
+  return rawScore;
 }
 
-function sDay(w8,ta,dayIdx){
-  const bks=S.bucks.filter(b=>fil().some(s=>s.buckId===b.id));if(!bks.length)return 0;
-  return Math.round(bks.map(b=>sDFB(b,w8,ta,dayIdx)).reduce((a,b)=>a+b,0)/bks.length);
+function sDay(w8,ta,dayIdx,wSpd){
+  const bks=S.bucks.filter(b=>predFil().some(s=>s.buckId===b.id));if(!bks.length)return 0;
+  return Math.round(bks.map(b=>sDFB(b,w8,ta,dayIdx,wSpd)).reduce((a,b)=>a+b,0)/bks.length);
 }
 function renderFS(){
   if(!fd)return;
   const body=document.getElementById('predictBody');if(!body)return;
   const dl=fd.daily,days=Math.min(dl.time.length,10);
   const dn=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const bwd=S.bucks.filter(b=>fil().some(s=>s.buckId===b.id));
+  const bwd=S.bucks.filter(b=>predFil().some(s=>s.buckId===b.id));
   const hasData=bwd.length>0;
 
   // Build day data
@@ -718,8 +739,8 @@ function renderFS(){
     const candidates=[];
     dd.forEach(d=>{
       bwd.forEach(buck=>{
-        const bs=fil().filter(s=>s.buckId===buck.id);
-        const score=sDFB(buck,d.w8,d.tAv,d.i);
+        const bs=predFil().filter(s=>s.buckId===buck.id);
+        const score=sDFB(buck,d.w8,d.tAv,d.i,d.wSpd);
         if(score<1)return;
         const cS={};S.cameras.forEach(cam=>{const c=bs.filter(s=>s.camId===cam.id&&s.windDir===d.w8).length;if(c)cS[cam.id]=c;});
         const topCamId=Object.entries(cS).sort((a,b)=>b[1]-a[1])[0]?.[0];
@@ -777,8 +798,8 @@ function renderFS(){
   function buckRows(d){
     if(!hasData)return'<div style="font-size:12px;color:var(--t3);padding:4px 0">Log sightings to unlock</div>';
     return bwd.map(buck=>{
-      const bs=fil().filter(s=>s.buckId===buck.id);
-      const score=sDFB(buck,d.w8,d.tAv,d.i);
+      const bs=predFil().filter(s=>s.buckId===buck.id);
+      const score=sDFB(buck,d.w8,d.tAv,d.i,d.wSpd);
       const cS={};S.cameras.forEach(cam=>{const c=bs.filter(s=>s.camId===cam.id&&s.windDir===d.w8).length;if(c)cS[cam.id]=c;});
       const topCamId=Object.entries(cS).sort((a,b)=>b[1]-a[1])[0]?.[0];
       const topCam=topCamId?S.cameras.find(c=>c.id===topCamId):null;
@@ -855,6 +876,81 @@ function renderFS(){
   });
 
   html+='</div>';
+
+  // ── Year-over-Year Pattern Block ─────────────────────────
+  // Only show if we have 2+ years of data
+  const allYears=[...new Set(S.sightings.map(s=>s.year).filter(Boolean))].sort((a,b)=>b-a);
+  const relevantYears=allYears.filter(y=>S.sightings.some(s=>s.year===y&&(!gS||s.season===gS)&&s.season!=='Rut'));
+  if(relevantYears.length>=2&&hasData){
+    html+='<div style="margin-top:8px">';
+    html+='<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:12px">Year-Over-Year Pattern Analysis</div>';
+    html+='<div style="display:grid;grid-template-columns:repeat('+Math.min(relevantYears.length,4)+',1fr);gap:12px">';
+
+    relevantYears.slice(0,4).forEach(yr=>{
+      const yrSights=S.sightings.filter(s=>s.year===yr&&s.season!=='Rut'&&(!gS||s.season===gS));
+      if(!yrSights.length)return;
+
+      // Best wind this year
+      const wC={};yrSights.forEach(s=>{if(s.windDir)wC[s.windDir]=(wC[s.windDir]||0)+1;});
+      const topW=Object.entries(wC).sort((a,b)=>b[1]-a[1])[0];
+
+      // Best camera this year
+      const cC={};yrSights.forEach(s=>{if(s.camId)cC[s.camId]=(cC[s.camId]||0)+1;});
+      const topCE=Object.entries(cC).sort((a,b)=>b[1]-a[1])[0];
+      const topCam=topCE?S.cameras.find(c=>c.id===topCE[0]):null;
+
+      // Peak time this year
+      const hc=new Array(24).fill(0);yrSights.forEach(s=>{if(s.time)hc[parseInt(s.time)]++;});
+      const maxH=Math.max(...hc);const pkI=hc.indexOf(maxH);
+      const pkStr=maxH>0?ft(pkI+':00'):'—';
+
+      // Dawn vs dusk split
+      const dawn=yrSights.filter(s=>s.time&&parseInt(s.time)>=4&&parseInt(s.time)<=9).length;
+      const dusk=yrSights.filter(s=>s.time&&parseInt(s.time)>=16&&parseInt(s.time)<=21).length;
+      const timeLabel=dawn>dusk?'Dawn-heavy':'dusk>dawn'?'Dusk-heavy':'Mixed';
+
+      // Active bucks this year
+      const buckIds=[...new Set(yrSights.map(s=>s.buckId))];
+      const buckNames=buckIds.map(id=>S.bucks.find(b=>b.id===id)?.name).filter(Boolean);
+
+      html+='<div style="background:var(--surface);border:1px solid var(--b);border-radius:var(--r);padding:14px 16px;box-shadow:var(--sh)">'+
+        '<div style="font-size:18px;font-weight:800;color:var(--gm);margin-bottom:2px">'+yr+'</div>'+
+        '<div style="font-size:11px;color:var(--t3);margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--b)">'+yrSights.length+' sighting'+(yrSights.length!==1?'s':'')+' · excl. Rut</div>'+
+        '<div style="display:flex;flex-direction:column;gap:6px">'+
+          (topW?'<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;color:var(--t3)">Top wind</span><span style="font-size:12px;font-weight:700;color:var(--t)">'+topW[0]+' ('+topW[1]+'x)</span></div>':'')  +
+          (topCam?'<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;color:var(--t3)">Top camera</span><span style="font-size:12px;font-weight:700;color:var(--t);text-align:right;max-width:60%">'+topCam.name+'</span></div>':'')+
+          '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;color:var(--t3)">Peak time</span><span style="font-size:12px;font-weight:700;color:var(--t)">'+pkStr+'</span></div>'+
+          '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;color:var(--t3)">Pattern</span><span style="font-size:12px;font-weight:700;color:var(--t)">'+dawn+' dawn / '+dusk+' dusk</span></div>'+
+          (buckNames.length?'<div style="margin-top:4px;padding-top:8px;border-top:1px solid var(--b)"><div style="font-size:10px;color:var(--t3);margin-bottom:4px;font-weight:600;letter-spacing:.05em;text-transform:uppercase">Active bucks</div><div style="font-size:11px;font-weight:600;color:var(--t2)">'+buckNames.join(', ')+'</div></div>':'')+
+        '</div>'+
+      '</div>';
+    });
+
+    html+='</div>';
+
+    // Multi-year consistency callout
+    if(relevantYears.length>=2){
+      // Find winds that appear as top wind in multiple years
+      const yearTopWinds=relevantYears.slice(0,4).map(yr=>{
+        const ys=S.sightings.filter(s=>s.year===yr&&s.season!=='Rut'&&(!gS||s.season===gS));
+        const wC={};ys.forEach(s=>{if(s.windDir)wC[s.windDir]=(wC[s.windDir]||0)+1;});
+        return Object.entries(wC).sort((a,b)=>b[1]-a[1])[0]?.[0]||null;
+      }).filter(Boolean);
+      const windCounts={};yearTopWinds.forEach(w=>{windCounts[w]=(windCounts[w]||0)+1;});
+      const consistent=Object.entries(windCounts).filter(([,c])=>c>=2).sort((a,b)=>b[1]-a[1]);
+      if(consistent.length){
+        html+='<div style="margin-top:10px;background:linear-gradient(135deg,#1a2e1c,#253020);border-radius:var(--r);padding:13px 16px;color:#fff">'+
+          '<div style="font-size:11px;font-weight:700;color:#c8d8a0;margin-bottom:4px">Multi-Year Pattern Confirmed</div>'+
+          '<div style="font-size:12px;color:rgba(255,255,255,.8)">'+
+            consistent.map(([w,c])=>'<strong>'+w+' wind</strong> was the top producer in '+c+' of the last '+relevantYears.slice(0,4).length+' seasons.').join(' ')+
+            ' This is a reliable pattern worth building your forecast around.'+
+          '</div>'+
+        '</div>';
+      }
+    }
+    html+='</div>';
+  }
+
   body.innerHTML=html;
 }
 
