@@ -106,27 +106,41 @@ textarea.f{resize:vertical;min-height:60px}
 /* PREDICT */
 #view-predict{overflow-y:auto;background:var(--bg);flex-direction:column}
 .pb{padding:18px 22px;display:flex;flex-direction:column;gap:16px}
-.fg2{display:grid;grid-template-columns:repeat(10,1fr);gap:8px;align-items:start}
-.fc{display:flex;flex-direction:column;gap:6px}
-.fh{background:var(--surface);border:1px solid var(--b);border-radius:var(--r);padding:10px 8px;text-align:center;box-shadow:var(--sh)}
-.fh.best{border-color:var(--gm);background:linear-gradient(180deg,var(--gl),var(--surface))}
-.fh.good{border-color:#b45309;background:linear-gradient(180deg,#fff7ed,var(--surface))}
-.fdn{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);margin-bottom:1px}
-.fdd{font-size:11px;color:var(--t3);margin-bottom:5px}
-.fdi{font-size:20px;margin-bottom:4px}
-.fdt{font-size:13px;font-weight:800;color:var(--t);margin-bottom:2px}
-.fdw{font-size:11px;color:var(--t2);margin-bottom:2px}
-.fdp{font-size:10px;color:#2a6a9a}
-.fsb{display:inline-block;font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;margin-top:5px}
-.fsb.hi{background:var(--gm);color:#fff}.fsb.me{background:#b45309;color:#fff}.fsb.lo{background:var(--surface2);color:var(--t3);border:1px solid var(--b)}
-.fbc{background:var(--surface);border:1px solid var(--b);border-radius:6px;padding:8px;box-shadow:var(--sh);margin-bottom:5px}
-.fbc.hunt{border-color:var(--gm);background:var(--gl)}.fbc.maybe{border-color:#b45309;background:#fff7ed}.fbc.poor{opacity:.65}
-.fbn{font-size:10px;font-weight:800;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
-.fbv{font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;display:inline-block;margin-bottom:4px}
-.fbv.hunt{background:var(--gm);color:#fff}.fbv.maybe{background:#b45309;color:#fff}.fbv.poor{background:var(--b);color:var(--t3)}
-.fbd{font-size:9px;color:var(--t2);line-height:1.4}
-.fbb{height:3px;background:rgba(0,0,0,.08);border-radius:2px;margin-top:4px}
-.fbbf{height:100%;border-radius:2px}
+/* PREDICT - new 3-col grid layout */
+.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.fcard{background:var(--surface);border:1px solid var(--b);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;cursor:pointer;transition:box-shadow .15s,transform .15s}
+.fcard:hover{box-shadow:var(--shm);transform:translateY(-1px)}
+.fcard.best{border-left:4px solid var(--gm)}
+.fcard.good{border-left:4px solid #b45309}
+.fcard.open{box-shadow:var(--shm)}
+.fcard-top{padding:14px 16px;display:flex;align-items:center;gap:12px}
+.fcard-weather{display:flex;flex-direction:column;align-items:center;min-width:54px}
+.fcard-ico{font-size:26px;line-height:1;margin-bottom:3px}
+.fcard-temps{font-size:13px;font-weight:800;color:var(--t)}
+.fcard-info{flex:1;min-width:0}
+.fcard-dayname{font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--t3)}
+.fcard-date{font-size:11px;color:var(--t3);margin-bottom:4px}
+.fcard-wind{font-size:12px;color:var(--t2);margin-bottom:2px}
+.fcard-precip{font-size:11px;color:#2a6a9a}
+.fcard-score{text-align:right;flex-shrink:0}
+.fcard-pct{font-size:22px;font-weight:800;line-height:1}
+.fcard-pct.hi{color:var(--gm)}.fcard-pct.me{color:#b45309}.fcard-pct.lo{color:var(--bs)}
+.fcard-match{font-size:10px;color:var(--t3);font-weight:600}
+.fcard-bucks{padding:0 16px 14px;display:flex;flex-direction:column;gap:6px}
+.fbrow{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;border:1px solid var(--b)}
+.fbrow.hunt{background:var(--gl);border-color:var(--gb)}
+.fbrow.maybe{background:#fff7ed;border-color:#fcd9a0}
+.fbrow.poor{opacity:.55}
+.fbrow-emoji{font-size:16px;flex-shrink:0}
+.fbrow-info{flex:1;min-width:0}
+.fbrow-name{font-size:12px;font-weight:700;color:var(--t);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fbrow-detail{font-size:11px;color:var(--t2);margin-top:1px;line-height:1.3}
+.fbrow-badge{font-size:10px;font-weight:800;padding:2px 7px;border-radius:8px;flex-shrink:0;white-space:nowrap}
+.fbrow-badge.hunt{background:var(--gm);color:#fff}
+.fbrow-badge.maybe{background:#b45309;color:#fff}
+.fbrow-badge.poor{background:var(--surface2);color:var(--t3);border:1px solid var(--b)}
+.fcard-expand{padding:0 16px 14px;display:none;border-top:1px solid var(--b);margin-top:2px;padding-top:12px}
+.fcard.open .fcard-expand{display:block}
 .flo{display:flex;align-items:center;gap:10px;padding:20px;color:var(--t3);font-size:13px}
 .sp{width:20px;height:20px;border:2px solid var(--b);border-top-color:var(--gm);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -565,119 +579,160 @@ function renderFS(){
   const dl=fd.daily,days=Math.min(dl.time.length,10);
   const dn=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const bwd=S.bucks.filter(b=>fil().some(s=>s.buckId===b.id));
+  const hasData=bwd.length>0;
+
+  // Build day data
   const dd=[];
   for(let i=0;i<days;i++){
     const dt=new Date(dl.time[i]+'T12:00:00');
     const tMx=Math.round(dl.temperature_2m_max[i]),tMn=Math.round(dl.temperature_2m_min[i]),tAv=Math.round((tMx+tMn)/2);
-    const wD=dl.wind_direction_10m_dominant[i],wS=Math.round(dl.wind_speed_10m_max[i]);
-    const wL=wDirL(wD),w8=wDir8(wD),ico=wIco(dl.weathercode[i]),pr=dl.precipitation_sum[i]||0;
-    dd.push({dt,dn:dn[dt.getDay()],ds:(dt.getMonth()+1)+'/'+dt.getDate(),tMx,tMn,tAv,wL,wS,w8,ico,pr,os:sDay(w8,tAv)});
+    const wDeg=dl.wind_direction_10m_dominant[i],wSpd=Math.round(dl.wind_speed_10m_max[i]);
+    const wLong=wDirL(wDeg),w8=wDir8(wDeg);
+    const icon=wIco(dl.weathercode[i]),pr=dl.precipitation_sum[i]||0;
+    const os=sDay(w8,tAv);
+    dd.push({i,dt,dn:dn[dt.getDay()],ds:(dt.getMonth()+1)+'/'+dt.getDate(),tMx,tMn,tAv,wLong,wSpd,w8,icon,pr,os});
   }
-  const mxS=Math.max(...dd.map(d=>d.os),1);
-  const fl=(gS||gY)?'<span style="background:var(--gl);border:1px solid var(--gb);border-radius:10px;padding:2px 10px;color:var(--green);font-weight:600;font-size:11px">'+(gS||'')+(gS&&gY?' - ':'')+(gY||'')+'</span>':'<span style="font-size:11px;color:var(--t3)">All seasons - All years</span>';
-  // ── Best Sit Hero Card ──────────────────────────────────────
-  function buildBestSit() {
-    if(!bwd.length) return '';
-    // Score every buck × day combination
-    const candidates = [];
-    dd.forEach(d => {
-      bwd.forEach(buck => {
-        const bs = fil().filter(s => s.buckId === buck.id);
-        const score = sDFB(buck, d.w8, d.tAv);
-        if (score < 30) return;
-        // Best camera on this wind
-        const cS = {};
-        S.cameras.forEach(cam => {
-          const c = bs.filter(s => s.camId === cam.id && s.windDir === d.w8).length;
-          if (c) cS[cam.id] = c;
-        });
-        const topCamId = Object.entries(cS).sort((a,b)=>b[1]-a[1])[0]?.[0];
-        const topCam = topCamId ? S.cameras.find(c=>c.id===topCamId) : null;
-        // Peak time on this wind
-        const hc2 = new Array(24).fill(0);
-        bs.filter(s=>s.windDir===d.w8).forEach(s=>{if(s.time)hc2[parseInt(s.time)]++;});
-        const mH2 = Math.max(...hc2);
-        let pkStr = '';
-        if(mH2>0){const pk=hc2.reduce((a,c,i)=>{if(c>=mH2*0.7&&c>0)a.push(i);return a;},[]);if(pk.length)pkStr=ft(pk[0]+':00')+(pk.length>1?' - '+ft(pk[pk.length-1]+':00'):'');}
-        // Top heading on this wind
-        const hw = bs.filter(s=>s.windDir===d.w8&&s.buckHeading).map(s=>s.buckHeading);
-        const topHead = hw.length ? hw.reduce((a,b,i,ar)=>ar.filter(v=>v===a).length>=ar.filter(v=>v===b).length?a:b,hw[0]) : null;
-        // Wind match pct
-        const ws = bs.filter(s=>s.windDir);
-        const windPct = ws.length ? Math.round(ws.filter(s=>s.windDir===d.w8).length/ws.length*100) : 0;
-        const sightCount = bs.filter(s=>s.windDir===d.w8).length;
-        candidates.push({buck, d, score, topCam, pkStr, topHead, windPct, sightCount});
+
+  const maxScore=Math.max(...dd.map(d=>d.os),1);
+
+  // Filter label
+  const fl=(gS||gY)?'<span style="background:var(--gl);border:1px solid var(--gb);border-radius:10px;padding:2px 10px;color:var(--green);font-weight:600;font-size:11px">'+(gS||'')+(gS&&gY?' · ':'')+(gY||'')+'</span>':'<span style="font-size:11px;color:var(--t3)">All seasons · All years</span>';
+
+  // ── Best Sit Hero Card ────────────────────────────────────
+  function buildHero(){
+    if(!hasData)return'<div style="background:linear-gradient(135deg,#1a2e1c,#253020);border-radius:var(--r);padding:18px 20px;margin-bottom:4px;border:1px solid rgba(255,255,255,.08);text-align:center"><div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px">Best Sit This Week</div><div style="font-size:14px;color:rgba(255,255,255,.7)">Log sightings to unlock predictions</div><div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:6px">Add bucks, cameras, and sightings in Settings to get personalised hunt recommendations.</div></div>';
+    const candidates=[];
+    dd.forEach(d=>{
+      bwd.forEach(buck=>{
+        const bs=fil().filter(s=>s.buckId===buck.id);
+        const score=sDFB(buck,d.w8,d.tAv);
+        if(score<1)return;
+        const cS={};S.cameras.forEach(cam=>{const c=bs.filter(s=>s.camId===cam.id&&s.windDir===d.w8).length;if(c)cS[cam.id]=c;});
+        const topCamId=Object.entries(cS).sort((a,b)=>b[1]-a[1])[0]?.[0];
+        const topCam=topCamId?S.cameras.find(c=>c.id===topCamId):null;
+        const hc2=new Array(24).fill(0);bs.filter(s=>s.windDir===d.w8).forEach(s=>{if(s.time)hc2[parseInt(s.time)]++;});
+        const mH2=Math.max(...hc2);let pkStr='';
+        if(mH2>0){const pk=hc2.reduce((a,c,i)=>{if(c>=mH2*0.7&&c>0)a.push(i);return a;},[]);if(pk.length)pkStr=ft(pk[0]+':00')+(pk.length>1?' – '+ft(pk[pk.length-1]+':00'):'');}
+        const hw=bs.filter(s=>s.windDir===d.w8&&s.buckHeading).map(s=>s.buckHeading);
+        const topHead=hw.length?hw.reduce((a,b,i,ar)=>ar.filter(v=>v===a).length>=ar.filter(v=>v===b).length?a:b,hw[0]):null;
+        const ws=bs.filter(s=>s.windDir);
+        const windPct=ws.length?Math.round(ws.filter(s=>s.windDir===d.w8).length/ws.length*100):0;
+        const sightCnt=bs.filter(s=>s.windDir===d.w8).length;
+        candidates.push({buck,d,score,topCam,pkStr,topHead,windPct,sightCnt});
       });
     });
-    if(!candidates.length) return '';
+    if(!candidates.length)return'<div style="background:linear-gradient(135deg,#1a2e1c,#253020);border-radius:var(--r);padding:18px 20px;margin-bottom:4px;border:1px solid rgba(255,255,255,.08);text-align:center"><div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px">Best Sit This Week</div><div style="font-size:14px;color:rgba(255,255,255,.7)">Not enough wind/condition data yet</div><div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:6px">Log more sightings with wind direction to get predictions.</div></div>';
     candidates.sort((a,b)=>b.score-a.score);
-    const best = candidates[0];
-    const verdict = best.score >= 55 ? '🟢 HUNT IT' : '🟡 WORTH A LOOK';
-    const verdictColor = best.score >= 55 ? 'var(--gm)' : '#b45309';
-    const dayLabel = best.d.dn + ' ' + best.d.ds;
-    let headline = verdict + ' — ' + dayLabel;
-    let detail = best.buck.name + ' has shown up on ' + best.d.wL + ' wind ' + best.windPct + '% of the time';
-    if(best.sightCount > 0) detail += ' (' + best.sightCount + ' sighting' + (best.sightCount>1?'s':'') + ' on this wind)';
-    detail += '.';
-    if(best.topCam) detail += ' Best camera: <strong>' + best.topCam.name + '</strong>.';
-    if(best.pkStr) detail += ' Be there by <strong>' + best.pkStr + '</strong>.';
-    if(best.topHead) detail += ' Set up to cut him off heading <strong>' + best.topHead + '</strong>.';
-    const wx = best.d.ico + ' ' + best.d.tMx + '°/' + best.d.tMn + '° · ' + best.d.wL + ' ' + best.d.wS + 'mph' + (best.d.pr>0.1?' · 🌧 '+best.d.pr.toFixed(1)+'"':'');
-    return '<div style="background:linear-gradient(135deg,#1a2e1c,#253020);border-radius:var(--r);padding:18px 20px;margin-bottom:18px;border:1px solid rgba(255,255,255,.08)">' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">' +
-        '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5)">Best Sit This Week</div>' +
-        '<div style="font-size:11px;font-weight:800;padding:3px 10px;border-radius:10px;background:'+verdictColor+';color:#fff">'+best.score+'% match</div>' +
-      '</div>' +
-      '<div style="font-size:20px;font-weight:800;color:#c8d8a0;margin-bottom:5px">' + headline + '</div>' +
-      '<div style="font-size:12px;color:rgba(255,255,255,.55);margin-bottom:12px">' + wx + '</div>' +
-      '<div style="font-size:13px;color:rgba(255,255,255,.85);line-height:1.6">' + detail + '</div>' +
-      // Runner-up
-      (candidates.length > 1 ? (()=>{
-        const ru = candidates[1];
-        return '<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);font-size:12px;color:rgba(255,255,255,.5)">Runner-up: ' + ru.d.dn + ' ' + ru.d.ds + ' · ' + (ru.buck.emoji||'🦌') + ' ' + ru.buck.name + (ru.topCam?' @ '+ru.topCam.name:'') + ' · ' + ru.score + '% match</div>';
-      })() : '') +
+    const best=candidates[0];
+    const isHunt=best.score>=55;
+    const verdict=isHunt?'🟢 HUNT IT':'🟡 WORTH A LOOK';
+    const verdColor=isHunt?'var(--gm)':'#b45309';
+    let detail=best.buck.name+' shows up on '+best.d.wLong+' wind ';
+    if(best.sightCnt>0)detail+=best.windPct+'% of the time ('+best.sightCnt+' sighting'+(best.sightCnt>1?'s':'')+' on this wind). ';
+    else detail+='based on temp match. ';
+    if(best.topCam)detail+='Best camera: <strong>'+best.topCam.name+'</strong>. ';
+    if(best.pkStr)detail+='Be there by <strong>'+best.pkStr+'</strong>. ';
+    if(best.topHead)detail+='Set up to cut him off heading <strong>'+best.topHead+'</strong>.';
+    const wxLine=best.d.icon+' '+best.d.tMx+'°/'+best.d.tMn+'° · '+best.d.wLong+' '+best.d.wSpd+'mph'+(best.d.pr>0.1?' · 🌧 '+best.d.pr.toFixed(1)+'"':'');
+    const ruHtml=candidates.length>1?'<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:8px"><div style="font-size:11px;color:rgba(255,255,255,.4);flex-shrink:0">Runner-up</div><div style="font-size:12px;color:rgba(255,255,255,.6)">'+candidates[1].d.dn+' '+candidates[1].d.ds+' · '+(candidates[1].buck.emoji||'🦌')+' '+candidates[1].buck.name+(candidates[1].topCam?' @ '+candidates[1].topCam.name:'')+' · '+candidates[1].score+'% match</div></div>':'';
+    return'<div style="background:linear-gradient(135deg,#1a2e1c,#253020);border-radius:var(--r);padding:18px 22px;margin-bottom:4px;border:1px solid rgba(255,255,255,.08)">'+
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">'+
+        '<div style="flex:1">'+
+          '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:6px">Best Sit This Week</div>'+
+          '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px">'+wxLine+'</div>'+
+          '<div style="font-size:18px;font-weight:800;color:#c8d8a0;margin-bottom:8px">'+verdict+' — '+best.d.dn+' '+best.d.ds+'</div>'+
+          '<div style="font-size:13px;color:rgba(255,255,255,.8);line-height:1.7">'+detail+'</div>'+
+          ruHtml+
+        '</div>'+
+        '<div style="background:'+verdColor+';border-radius:10px;padding:6px 14px;font-size:22px;font-weight:800;color:#fff;text-align:center;flex-shrink:0">'+
+          best.score+'%<div style="font-size:10px;font-weight:600;opacity:.85">match</div>'+
+        '</div>'+
+      '</div>'+
     '</div>';
   }
 
-  let html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3)">10-Day Hunt Forecast - Cable, WI</div>'+fl+'</div>';
-  html+=buildBestSit();
-  html+='<div class="fg2">';
+  // ── Per-buck row for each day card ────────────────────────
+  function buckRows(d){
+    if(!hasData)return'<div style="font-size:12px;color:var(--t3);padding:4px 0">Log sightings to unlock</div>';
+    return bwd.map(buck=>{
+      const bs=fil().filter(s=>s.buckId===buck.id);
+      const score=sDFB(buck,d.w8,d.tAv);
+      const cS={};S.cameras.forEach(cam=>{const c=bs.filter(s=>s.camId===cam.id&&s.windDir===d.w8).length;if(c)cS[cam.id]=c;});
+      const topCamId=Object.entries(cS).sort((a,b)=>b[1]-a[1])[0]?.[0];
+      const topCam=topCamId?S.cameras.find(c=>c.id===topCamId):null;
+      const hc2=new Array(24).fill(0);bs.filter(s=>s.windDir===d.w8).forEach(s=>{if(s.time)hc2[parseInt(s.time)]++;});
+      const mH2=Math.max(...hc2);let pkStr='';
+      if(mH2>0){const pk=hc2.reduce((a,c,i)=>{if(c>=mH2*0.7&&c>0)a.push(i);return a;},[]);if(pk.length)pkStr=ft(pk[0]+':00');}
+      const hw=bs.filter(s=>s.windDir===d.w8&&s.buckHeading).map(s=>s.buckHeading);
+      const topHead=hw.length?hw.reduce((a,b,i,ar)=>ar.filter(v=>v===a).length>=ar.filter(v=>v===b).length?a:b,hw[0]):null;
+      const vd=score>=55?'hunt':score>=30?'maybe':'poor';
+      const vl=score>=55?'🟢 HUNT':score>=30?'🟡 MAYBE':'🔴 PASS';
+      const hasWindData=bs.filter(s=>s.windDir).length>0;
+      let detailLine='';
+      if(vd==='hunt'||vd==='maybe'){
+        const parts=[];
+        if(topCam)parts.push(topCam.name);
+        if(pkStr)parts.push(pkStr);
+        if(topHead)parts.push('heading '+topHead);
+        detailLine=parts.join(' · ')||'Partial match';
+      } else {
+        detailLine=!hasWindData?'No wind data logged yet':'Poor conditions';
+      }
+      return'<div class="fbrow '+vd+'">'+
+        '<div class="fbrow-emoji">'+(buck.emoji||'🦌')+'</div>'+
+        '<div class="fbrow-info">'+
+          '<div class="fbrow-name">'+buck.name+'</div>'+
+          '<div class="fbrow-detail">'+detailLine+'</div>'+
+        '</div>'+
+        '<div class="fbrow-badge '+vd+'">'+vl+' '+score+'%</div>'+
+      '</div>';
+    }).join('');
+  }
+
+  // ── Build HTML ────────────────────────────────────────────
+  let html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'+
+    '<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3)">10-Day Hunt Forecast · Cable, WI</div>'+fl+'</div>';
+
+  html+=buildHero();
+  html+='<div class="fgrid">';
+
   dd.forEach(d=>{
-    const iB=d.os>=mxS*0.85&&d.os>30&&bwd.length>0,isG=!iB&&d.os>=mxS*0.6&&d.os>15&&bwd.length>0;
-    const sc=d.os>=55?'hi':d.os>=30?'me':'lo';
-    html+='<div class="fc"><div class="fh '+(iB?'best':isG?'good':'')+'">';
-    html+='<div class="fdn">'+d.dn+'</div><div class="fdd">'+d.ds+'</div>';
-    html+='<div class="fdi">'+d.ico+'</div><div class="fdt">'+d.tMx+'&deg;/'+d.tMn+'&deg;</div>';
-    html+='<div class="fdw">&#128168; '+d.wL+' '+d.wS+'mph</div>';
-    if(d.pr>0.1)html+='<div class="fdp">&#127783; '+d.pr.toFixed(1)+'"</div>';
-    if(bwd.length>0)html+='<div class="fsb '+sc+'">'+(d.os>0?d.os+'% match':'No data')+'</div>';
-    html+='</div>';
-    if(!bwd.length){html+='<div style="font-size:10px;color:var(--t3);text-align:center;padding:6px">Log sightings to unlock</div>';}
-    else{
-      bwd.forEach(buck=>{
-        const bs=fil().filter(s=>s.buckId===buck.id);
-        const sc2=sDFB(buck,d.w8,d.tAv);
-        const cS={};S.cameras.forEach(cam=>{const c=bs.filter(s=>s.camId===cam.id&&s.windDir===d.w8).length;if(c)cS[cam.id]=c;});
-        const tCI=Object.entries(cS).sort((a,b)=>b[1]-a[1])[0]?.[0];const tCam=tCI?S.cameras.find(c=>c.id===tCI):null;
-        const hc2=new Array(24).fill(0);bs.filter(s=>s.windDir===d.w8).forEach(s=>{if(s.time)hc2[parseInt(s.time)]++;});
-        const mH2=Math.max(...hc2);let pkS='';
-        if(mH2>0){const pk=hc2.reduce((a,c,i)=>{if(c>=mH2*0.7&&c>0)a.push(i);return a;},[]);if(pk.length)pkS=ft(pk[0]+':00');}
-        const hw=bs.filter(s=>s.windDir===d.w8&&s.buckHeading).map(s=>s.buckHeading);
-        const th2=hw.length?hw.reduce((a,b,i,ar)=>ar.filter(v=>v===a).length>=ar.filter(v=>v===b).length?a:b,hw[0]):null;
-        const vd=sc2>=55?'hunt':sc2>=30?'maybe':'poor';
-        const vl=sc2>=55?'HUNT':sc2>=30?'MAYBE':'PASS';
-        const det=vd==='hunt'?(tCam?tCam.name:'Best cam')+(pkS?' - '+pkS:'')+(th2?' - '+th2:''):vd==='maybe'?(tCam?tCam.name+' partial':'partial'):'Poor conditions';
-        const bc=sc2>=55?'var(--gm)':sc2>=30?'#b45309':'var(--bs)';
-        html+='<div class="fbc '+vd+'"><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px"><div style="font-size:16px">'+(buck.emoji||'&#129420;')+'</div><div style="flex:1;min-width:0"><div class="fbn">'+buck.name+'</div><div class="fbv '+vd+'">'+vl+' '+sc2+'%</div></div></div><div class="fbd">'+det+'</div><div class="fbb"><div class="fbbf" style="width:'+Math.min(sc2,100)+'%;background:'+bc+'"></div></div></div>';
-      });
-    }
-    html+='</div>';
+    const isBest=hasData&&d.os>=maxScore*0.85&&d.os>30;
+    const isGood=hasData&&!isBest&&d.os>=maxScore*0.6&&d.os>15;
+    const cls=isBest?'fcard best':isGood?'fcard good':'fcard';
+    const pctCls=d.os>=55?'hi':d.os>=30?'me':'lo';
+
+    html+='<div class="'+cls+'" onclick="toggleFCard(this)">'+
+      '<div class="fcard-top">'+
+        '<div class="fcard-weather">'+
+          '<div class="fcard-ico">'+d.icon+'</div>'+
+          '<div class="fcard-temps">'+d.tMx+'°/'+d.tMn+'°</div>'+
+        '</div>'+
+        '<div class="fcard-info">'+
+          '<div class="fcard-dayname">'+d.dn+'</div>'+
+          '<div class="fcard-date">'+d.ds+'</div>'+
+          '<div class="fcard-wind">💨 '+d.wLong+' '+d.wSpd+'mph</div>'+
+          (d.pr>0.1?'<div class="fcard-precip">🌧 '+d.pr.toFixed(1)+'" precip</div>':'')+
+        '</div>'+
+        '<div class="fcard-score">'+
+          '<div class="fcard-pct '+pctCls+'">'+(hasData?d.os+'%':'—')+'</div>'+
+          '<div class="fcard-match">match</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="fcard-bucks">'+buckRows(d)+'</div>'+
+    '</div>';
   });
+
   html+='</div>';
   body.innerHTML=html;
 }
 
-// LOG
+function toggleFCard(el){
+  // Cards are always open now — clicking just highlights
+  el.classList.toggle('open');
+}
+
+
 function popLF(){
   const fb=document.getElementById('fBuck'),fc=document.getElementById('fCam'),fr=document.getElementById('fRut');
   fb.innerHTML='<option value="">All Bucks</option>'+S.bucks.map(b=>'<option value="'+b.id+'">'+b.name+'</option>').join('');
