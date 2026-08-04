@@ -555,23 +555,137 @@ async function loadFC(){
   if(fd){renderFS();return;}
   const lat=(S.propertySettings?.lat)||46.2504,lon=(S.propertySettings?.lon)||-91.07529;
   try{
-    const url='https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,wind_direction_10m_dominant,precipitation_sum,weathercode&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Chicago&forecast_days=10';
+    const url='https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+
+      '&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,wind_direction_10m_dominant,precipitation_sum,weathercode'+
+      '&hourly=surface_pressure'+
+      '&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Chicago&forecast_days=10';
     fd=await (await fetch(url)).json();renderFS();
   }catch(e){if(body)body.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px">Could not load forecast. Check your internet connection.</div>';}
 }
 function wDirL(d){return['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(d/22.5)%16];}
 function wDir8(d){const d8=['N','NE','E','SE','S','SW','W','NW'];return d8.reduce((b,x)=>{const a=y=>({N:0,NE:45,E:90,SE:135,S:180,SW:225,W:270,NW:315})[y];return Math.abs(((d-a(x))+540)%360-180)<Math.abs(((d-a(b))+540)%360-180)?x:b;},'N');}
 function wIco(c){if(c===0)return'&#9728;&#65039;';if(c<=2)return'&#9925;';if(c<=3)return'&#9729;&#65039;';if(c<=49)return'&#127787;&#65039;';if(c<=67)return'&#127783;&#65039;';if(c<=79)return'&#10052;&#65039;';if(c<=82)return'&#127783;&#65039;';if(c<=86)return'&#127784;&#65039;';return'&#9928;&#65039;';}
-function sDFB(buck,w8,ta){
-  const bs=fil().filter(s=>s.buckId===buck.id);if(bs.length<2)return 0;
-  let sc=0,ch=0;
-  const ws=bs.filter(s=>s.windDir);if(ws.length){sc+=Math.round(ws.filter(s=>s.windDir===w8).length/ws.length*100);ch++;}
-  const ts=bs.filter(s=>s.temp);if(ts.length&&ta){const bk=t=>t<30?0:t<40?1:t<50?2:t<60?3:4;sc+=Math.round(ts.filter(s=>bk(Number(s.temp))===bk(ta)).length/ts.length*100);ch++;}
-  return ch?Math.round(sc/ch):0;
+// ── Pressure trend helper ───────────────────────────────────
+// Returns 'rising','falling','stable' for a given day index using hourly pressure
+function pressureTrend(dayIdx){
+  if(!fd||!fd.hourly||!fd.hourly.surface_pressure)return'stable';
+  const hrs=fd.hourly.surface_pressure;
+  const base=dayIdx*24;
+  const am=hrs[base+6],pm=hrs[base+18];
+  if(am==null||pm==null)return'stable';
+  const diff=pm-am;
+  if(diff>1.5)return'rising';
+  if(diff<-1.5)return'falling';
+  return'stable';
 }
-function sDay(w8,ta){
+
+// ── Temperature trend helper ─────────────────────────────────
+// Compares today's high vs yesterday's high to get the trend
+// Falling temps = major deer movement trigger, especially pre-rut
+function tempTrend(dayIdx){
+  if(!fd||!fd.daily)return'stable';
+  const maxTemps=fd.daily.temperature_2m_max;
+  if(dayIdx===0){
+    // Compare today vs tomorrow for day 0
+    if(maxTemps[1]==null)return'stable';
+    const diff=maxTemps[1]-maxTemps[0];
+    if(diff<-5)return'falling';  // tomorrow is colder = trend is falling
+    if(diff>5)return'rising';
+    return'stable';
+  }
+  const prev=maxTemps[dayIdx-1],curr=maxTemps[dayIdx];
+  if(prev==null||curr==null)return'stable';
+  const diff=curr-prev;
+  if(diff<-5)return'falling';   // dropped 5°F+ from yesterday = falling
+  if(diff>5)return'rising';     // gained 5°F+ from yesterday = rising
+  return'stable';
+}
+
+// ── Time-of-day profile helper ───────────────────────────────
+// Returns buck's dominant movement window: 'dawn','dusk','midday','nocturnal','mixed'
+function buckTimeProfile(bs){
+  const timed=bs.filter(s=>s.time);
+  if(timed.length<3)return'mixed';
+  const dawn=timed.filter(s=>{const h=parseInt(s.time);return h>=4&&h<=9;}).length;
+  const dusk=timed.filter(s=>{const h=parseInt(s.time);return h>=16&&h<=21;}).length;
+  const mid=timed.filter(s=>{const h=parseInt(s.time);return h>=10&&h<=15;}).length;
+  const noc=timed.filter(s=>{const h=parseInt(s.time);return h>=22||h<=3;}).length;
+  const max=Math.max(dawn,dusk,mid,noc);
+  const pct=v=>Math.round(v/timed.length*100);
+  if(max===dawn&&pct(dawn)>=40)return'dawn';
+  if(max===dusk&&pct(dusk)>=40)return'dusk';
+  if(noc>dawn&&noc>dusk)return'nocturnal';
+  if(mid>dawn&&mid>dusk)return'midday';
+  return'mixed';
+}
+
+// ── Main per-buck scoring function (4 factors) ───────────────
+// Weights: Wind 35%, Temp 25%, Pressure trend 20%, Time of day 20%
+function sDFB(buck,w8,ta,dayIdx){
+  const bs=fil().filter(s=>s.buckId===buck.id);
+  if(bs.length<2)return 0;
+  let totalScore=0,totalWeight=0;
+
+  // ── 1. Wind direction (35%) ───────────────────────────────
+  // Highest weight — wind dictates travel routes and stand placement
+  const windSights=bs.filter(s=>s.windDir);
+  if(windSights.length>=1){
+    const windMatch=Math.round(windSights.filter(s=>s.windDir===w8).length/windSights.length*100);
+    totalScore+=windMatch*0.35;
+    totalWeight+=0.35;
+  }
+
+  // ── 2. Time of day / huntability (30%) ──────────────────
+  // Second highest — when this buck moves determines if you can intercept him
+  // Dawn or dusk movers = huntable. Nocturnal/midday = harder.
+  const timedSights=bs.filter(s=>s.time);
+  if(timedSights.length>=2){
+    const profile=buckTimeProfile(bs);
+    let timeScore=0;
+    if(profile==='dawn')timeScore=90;      // classic — best sits are early
+    else if(profile==='dusk')timeScore=85; // evening feed pattern — very huntable
+    else if(profile==='mixed')timeScore=65;// moves throughout — huntable
+    else if(profile==='midday')timeScore=35;// tough to intercept legally
+    else if(profile==='nocturnal')timeScore=10;// mostly after dark — very hard
+    totalScore+=timeScore*0.30;
+    totalWeight+=0.30;
+  }
+
+  // ── 3. Pressure trend (25%) ──────────────────────────────
+  // Rising pressure = deer on their feet. Falling = may spike before front.
+  const pressSights=bs.filter(s=>s.pressure&&Number(s.pressure)>0);
+  if(pressSights.length>=2&&dayIdx!=null){
+    const trend=pressureTrend(dayIdx);
+    let pressScore=50; // stable baseline
+    if(trend==='rising')pressScore=85;    // rising: deer active, best signal
+    else if(trend==='stable')pressScore=55;// stable: neutral/slight positive
+    else if(trend==='falling')pressScore=30;// falling: unpredictable
+    totalScore+=pressScore*0.25;
+    totalWeight+=0.25;
+  }
+
+  // ── 4. Temperature trend (10%) ──────────────────────────
+  // It's the DELTA that matters — falling temps trigger movement far more than absolute value
+  // Falling = strong positive (cold front incoming or just passed)
+  // Rising after cold = suppresses movement
+  // Stable = neutral
+  if(dayIdx!=null){
+    const trend=tempTrend(dayIdx);
+    let tempScore=50; // stable baseline
+    if(trend==='falling')tempScore=90;  // dropping temps = deer on feet, biggest trigger
+    else if(trend==='stable')tempScore=55; // stable = neutral/slight positive
+    else if(trend==='rising')tempScore=25; // warming = deer bed up, movement suppressed
+    totalScore+=tempScore*0.10;
+    totalWeight+=0.10;
+  }
+
+  if(totalWeight===0)return 0;
+  return Math.round(totalScore/totalWeight);
+}
+
+function sDay(w8,ta,dayIdx){
   const bks=S.bucks.filter(b=>fil().some(s=>s.buckId===b.id));if(!bks.length)return 0;
-  return Math.round(bks.map(b=>sDFB(b,w8,ta)).reduce((a,b)=>a+b,0)/bks.length);
+  return Math.round(bks.map(b=>sDFB(b,w8,ta,dayIdx)).reduce((a,b)=>a+b,0)/bks.length);
 }
 function renderFS(){
   if(!fd)return;
@@ -605,7 +719,7 @@ function renderFS(){
     dd.forEach(d=>{
       bwd.forEach(buck=>{
         const bs=fil().filter(s=>s.buckId===buck.id);
-        const score=sDFB(buck,d.w8,d.tAv);
+        const score=sDFB(buck,d.w8,d.tAv,d.i);
         if(score<1)return;
         const cS={};S.cameras.forEach(cam=>{const c=bs.filter(s=>s.camId===cam.id&&s.windDir===d.w8).length;if(c)cS[cam.id]=c;});
         const topCamId=Object.entries(cS).sort((a,b)=>b[1]-a[1])[0]?.[0];
@@ -627,12 +741,20 @@ function renderFS(){
     const isHunt=best.score>=55;
     const verdict=isHunt?'🟢 HUNT IT':'🟡 WORTH A LOOK';
     const verdColor=isHunt?'var(--gm)':'#b45309';
+    const heroProfile=buckTimeProfile(fil().filter(s=>s.buckId===best.buck.id));
+    const heroTrend=pressureTrend(best.d.i);
+    const heroTempTrend=tempTrend(best.d.i);
+    const heroTempLabel=heroTempTrend==='falling'?'Temps dropping — major movement trigger.':heroTempTrend==='rising'?'Temps rising — deer may bed up.':'Temps stable.';
+    const heroTrendLabel=(heroTrend==='rising'?'Pressure rising — deer on their feet.':heroTrend==='falling'?'Pressure dropping — deer may move ahead of the front.':'Pressure stable.')+' '+heroTempLabel;
+    const heroProfileLabel={dawn:'Dawn mover — be in your stand before first light.',dusk:'Evening mover — set up by mid-afternoon.',midday:'Tends to move midday — unusual, but worth watching.',nocturnal:'Mostly nocturnal — tough to intercept in daylight.',mixed:'Moves throughout the day.'}[heroProfile]||'';
     let detail=best.buck.name+' shows up on '+best.d.wLong+' wind ';
     if(best.sightCnt>0)detail+=best.windPct+'% of the time ('+best.sightCnt+' sighting'+(best.sightCnt>1?'s':'')+' on this wind). ';
-    else detail+='based on temp match. ';
+    else detail+='based on condition match. ';
     if(best.topCam)detail+='Best camera: <strong>'+best.topCam.name+'</strong>. ';
     if(best.pkStr)detail+='Be there by <strong>'+best.pkStr+'</strong>. ';
-    if(best.topHead)detail+='Set up to cut him off heading <strong>'+best.topHead+'</strong>.';
+    if(best.topHead)detail+='Set up to cut him off heading <strong>'+best.topHead+'</strong>. ';
+    if(heroProfileLabel)detail+=heroProfileLabel+' ';
+    detail+=heroTrendLabel;
     const wxLine=best.d.icon+' '+best.d.tMx+'°/'+best.d.tMn+'° · '+best.d.wLong+' '+best.d.wSpd+'mph'+(best.d.pr>0.1?' · 🌧 '+best.d.pr.toFixed(1)+'"':'');
     const ruHtml=candidates.length>1?'<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:8px"><div style="font-size:11px;color:rgba(255,255,255,.4);flex-shrink:0">Runner-up</div><div style="font-size:12px;color:rgba(255,255,255,.6)">'+candidates[1].d.dn+' '+candidates[1].d.ds+' · '+(candidates[1].buck.emoji||'🦌')+' '+candidates[1].buck.name+(candidates[1].topCam?' @ '+candidates[1].topCam.name:'')+' · '+candidates[1].score+'% match</div></div>':'';
     return'<div style="background:linear-gradient(135deg,#1a2e1c,#253020);border-radius:var(--r);padding:18px 22px;margin-bottom:4px;border:1px solid rgba(255,255,255,.08)">'+
@@ -656,7 +778,7 @@ function renderFS(){
     if(!hasData)return'<div style="font-size:12px;color:var(--t3);padding:4px 0">Log sightings to unlock</div>';
     return bwd.map(buck=>{
       const bs=fil().filter(s=>s.buckId===buck.id);
-      const score=sDFB(buck,d.w8,d.tAv);
+      const score=sDFB(buck,d.w8,d.tAv,d.i);
       const cS={};S.cameras.forEach(cam=>{const c=bs.filter(s=>s.camId===cam.id&&s.windDir===d.w8).length;if(c)cS[cam.id]=c;});
       const topCamId=Object.entries(cS).sort((a,b)=>b[1]-a[1])[0]?.[0];
       const topCam=topCamId?S.cameras.find(c=>c.id===topCamId):null;
@@ -668,6 +790,12 @@ function renderFS(){
       const vd=score>=55?'hunt':score>=30?'maybe':'poor';
       const vl=score>=55?'🟢 HUNT':score>=30?'🟡 MAYBE':'🔴 PASS';
       const hasWindData=bs.filter(s=>s.windDir).length>0;
+      const profile=buckTimeProfile(bs);
+      const profileLabel={dawn:'Dawn mover',dusk:'Dusk mover',midday:'Midday mover',nocturnal:'Nocturnal',mixed:'Moves anytime'}[profile]||'';
+      const trend=pressureTrend(d.i);
+      const trendLabel=trend==='rising'?'↑ Pressure rising':trend==='falling'?'↓ Pressure falling':'→ Pressure stable';
+      const tTrend=tempTrend(d.i);
+      const tempTrendLabel=tTrend==='falling'?'↓ Temp falling':tTrend==='rising'?'↑ Temp rising':'→ Temp stable';
       let detailLine='';
       if(vd==='hunt'||vd==='maybe'){
         const parts=[];
@@ -678,11 +806,14 @@ function renderFS(){
       } else {
         detailLine=!hasWindData?'No wind data logged yet':'Poor conditions';
       }
+      // Score breakdown subtitle
+      const breakdown=profileLabel+(trend&&bs.filter(s=>s.pressure).length>=2?' · '+trendLabel:'')+' · '+tempTrendLabel;
       return'<div class="fbrow '+vd+'">'+
         '<div class="fbrow-emoji">'+(buck.emoji||'🦌')+'</div>'+
         '<div class="fbrow-info">'+
           '<div class="fbrow-name">'+buck.name+'</div>'+
           '<div class="fbrow-detail">'+detailLine+'</div>'+
+          (breakdown?'<div style="font-size:10px;color:var(--t3);margin-top:2px">'+breakdown+'</div>':'')+
         '</div>'+
         '<div class="fbrow-badge '+vd+'">'+vl+' '+score+'%</div>'+
       '</div>';
