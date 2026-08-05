@@ -554,30 +554,231 @@ function ds(d){return d?Math.floor((Date.now()-new Date(d))/86400000):999;}
 function renderDB(){
   const c=document.getElementById('dashContent');if(!c)return;
   const sg=fil();
-  if(!S.bucks.length&&!S.cameras.length&&!sg.length){c.innerHTML='<div class="de"><div style="font-size:36px;opacity:.35">&#127919;</div><div style="font-size:15px;font-weight:700;color:var(--t2);margin-top:4px">Welcome to CampTrack</div><div style="font-size:12px;color:var(--t3);line-height:1.5;max-width:280px;margin-top:6px">Add cameras and bucks in Settings, then log your first sighting.</div></div>';return;}
-  const cC={};sg.forEach(s=>{cC[s.camId]=(cC[s.camId]||0)+1;});
-  const tCE=Object.entries(cC).sort((a,b)=>b[1]-a[1])[0];const tC=tCE?S.cameras.find(x=>x.id===tCE[0]):null;
+  const allSights=S.sightings;
+
+  if(!S.bucks.length&&!S.cameras.length&&!sg.length){
+    c.innerHTML='<div class="de"><div style="font-size:36px;opacity:.35">&#127919;</div><div style="font-size:15px;font-weight:700;color:var(--t2);margin-top:4px">Welcome to CampTrack</div><div style="font-size:12px;color:var(--t3);line-height:1.5;max-width:280px;margin-top:6px">Add cameras and bucks in Settings, then log your first sighting — your dashboard will come alive.</div></div>';
+    return;
+  }
+
+  // ── Core stats ────────────────────────────────────────────
   const hC=new Array(24).fill(0);sg.forEach(s=>{if(s.time)hC[parseInt(s.time)]++;});
-  const mxH=Math.max(...hC,1);const pkI=hC.indexOf(Math.max(...hC));
-  const pkS=sg.length>0&&hC[pkI]>0?ft(pkI+':00'):'--';
-  const lS=[...sg].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time))[0];
-  const lB=lS?S.bucks.find(b=>b.id===lS.buckId):null;
-  const hBs=hC.map((c,i)=>{const p=Math.round(c/mxH*100);const ip=c>0&&c===Math.max(...hC);return'<div class="hbar'+(ip?' pk':p>50?' hi':'')+'" style="height:'+Math.max(p,2)+'%" title="'+ft(i+':00')+': '+c+'"></div>';}).join('');
-  const bRs=S.bucks.length===0?'<div style="color:var(--t3);font-size:12px;padding:4px">No bucks added yet.</div>':
-    S.bucks.map(b=>{const bs=sg.filter(s=>s.buckId===b.id);const ls=[...bs].sort((a,z)=>(z.date+z.time).localeCompare(a.date+a.time))[0];const days=ls?ds(ls.date):999;const dS=days===999?'Never':days===0?'Today':days+'d ago';const cl=days<=3?'fr':days<=10?'st':'co';const bc={};bs.forEach(s=>{bc[s.camId]=(bc[s.camId]||0)+1;});const tb=Object.entries(bc).sort((a,z)=>z[1]-a[1])[0];const tbn=tb?S.cameras.find(c=>c.id===tb[0])?.name:'--';return'<div class="br"><div class="ba">'+(b.emoji||'&#129420;')+'</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">'+b.name+'</div><div style="font-size:11px;color:var(--t3)">'+(b.age?b.age+' · ':'')+'Best: '+(tbn||'--')+'</div></div><div style="text-align:right"><div style="font-size:16px;font-weight:800;color:var(--gm)">'+bs.length+'</div><div style="font-size:10px;color:var(--t3)">'+(ls?ls.date:'Never')+'</div><span class="bdg '+cl+'">'+dS+'</span></div></div>';}).join('');
-  const tCs=Object.entries(cC).sort((a,b)=>b[1]-a[1]).slice(0,5);const mCC=tCs[0]?.[1]||1;
-  const cRs=tCs.length===0?'<div style="color:var(--t3);font-size:12px">No sightings yet.</div>':tCs.map(([id,cnt],i)=>{const cam=S.cameras.find(x=>x.id===id);return'<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--b);"><div style="font-size:14px;font-weight:800;color:var(--bs);width:18px;flex-shrink:0">'+(i+1)+'</div><div style="width:8px;height:8px;border-radius:50%;background:'+(cam?.color||'var(--gm)')+';flex-shrink:0"></div><div style="font-size:13px;font-weight:600;flex:1">'+(cam?.name||'Unknown')+'</div><div style="width:60px;height:5px;background:var(--b);border-radius:3px"><div style="width:'+Math.round(cnt/mCC*100)+'%;height:100%;background:'+(cam?.color||'var(--gm)')+';border-radius:3px"></div></div><div style="font-size:13px;font-weight:700;margin-left:4px">'+cnt+'</div></div>';}).join('');
-  const wC={};sg.forEach(s=>{if(s.windDir)wC[s.windDir]=(wC[s.windDir]||0)+1;});const mxW=Math.max(...Object.values(wC),1);
-  const wRs=Object.entries(wC).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([d,c])=>'<div class="wr"><div class="wd">'+d+'</div><div class="wbw"><div class="wb" style="width:'+Math.round(c/mxW*100)+'%"></div></div><div style="font-size:11px;color:var(--t3);width:20px;text-align:right">'+c+'</div></div>').join('')||'<div style="color:var(--t3);font-size:12px">No wind data.</div>';
-  const rc=[...sg].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)).slice(0,6);
-  const fRs=rc.length===0?'<div style="color:var(--t3);font-size:12px;padding:8px 0">No sightings yet.</div>':rc.map(s=>{const bk=S.bucks.find(b=>b.id===s.buckId);const cm=S.cameras.find(c=>c.id===s.camId);return'<div class="fr2"><div class="fd"></div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600">'+(bk?.emoji||'&#129420;')+' '+(bk?.name||'Unknown')+'</div><div style="font-size:11px;color:var(--t3)">'+(cm?.name||'Unknown')+(s.temp?' · '+s.temp+'F':'')+(s.windDir?' · '+s.windDir:'')+(s.season?' · '+s.season:'')+'</div></div><div style="font-size:11px;color:var(--t3);flex-shrink:0;text-align:right">'+s.date+'<br>'+(s.time?ft(s.time):'')+'</div></div>';}).join('');
-  let aT='&#128225; Keep logging data',aX='Aim for 20+ sightings to start seeing reliable trends.';
-  if(sg.length>=5){const dw=hC.slice(5,9).reduce((a,b)=>a+b,0);const dk=hC.slice(17,21).reduce((a,b)=>a+b,0);const md=hC.slice(10,15).reduce((a,b)=>a+b,0);if(pkI>=5&&pkI<=8){aT='&#127749; Classic Dawn Pattern';aX='Peak at '+pkS+'. Be in stand by '+ft((pkI-1)+':00')+'.';}else if(pkI>=17&&pkI<=19){aT='&#127747; Evening Feed Pattern';aX='Bucks most active around '+pkS+'. Set up near food sources.';}else if(pkI>=20||pkI<=4){aT='&#127769; Nocturnal Tendency';aX='Peak movement after dark. Bucks may be pressured.';}else if(md>dw&&md>dk){aT='&#9888;&#65039; Pressure Alert';aX='Unusual midday movement. Hunting pressure may be shifting patterns.';}}
-  c.innerHTML='<div class="kpi-row"><div class="card kpi g"><div class="kl">Total Sightings</div><div class="kv">'+sg.length+'</div><div class="ks">'+(lB?lB.name+' last seen':'No sightings yet')+'</div></div><div class="card kpi s"><div class="kl">Bucks Tracked</div><div class="kv">'+S.bucks.length+'</div><div class="ks">'+S.cameras.length+' cameras active</div></div><div class="card kpi b"><div class="kl">Peak Movement</div><div class="kv" style="font-size:18px;margin-top:4px">'+pkS+'</div><div class="ks">Hour of peak activity</div></div><div class="card kpi r"><div class="kl">Hottest Camera</div><div class="kv" style="font-size:14px;margin-top:6px;line-height:1.2">'+(tC?.name||'--')+'</div><div class="ks">'+(tCE?tCE[1]+' sightings':'--')+'</div></div></div><div class="alert"><div style="font-size:18px;flex-shrink:0">&#127919;</div><div><div style="font-size:12px;font-weight:700;color:#c8b882;margin-bottom:3px">'+aT+'</div><div style="font-size:12px;color:rgba(255,255,255,.72);line-height:1.5">'+aX+'</div></div></div><div class="dg"><div class="card dc s2"><div class="ct">Movement by Hour</div><div class="cs">All sightings · 24hr · Red = peak</div><div class="hbars">'+hBs+'</div><div class="hlbl"><span>12AM</span><span>3AM</span><span>6AM</span><span>9AM</span><span>12PM</span><span>3PM</span><span>6PM</span><span>9PM</span><span>11PM</span></div></div><div class="card dc"><div class="ct">Wind at Sighting</div><div class="cs">Direction frequency</div>'+wRs+'</div><div class="card dc s2"><div class="ct">Buck Status</div><div class="cs">Activity · Last seen · Freshness</div>'+bRs+'</div><div class="card dc"><div class="ct">Camera Leaderboard</div><div class="cs">By sighting count</div>'+cRs+'</div><div class="card dc s2"><div class="ct">Recent Sightings</div><div class="cs">Last 6 entries</div>'+fRs+'</div></div>';
+  const maxH=Math.max(...hC,1);
+  const pkI=hC.indexOf(Math.max(...hC));
+  const pkS=sg.length>0&&hC[pkI]>0?ft(pkI+':00'):'—';
+  const lastS=[...sg].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time))[0];
+  const daysSinceLastS=lastS?ds(lastS.date):null;
+
+  // ── Hunt log stats ────────────────────────────────────────
+  const sits=S.huntLog||[];
+  const totalSits=sits.length;
+  let totalMins=0;
+  sits.forEach(h=>{if(h.timeIn&&h.timeOut){const[ih,im]=h.timeIn.split(':').map(Number);const[oh,om]=h.timeOut.split(':').map(Number);const m=(oh*60+om)-(ih*60+im);if(m>0)totalMins+=m;}});
+  const totalHours=(totalMins/60).toFixed(1);
+  const productiveSits=sits.filter(h=>['Buck sighted','Harvested','Shot opportunity'].includes(h.result)).length;
+  const sitPct=totalSits?Math.round(productiveSits/totalSits*100):null;
+  const huntDays=sits.filter(h=>h.predScore==='hunt');
+  const huntHits=huntDays.filter(h=>['Buck sighted','Harvested','Shot opportunity'].includes(h.result)).length;
+  const hitRate=huntDays.length>=3?Math.round(huntHits/huntDays.length*100):null;
+
+  // ── Pattern alert ─────────────────────────────────────────
+  let alertTitle='&#128225; Keep logging data',alertText='Aim for 20+ sightings to unlock reliable patterns.';
+  if(sg.length>=5){
+    const dawn=hC.slice(4,9).reduce((a,b)=>a+b,0);
+    const dusk=hC.slice(16,21).reduce((a,b)=>a+b,0);
+    const mid=hC.slice(10,15).reduce((a,b)=>a+b,0);
+    const noc=[...hC.slice(0,4),...hC.slice(21)].reduce((a,b)=>a+b,0);
+    if(pkI>=4&&pkI<=8){alertTitle='&#127749; Classic Dawn Pattern';alertText='Peak movement at '+pkS+'. Be in your stand before first light.';}
+    else if(pkI>=16&&pkI<=20){alertTitle='&#127747; Evening Feed Pattern';alertText='Bucks most active around '+pkS+'. Set up near food sources by mid-afternoon.';}
+    else if(noc>dawn&&noc>dusk){alertTitle='&#127769; Nocturnal Tendency';alertText='Peak movement after dark — these bucks are pressured or call-shy. Consider mobile setups closer to bedding.';}
+    else if(mid>dawn&&mid>dusk){alertTitle='&#9888;&#65039; Unusual Midday Movement';alertText='Activity peaking midday. Hunting pressure may be shifting patterns — check neighbor activity.';}
+  }
+
+  // ── Best sit this week (mini version from forecast) ───────
+  let bestSitHtml='';
+  if(fd&&S.bucks.length&&predFil().length>=3){
+    const dl=fd.daily,days=Math.min(dl.time.length,7);
+    let bestDay=null,bestScore=0;
+    for(let i=0;i<days;i++){
+      const tMx=Math.round(dl.temperature_2m_max[i]),tMn=Math.round(dl.temperature_2m_min[i]);
+      const tAv=Math.round((tMx+tMn)/2);
+      const wDeg=dl.wind_direction_10m_dominant[i],wSpd=Math.round(dl.wind_speed_10m_max[i]);
+      const w8=wDir8(wDeg),wL=wDirL(wDeg);
+      const score=sDay(w8,tAv,i,wSpd);
+      if(score>bestScore){bestScore=score;const dt=new Date(dl.time[i]+'T12:00:00');bestDay={score,w8,wL,wSpd,tMx,tMn,icon:wIco(dl.weathercode[i]),dn:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dt.getDay()],ds:(dt.getMonth()+1)+'/'+dt.getDate(),i};}
+    }
+    if(bestDay&&bestScore>0){
+      const cls=bestScore>=55?'var(--gm)':'#b45309';
+      const lbl=bestScore>=55?'🟢 HUNT IT':'🟡 WORTH A LOOK';
+      bestSitHtml='<div style="background:linear-gradient(135deg,#1a2e1c,#253020);border-radius:var(--r);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;gap:16px">'+
+        '<div>'+
+          '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:4px">Best Sit This Week</div>'+
+          '<div style="font-size:16px;font-weight:800;color:#c8d8a0">'+lbl+' — '+bestDay.dn+' '+bestDay.ds+'</div>'+
+          '<div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:3px">'+bestDay.icon+' '+bestDay.tMx+'°/'+bestDay.tMn+'° · '+bestDay.wL+' '+bestDay.wSpd+'mph</div>'+
+        '</div>'+
+        '<div style="background:'+cls+';border-radius:10px;padding:6px 14px;font-size:20px;font-weight:800;color:#fff;text-align:center;flex-shrink:0">'+
+          bestScore+'%<div style="font-size:10px;font-weight:600;opacity:.85">match</div>'+
+        '</div>'+
+      '</div>';
+    }
+  } else if(!fd){
+    // Forecast not loaded yet — trigger it silently
+    setTimeout(loadFC,200);
+  }
+
+  // ── Buck status cards ─────────────────────────────────────
+  const buckCards=S.bucks.map(b=>{
+    const bs=sg.filter(s=>s.buckId===b.id);
+    const ls=[...bs].sort((a,z)=>(z.date+z.time).localeCompare(a.date+a.time))[0];
+    const days2=ls?ds(ls.date):999;
+    const dStr=days2===999?'Never':days2===0?'Today':days2===1?'Yesterday':days2+'d ago';
+    const cls=days2<=3?'fr':days2<=10?'st':'co';
+    const bc={};bs.forEach(s=>{bc[s.camId]=(bc[s.camId]||0)+1;});
+    const tbc=Object.entries(bc).sort((a,z)=>z[1]-a[1])[0];
+    const tbcn=tbc?S.cameras.find(c=>c.id===tbc[0])?.name:'—';
+    // Top wind for this buck
+    const wc={};bs.forEach(s=>{if(s.windDir)wc[s.windDir]=(wc[s.windDir]||0)+1;});
+    const topW=Object.entries(wc).sort((a,b)=>b[1]-a[1])[0];
+    // Time profile
+    const prof=buckTimeProfile(bs);
+    const profLabel={dawn:'Dawn',dusk:'Dusk',midday:'Midday',nocturnal:'Nocturnal',mixed:'All day'}[prof]||'';
+    return'<div style="background:var(--surface);border:1px solid var(--b);border-radius:var(--r);padding:12px 14px;box-shadow:var(--sh);display:flex;align-items:center;gap:10px">'+
+      '<div style="font-size:24px">'+b.emoji+'</div>'+
+      '<div style="flex:1;min-width:0">'+
+        '<div style="font-size:13px;font-weight:700;color:var(--t)">'+b.name+'</div>'+
+        '<div style="font-size:11px;color:var(--t3);margin-top:1px">'+
+          (topW?'Best: '+topW[0]+' wind':'No wind data')+
+          (profLabel?' · '+profLabel+' mover':'')+
+          ' · '+bs.length+' sightings'+
+        '</div>'+
+        '<div style="font-size:11px;color:var(--t3)">Top cam: '+(tbcn||'—')+'</div>'+
+      '</div>'+
+      '<div style="text-align:right;flex-shrink:0">'+
+        '<span class="bdg '+cls+'">'+dStr+'</span>'+
+        '<div style="font-size:10px;color:var(--t3);margin-top:3px">'+(ls?ls.date:'Never')+'</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+
+  // ── Hour bars ─────────────────────────────────────────────
+  const hBs=hC.map((c,i)=>{const p=Math.round(c/maxH*100);const ip=c>0&&c===Math.max(...hC);return'<div class="hbar'+(ip?' pk':p>50?' hi':'')+'" style="height:'+Math.max(p,2)+'%" title="'+ft(i+':00')+': '+c+'"></div>';}).join('');
+
+  // ── Pressure / sightings overlay (last 60 days) ───────────
+  let pressureOverlayHtml='';
+  const sixtyDaysAgo=new Date(Date.now()-60*86400000);
+  const recentSights=allSights.filter(s=>s.date&&new Date(s.date)>=sixtyDaysAgo&&s.pressure).sort((a,b)=>a.date.localeCompare(b.date));
+  if(recentSights.length>=4){
+    const pressVals=recentSights.map(s=>Number(s.pressure));
+    const minP=Math.min(...pressVals)-0.2,maxP=Math.max(...pressVals)+0.2,rangeP=maxP-minP||1;
+    const W=560,H=80,PAD=8;
+    const pts=recentSights.map((s,i)=>{
+      const x=PAD+(i/(recentSights.length-1||1))*(W-PAD*2);
+      const y=H-PAD-((Number(s.pressure)-minP)/rangeP)*(H-PAD*2);
+      return{x,y,s};
+    });
+    const linePath=pts.map((p,i)=>(i===0?'M':'L')+p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+    const dots=pts.map(p=>{
+      const hasBuck=['Buck sighted','Harvested'].some(()=>false);// sightings are always buck
+      return'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="4" fill="var(--rm)" opacity="0.85"><title>'+p.s.date+' · '+p.s.pressure+' inHg'+(p.s.buckId?' · '+(S.bucks.find(b=>b.id===p.s.buckId)?.name||'Buck'):'')+'</title></circle>';
+    }).join('');
+    // Min/max labels
+    const minLabel=recentSights[pressVals.indexOf(Math.min(...pressVals))];
+    const maxLabel=recentSights[pressVals.indexOf(Math.max(...pressVals))];
+    pressureOverlayHtml='<div class="card dc" style="padding:14px 16px">'+
+      '<div class="ct">Pressure at Sightings</div>'+
+      '<div class="cs">Last 60 days · Each dot = a sighting · Red = lower pressure</div>'+
+      '<svg width="100%" viewBox="0 0 '+W+' '+H+'" style="overflow:visible">'+
+        '<path d="'+linePath+'" fill="none" stroke="var(--gb)" stroke-width="1.5" opacity="0.5"/>'+
+        dots+
+        '<text x="'+PAD+'" y="'+(H-2)+'" font-size="9" fill="var(--t3)">'+Math.min(...pressVals).toFixed(2)+'</text>'+
+        '<text x="'+PAD+'" y="12" font-size="9" fill="var(--t3)">'+Math.max(...pressVals).toFixed(2)+'</text>'+
+        '<text x="'+(W/2)+'" y="'+(H-2)+'" font-size="9" fill="var(--t3)" text-anchor="middle">inHg</text>'+
+      '</svg>'+
+    '</div>';
+  }
+
+  // ── Season sightings vs last year ─────────────────────────
+  const curYear=new Date().getFullYear().toString();
+  const lastYear=(new Date().getFullYear()-1).toString();
+  const curYearSights=allSights.filter(s=>s.year===curYear&&s.season!=='Rut');
+  const lastYearSights=allSights.filter(s=>s.year===lastYear&&s.season!=='Rut');
+  let yoyHtml='';
+  if(curYearSights.length||lastYearSights.length){
+    const pct2=(a,b)=>b?Math.round(a/b*100):0;
+    const diff=curYearSights.length-lastYearSights.length;
+    const diffStr=diff===0?'Same as last year':diff>0?'+'+diff+' vs last year':diff+' vs last year';
+    const diffColor=diff>0?'var(--gm)':diff<0?'var(--rm)':'var(--t3)';
+    yoyHtml='<div style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--b);border-radius:var(--r);padding:12px 16px;box-shadow:var(--sh)">'+
+      '<div style="flex:1"><div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:6px">Season Sightings (excl. Rut)</div>'+
+        '<div style="display:flex;align-items:flex-end;gap:16px">'+
+          '<div><div style="font-size:28px;font-weight:800;color:var(--t)">'+curYearSights.length+'</div><div style="font-size:11px;color:var(--t3)">'+curYear+'</div></div>'+
+          '<div style="font-size:13px;font-weight:700;color:'+diffColor+';margin-bottom:6px">'+diffStr+'</div>'+
+          '<div style="opacity:.5"><div style="font-size:20px;font-weight:800;color:var(--t)">'+lastYearSights.length+'</div><div style="font-size:11px;color:var(--t3)">'+lastYear+'</div></div>'+
+        '</div>'+
+      '</div>'+
+      (totalSits?'<div style="text-align:right;border-left:1px solid var(--b);padding-left:14px">'+
+        '<div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:6px">Hunt Log</div>'+
+        '<div style="font-size:24px;font-weight:800;color:var(--t)">'+totalSits+'</div>'+
+        '<div style="font-size:11px;color:var(--t3)">sits · '+totalHours+'h</div>'+
+        (sitPct!==null?'<div style="font-size:11px;color:var(--gm);font-weight:600;margin-top:2px">'+sitPct+'% productive</div>':'')+
+        (hitRate!==null?'<div style="font-size:11px;color:var(--t3);margin-top:1px">'+hitRate+'% prediction hit rate</div>':'')+
+      '</div>':'')
+    +'</div>';
+  }
+
+  // ── Recent feed ───────────────────────────────────────────
+  const recent=[...sg].sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time)).slice(0,5);
+  const feedRows=recent.length===0?'<div style="color:var(--t3);font-size:12px;padding:8px 0">No sightings yet.</div>':
+    recent.map(s=>{
+      const bk=S.bucks.find(b=>b.id===s.buckId);const cm=S.cameras.find(c=>c.id===s.camId);
+      return'<div class="fr2"><div class="fd"></div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-size:12px;font-weight:600">'+(bk?.emoji||'🦌')+' '+(bk?.name||'Unknown')+'</div>'+
+          '<div style="font-size:11px;color:var(--t3)">'+(cm?.name||'Unknown')+(s.temp?' · '+s.temp+'°F':'')+(s.windDir?' · '+s.windDir+' wind':'')+(s.season?' · '+s.season:'')+'</div>'+
+        '</div>'+
+        '<div style="font-size:11px;color:var(--t3);flex-shrink:0;text-align:right">'+s.date+'<br>'+(s.time?ft(s.time):'')+'</div>'+
+      '</div>';
+    }).join('');
+
+  // ── Assemble dashboard ────────────────────────────────────
+  c.innerHTML=
+    // Row 1: KPIs
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">'+
+      '<div class="card kpi g"><div class="kl">Sightings This Season</div><div class="kv">'+sg.length+'</div><div class="ks">'+(lastS?daysSinceLastS===0?'Last seen today':daysSinceLastS===1?'Last seen yesterday':'Last seen '+daysSinceLastS+'d ago':'No sightings yet')+'</div></div>'+
+      '<div class="card kpi s"><div class="kl">Bucks on Property</div><div class="kv">'+S.bucks.length+'</div><div class="ks">'+S.cameras.length+' cameras active</div></div>'+
+      '<div class="card kpi b"><div class="kl">Peak Movement</div><div class="kv" style="font-size:18px;margin-top:4px">'+pkS+'</div><div class="ks">Hour of peak activity</div></div>'+
+      '<div class="card kpi r"><div class="kl">Sits This Season</div><div class="kv">'+totalSits+'</div><div class="ks">'+(sitPct!==null?sitPct+'% productive sits':'Log sits in Hunt Log')+'</div></div>'+
+    '</div>'+
+
+    // Row 2: Pattern alert
+    '<div class="alert"><div style="font-size:18px;flex-shrink:0">&#127919;</div><div><div style="font-size:12px;font-weight:700;color:#c8b882;margin-bottom:3px">'+alertTitle+'</div><div style="font-size:12px;color:rgba(255,255,255,.72);line-height:1.5">'+alertText+'</div></div></div>'+
+
+    // Row 3: Best sit this week (if forecast loaded)
+    (bestSitHtml||'')+
+
+    // Row 4: YoY + hunt log stats
+    yoyHtml+
+
+    // Row 5: Movement chart + Buck status
+    '<div class="dg">'+
+      '<div class="card dc s2">'+
+        '<div class="ct">Movement by Hour</div><div class="cs">All sightings · Red = peak</div>'+
+        '<div class="hbars">'+hBs+'</div>'+
+        '<div class="hlbl"><span>12AM</span><span>3AM</span><span>6AM</span><span>9AM</span><span>12PM</span><span>3PM</span><span>6PM</span><span>9PM</span><span>11PM</span></div>'+
+      '</div>'+
+      '<div style="display:flex;flex-direction:column;gap:8px">'+buckCards+(buckCards?'':'<div style="color:var(--t3);font-size:12px">No bucks added yet.</div>')+'</div>'+
+    '</div>'+
+
+    // Row 6: Pressure overlay + Recent sightings
+    '<div class="dg">'+
+      (pressureOverlayHtml||'')+
+      '<div class="card dc'+(pressureOverlayHtml?'':' s2')+'">'+
+        '<div class="ct">Recent Sightings</div><div class="cs">Last 5 entries</div>'+
+        feedRows+
+      '</div>'+
+    '</div>';
 }
 
-// PATTERNS
-let pV='cam';
 function setPV(v){
   pV=v;
   const cb=document.getElementById('pVC'),bb=document.getElementById('pVB');
