@@ -220,6 +220,7 @@ tr:hover td{background:var(--gl)}
     <button onclick="go('patterns')" id="nav-patterns">Patterns</button>
     <button onclick="go('predict')" id="nav-predict">Predict</button>
     <button onclick="go('log')" id="nav-log">Sighting Log</button>
+    <button onclick="go('huntlog')" id="nav-huntlog">Hunt Log</button>
     <button onclick="go('settings')" id="nav-settings">&#9881; Settings</button>
   </nav>
   <div class="hr">
@@ -273,6 +274,40 @@ tr:hover td{background:var(--gl)}
     <table>
       <thead><tr><th>Date/Time</th><th>Buck</th><th>Camera</th><th>Year</th><th>Season</th><th>Temp</th><th>Wind</th><th>Pressure</th><th>Rut</th><th>Heading</th><th>Behavior</th><th>Notes</th><th></th></tr></thead>
       <tbody id="logBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="view" id="view-huntlog">
+  <div class="sr">
+    <div class="si"><div class="sv" id="hlTot">0</div><div class="sl">Total Sits</div></div>
+    <div class="si"><div class="sv" id="hlHours">0</div><div class="sl">Hours Hunted</div></div>
+    <div class="si"><div class="sv" id="hlSPH">—</div><div class="sl">Sightings / Sit</div></div>
+    <div class="si"><div class="sv" id="hlBestStand">—</div><div class="sl">Most Productive Stand</div></div>
+    <div class="si"><div class="sv" id="hlHitRate">—</div><div class="sl">Prediction Hit Rate</div></div>
+  </div>
+  <div class="ltb">
+    <select id="hlFCam" onchange="renderHL()"><option value="">All Cameras</option></select>
+    <select id="hlFResult" onchange="renderHL()">
+      <option value="">All Outcomes</option>
+      <option value="Buck sighted">Buck Sighted</option>
+      <option value="Doe only">Doe Only</option>
+      <option value="No deer">No Deer</option>
+      <option value="Harvested">Harvested</option>
+      <option value="Shot opportunity">Shot Opportunity</option>
+    </select>
+    <select id="hlFYear" onchange="renderHL()"><option value="">All Years</option></select>
+    <span style="font-size:11px;color:var(--t3);margin-left:8px">Every sit counts — even the slow ones</span>
+    <button class="btn-g" style="margin-left:auto;padding:6px 14px;font-size:12px" onclick="openModal('huntModal')">+ Log Sit</button>
+  </div>
+  <div class="ltw">
+    <table>
+      <thead><tr>
+        <th>Date</th><th>Stand / Camera</th><th>Time In</th><th>Time Out</th><th>Hours</th>
+        <th>Wind</th><th>Temp</th><th>Pressure</th><th>Outcome</th><th>Bucks Seen</th>
+        <th>Prediction Was</th><th>Notes</th><th></th>
+      </tr></thead>
+      <tbody id="huntLogBody"></tbody>
     </table>
   </div>
 </div>
@@ -392,6 +427,77 @@ tr:hover td{background:var(--gl)}
   </div>
 </div>
 
+<!-- HUNT LOG MODAL -->
+<div class="mo" id="huntModal">
+  <div class="md" style="width:540px">
+    <div class="mh"><div class="mti" id="huntMT">Log a Sit</div><button class="mc" onclick="closeModal('huntModal')">&#10005;</button></div>
+    <div class="mb">
+      <div class="ws" id="huntWxStatus">Enter date and time-in to auto-fill weather...</div>
+      <div class="f2">
+        <div><label class="fl2">Date</label><input type="date" id="hDate" class="f" onchange="fetchHuntWx()"></div>
+        <div><label class="fl2">Year</label><select id="hYear" class="f"></select></div>
+      </div>
+      <div class="f2">
+        <div><label class="fl2">Time In</label><input type="time" id="hTimeIn" class="f" onchange="fetchHuntWx()"></div>
+        <div><label class="fl2">Time Out</label><input type="time" id="hTimeOut" class="f"></div>
+      </div>
+      <div class="f2">
+        <div><label class="fl2">Stand / Camera Location</label>
+          <select id="hCam" class="f"><option value="">— Select Camera —</option></select>
+        </div>
+        <div><label class="fl2">Season</label>
+          <select id="hSeason" class="f"><option value="">— Select —</option></select>
+        </div>
+      </div>
+      <div class="f2">
+        <div><label class="fl2">Wind Direction</label>
+          <select id="hWind" class="f">
+            <option value="">Unknown</option>
+            <option value="N">N</option><option value="NE">NE</option><option value="E">E</option>
+            <option value="SE">SE</option><option value="S">S</option><option value="SW">SW</option>
+            <option value="W">W</option><option value="NW">NW</option>
+          </select>
+        </div>
+        <div><label class="fl2">Wind Speed (mph)</label><input type="number" id="hWindSpd" class="f" placeholder="Auto-filled"></div>
+      </div>
+      <div class="f2">
+        <div><label class="fl2">Temp (°F)</label><input type="number" id="hTemp" class="f" placeholder="Auto-filled"></div>
+        <div><label class="fl2">Pressure (inHg)</label><input type="number" id="hPress" class="f" step="0.01" placeholder="Auto-filled"></div>
+      </div>
+      <div class="f2">
+        <div><label class="fl2">Outcome</label>
+          <select id="hResult" class="f">
+            <option value="No deer">No deer</option>
+            <option value="Doe only">Doe only</option>
+            <option value="Buck sighted">Buck sighted</option>
+            <option value="Shot opportunity">Shot opportunity</option>
+            <option value="Harvested">Harvested</option>
+          </select>
+        </div>
+        <div><label class="fl2">Bucks Seen (names or count)</label>
+          <input type="text" id="hBucksSeen" class="f" placeholder="e.g. Forward 9, TBD or 0">
+        </div>
+      </div>
+      <div class="fr3">
+        <label class="fl2">What was the prediction score for this sit?</label>
+        <select id="hPredScore" class="f">
+          <option value="">Didn't check</option>
+          <option value="hunt">Was a 🟢 HUNT day</option>
+          <option value="maybe">Was a 🟡 MAYBE day</option>
+          <option value="poor">Was a 🔴 PASS day</option>
+        </select>
+      </div>
+      <div class="fr3"><label class="fl2">Notes</label>
+        <textarea id="hNotes" class="f" placeholder="e.g. Scrape freshened on north end, buck came from bedding at 6:15, swirling wind blew the sit..."></textarea>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn-o" onclick="closeModal('huntModal')">Cancel</button>
+      <button class="btn-g" id="huntSB" onclick="saveHuntLog()">Log Sit</button>
+    </div>
+  </div>
+</div>
+
 <!-- SIGHTING MODAL -->
 <div class="mo" id="sightModal">
   <div class="md">
@@ -401,7 +507,7 @@ tr:hover td{background:var(--gl)}
   </div>
 </div>
 <script>
-const DS={cameras:[],bucks:[],sightings:[],propertySettings:{name:'',hunter:'T-Stone',lat:46.2504,lon:-91.07529},fieldSettings:{builtins:{season:{label:'Season',enabled:true,options:['Summer','Fall','Rut','Late Season']},temp:{label:'Temperature (F)',enabled:true},windDir:{label:'Wind Direction',enabled:true},windSpeed:{label:'Wind Speed (mph)',enabled:true},pressure:{label:'Barometric Pressure (inHg)',enabled:true},rut:{label:'Rut Stage',enabled:true,options:['Pre-Rut','Seeking','Peak Rut','Lock-Down','Post-Rut']},notes:{label:'Behavior / Notes',enabled:true}},custom:[]}};
+const DS={cameras:[],bucks:[],sightings:[],huntLog:[],propertySettings:{name:'',hunter:'T-Stone',lat:46.2504,lon:-91.07529},fieldSettings:{builtins:{season:{label:'Season',enabled:true,options:['Summer','Fall','Rut','Late Season']},temp:{label:'Temperature (F)',enabled:true},windDir:{label:'Wind Direction',enabled:true},windSpeed:{label:'Wind Speed (mph)',enabled:true},pressure:{label:'Barometric Pressure (inHg)',enabled:true},rut:{label:'Rut Stage',enabled:true,options:['Pre-Rut','Seeking','Peak Rut','Lock-Down','Post-Rut']},notes:{label:'Behavior / Notes',enabled:true}},custom:[]}};
 let S=JSON.parse(JSON.stringify(DS));
 let gS='',gY='';
 function save(){try{localStorage.setItem('bt_v2',JSON.stringify(S));}catch(e){}}
@@ -412,7 +518,7 @@ function load(){
   if(!S.fieldSettings.builtins)S.fieldSettings.builtins=JSON.parse(JSON.stringify(DS.fieldSettings.builtins));
   if(!S.fieldSettings.custom)S.fieldSettings.custom=[];
   Object.keys(DS.fieldSettings.builtins).forEach(k=>{if(!S.fieldSettings.builtins[k])S.fieldSettings.builtins[k]=JSON.parse(JSON.stringify(DS.fieldSettings.builtins[k]));});
-  if(!S.cameras)S.cameras=[];if(!S.bucks)S.bucks=[];if(!S.sightings)S.sightings=[];}}
+  if(!S.cameras)S.cameras=[];if(!S.bucks)S.bucks=[];if(!S.sightings)S.sightings=[];if(!S.huntLog)S.huntLog=[];}}
   catch(e){S=JSON.parse(JSON.stringify(DS));}
 }
 function fil(){return S.sightings.filter(s=>{if(gS&&s.season!==gS)return false;if(gY&&(s.year||'')!==gY)return false;return true;});}
@@ -1044,12 +1150,13 @@ function backupJSON(){const a=document.createElement('a');a.href=URL.createObjec
 function clearAll(){if(!confirm('Delete ALL data? Cannot be undone.'))return;if(!confirm('Last chance?'))return;S=JSON.parse(JSON.stringify(DS));save();renderSet();renderDB();}
 
 // MODALS
-function openModal(id){if(id==='sightModal')buildSF();document.getElementById(id).classList.add('open');}
+function openModal(id){if(id==='sightModal')buildSF();if(id==='huntModal')buildHuntForm();document.getElementById(id).classList.add('open');}
 function closeModal(id){
   document.getElementById(id).classList.remove('open');
   if(id==='sightModal'){eSI=null;const t=document.getElementById('sightMT');const b=document.getElementById('sightSB');if(t)t.textContent='Log Sighting';if(b)b.textContent='Log Sighting';}
   if(id==='buckModal'){eBId=null;const t=document.getElementById('buckMT');const b=document.getElementById('buckSB');if(t)t.textContent='Add Buck Profile';if(b)b.textContent='Add Buck';}
   if(id==='camModal'){eCId=null;const t=document.getElementById('camMT');const b=document.getElementById('camSB');if(t)t.textContent='Add Camera';if(b)b.textContent='Add Camera';}
+  if(id==='huntModal'){eHId=null;const t=document.getElementById('huntMT');const b=document.getElementById('huntSB');if(t)t.textContent='Log a Sit';if(b)b.textContent='Log Sit';}
 }
 document.querySelectorAll('.mo').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
 
@@ -1134,6 +1241,188 @@ function saveSighting(){
   cf.forEach(f=>{const el=document.getElementById('cf_'+f.id);if(el)s.customFields[f.id]=el.value;});
   if(eSI){const i=S.sightings.findIndex(x=>x.id===eSI);if(i>=0){s.id=eSI;S.sightings[i]=s;}eSI=null;}else S.sightings.push(s);
   save();closeModal('sightModal');popF();renderDB();renderLog();updLS();
+}
+
+// ============================================================
+// HUNT LOG
+// ============================================================
+function renderHL(){
+  // Populate filters
+  const fc=document.getElementById('hlFCam');
+  if(fc)fc.innerHTML='<option value="">All Cameras</option>'+S.cameras.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+  const fy=document.getElementById('hlFYear');
+  if(fy){const yrs=[...new Set(S.huntLog.map(h=>h.year).filter(Boolean))].sort((a,b)=>b-a);fy.innerHTML='<option value="">All Years</option>'+yrs.map(y=>'<option value="'+y+'">'+y+'</option>').join('');}
+
+  const fCam=document.getElementById('hlFCam')?.value||'';
+  const fRes=document.getElementById('hlFResult')?.value||'';
+  const fYr=document.getElementById('hlFYear')?.value||'';
+
+  let sits=[...S.huntLog].sort((a,b)=>(b.date+b.timeIn).localeCompare(a.date+a.timeIn));
+  if(fCam)sits=sits.filter(h=>h.camId===fCam);
+  if(fRes)sits=sits.filter(h=>h.result===fRes);
+  if(fYr)sits=sits.filter(h=>h.year===fYr);
+
+  const tbody=document.getElementById('huntLogBody');if(!tbody)return;
+  if(!sits.length){
+    tbody.innerHTML='<tr><td colspan="13"><div class="empty"><div class="empty-icon" style="font-size:32px;opacity:.3">&#127978;</div><div class="empty-text">No sits logged yet</div><div class="empty-sub">Every sit counts — even the slow ones build your dataset.</div></div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML=sits.map(h=>{
+    const cam=S.cameras.find(c=>c.id===h.camId);
+    // Calculate hours
+    let hoursStr='—';
+    if(h.timeIn&&h.timeOut){
+      const [ih,im]=h.timeIn.split(':').map(Number);
+      const [oh,om]=h.timeOut.split(':').map(Number);
+      const mins=(oh*60+om)-(ih*60+im);
+      if(mins>0)hoursStr=(mins/60).toFixed(1)+'h';
+    }
+    // Outcome color
+    const outColors={Harvested:'var(--gm)','Shot opportunity':'#b45309','Buck sighted':'#2a6a9a','Doe only':'var(--t3)','No deer':'var(--bs)'};
+    const outColor=outColors[h.result]||'var(--t3)';
+    // Prediction badge
+    const predBadge=h.predScore==='hunt'?'<span style="background:var(--gm);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px">HUNT</span>':
+      h.predScore==='maybe'?'<span style="background:#b45309;color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px">MAYBE</span>':
+      h.predScore==='poor'?'<span style="background:var(--bs);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px">PASS</span>':'—';
+
+    return'<tr data-hid="'+h.id+'" ondblclick="editHunt(this.dataset.hid)">'+
+      '<td class="tm">'+h.date+'</td>'+
+      '<td><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:'+(cam?.color||'#ccc')+';display:inline-block"></span>'+(cam?.name||'Unknown')+'</span></td>'+
+      '<td class="tm">'+(h.timeIn?ft(h.timeIn):'—')+'</td>'+
+      '<td class="tm">'+(h.timeOut?ft(h.timeOut):'—')+'</td>'+
+      '<td class="tm">'+hoursStr+'</td>'+
+      '<td class="tm">'+([h.wind,h.windSpd?h.windSpd+'mph':''].filter(Boolean).join(' ')||'—')+'</td>'+
+      '<td class="tm">'+(h.temp?h.temp+'°F':'—')+'</td>'+
+      '<td class="tm">'+(h.pressure?h.pressure+' inHg':'—')+'</td>'+
+      '<td><span style="font-size:12px;font-weight:700;color:'+outColor+'">'+h.result+'</span></td>'+
+      '<td style="font-size:12px;color:var(--t2)">'+(h.bucksSeen||'—')+'</td>'+
+      '<td>'+predBadge+'</td>'+
+      '<td style="font-size:12px;color:var(--t2);max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(h.notes||'—')+'</td>'+
+      '<td style="white-space:nowrap">'+
+        '<button data-hid="'+h.id+'" onclick="event.stopPropagation();editHunt(this.dataset.hid)" style="background:var(--gl);border:1px solid var(--gb);border-radius:4px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--green);font-weight:600;margin-right:4px">Edit</button>'+
+        '<button data-hid="'+h.id+'" onclick="event.stopPropagation();delHunt(this.dataset.hid)" style="background:var(--rl);border:1px solid var(--rb);border-radius:4px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--red);font-weight:600">X</button>'+
+      '</td>'+
+    '</tr>';
+  }).join('');
+}
+
+function renderHLStats(){
+  const sits=S.huntLog;
+  if(!sits.length)return;
+
+  // Total sits
+  const totEl=document.getElementById('hlTot');if(totEl)totEl.textContent=sits.length;
+
+  // Total hours
+  let totalMins=0;
+  sits.forEach(h=>{if(h.timeIn&&h.timeOut){const[ih,im]=h.timeIn.split(':').map(Number);const[oh,om]=h.timeOut.split(':').map(Number);const m=(oh*60+om)-(ih*60+im);if(m>0)totalMins+=m;}});
+  const hoursEl=document.getElementById('hlHours');if(hoursEl)hoursEl.textContent=(totalMins/60).toFixed(1)+'h';
+
+  // Sightings per sit (buck sighted or harvested)
+  const productiveSits=sits.filter(h=>h.result==='Buck sighted'||h.result==='Harvested'||h.result==='Shot opportunity').length;
+  const sphEl=document.getElementById('hlSPH');if(sphEl)sphEl.textContent=sits.length?Math.round(productiveSits/sits.length*100)+'%':'—';
+
+  // Most productive stand (highest % productive sits)
+  const camStats={};
+  sits.forEach(h=>{
+    if(!h.camId)return;
+    if(!camStats[h.camId])camStats[h.camId]={total:0,productive:0};
+    camStats[h.camId].total++;
+    if(h.result==='Buck sighted'||h.result==='Harvested'||h.result==='Shot opportunity')camStats[h.camId].productive++;
+  });
+  const bestCamE=Object.entries(camStats).filter(([,v])=>v.total>=2).sort((a,b)=>(b[1].productive/b[1].total)-(a[1].productive/a[1].total))[0];
+  const bestStandEl=document.getElementById('hlBestStand');
+  if(bestStandEl)bestStandEl.textContent=bestCamE?S.cameras.find(c=>c.id===bestCamE[0])?.name||'—':'—';
+
+  // Prediction hit rate — when prediction said HUNT, did we see a buck?
+  const huntDays=sits.filter(h=>h.predScore==='hunt');
+  const huntHits=huntDays.filter(h=>h.result==='Buck sighted'||h.result==='Harvested'||h.result==='Shot opportunity').length;
+  const hrEl=document.getElementById('hlHitRate');
+  if(hrEl)hrEl.textContent=huntDays.length>=3?Math.round(huntHits/huntDays.length*100)+'%':huntDays.length?huntHits+'/'+huntDays.length:'—';
+}
+
+function buildHuntForm(){
+  const now=new Date();const yr=now.getFullYear();
+  const yrs=[yr,yr-1,yr-2,yr-3].map(y=>'<option value="'+y+'">'+y+'</option>').join('');
+  const cams=S.cameras.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+  const seasons=(S.fieldSettings.builtins.season?.options||[]).map(o=>'<option value="'+o+'">'+o+'</option>').join('');
+  const yrEl=document.getElementById('hYear');if(yrEl)yrEl.innerHTML=yrs;
+  const camEl=document.getElementById('hCam');if(camEl)camEl.innerHTML='<option value="">— Select Camera —</option>'+cams;
+  const seaEl=document.getElementById('hSeason');if(seaEl)seaEl.innerHTML='<option value="">— Select —</option>'+seasons;
+  const dateEl=document.getElementById('hDate');if(dateEl)dateEl.value=now.toISOString().split('T')[0];
+  const timeInEl=document.getElementById('hTimeIn');if(timeInEl)timeInEl.value=now.toTimeString().slice(0,5);
+}
+
+async function fetchHuntWx(){
+  const st=document.getElementById('huntWxStatus');if(!st)return;
+  const dt=document.getElementById('hDate')?.value;const tm=document.getElementById('hTimeIn')?.value;
+  if(!dt||!tm){st.textContent='Enter date and time-in to auto-fill weather.';st.style.color='var(--t3)';return;}
+  const lat=(S.propertySettings?.lat)||46.2504,lon=(S.propertySettings?.lon)||-91.07529;
+  const sd=new Date(dt+'T'+tm+':00'),dH=(Date.now()-sd)/3600000;
+  st.textContent='Fetching conditions...';st.style.color='var(--t3)';
+  try{
+    let c;
+    if(dH<1){const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&current=temperature_2m,wind_speed_10m,wind_direction_10m,surface_pressure&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Chicago');const d=await r.json();c={temp:d.current.temperature_2m,ws:d.current.wind_speed_10m,wd:d.current.wind_direction_10m,sp:d.current.surface_pressure};}
+    else{const r=await fetch('https://archive-api.open-meteo.com/v1/archive?latitude='+lat+'&longitude='+lon+'&start_date='+dt+'&end_date='+dt+'&hourly=temperature_2m,wind_speed_10m,wind_direction_10m,surface_pressure&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Chicago');const d=await r.json();const idx=parseInt(tm.split(':')[0]);c={temp:d.hourly.temperature_2m[idx],ws:d.hourly.wind_speed_10m[idx],wd:d.hourly.wind_direction_10m[idx],sp:d.hourly.surface_pressure[idx]};}
+    const d8=['N','NE','E','SE','S','SW','W','NW'];
+    const dir8=d8.reduce((b,d)=>{const a=x=>({N:0,NE:45,E:90,SE:135,S:180,SW:225,W:270,NW:315})[x];const df=x=>Math.abs(((c.wd-a(x))+540)%360-180);return df(d)<df(b)?d:b;},'N');
+    const temp=Math.round(c.temp),ws=Math.round(c.ws),pr=Math.round(c.sp*0.02953*100)/100;
+    if(document.getElementById('hTemp'))document.getElementById('hTemp').value=temp;
+    if(document.getElementById('hWind'))document.getElementById('hWind').value=dir8;
+    if(document.getElementById('hWindSpd'))document.getElementById('hWindSpd').value=ws;
+    if(document.getElementById('hPress'))document.getElementById('hPress').value=pr;
+    st.innerHTML='<strong>'+temp+'°F · '+dir8+' '+ws+'mph · '+pr+' inHg</strong> <span style="color:var(--t3);font-size:10px">edit if needed</span>';
+    st.style.color='var(--green)';
+  }catch(e){st.textContent='Could not fetch weather — enter manually.';st.style.color='var(--t3)';}
+}
+
+let eHId=null;
+function saveHuntLog(){
+  const camId=document.getElementById('hCam')?.value;
+  const date=document.getElementById('hDate')?.value;
+  if(!date){alert('Please enter a date.');return;}
+  const h={
+    id:'h_'+Date.now(),
+    date,
+    year:document.getElementById('hYear')?.value||new Date().getFullYear().toString(),
+    camId:camId||'',
+    season:document.getElementById('hSeason')?.value||'',
+    timeIn:document.getElementById('hTimeIn')?.value||'',
+    timeOut:document.getElementById('hTimeOut')?.value||'',
+    wind:document.getElementById('hWind')?.value||'',
+    windSpd:document.getElementById('hWindSpd')?.value||'',
+    temp:document.getElementById('hTemp')?.value||'',
+    pressure:document.getElementById('hPress')?.value||'',
+    result:document.getElementById('hResult')?.value||'No deer',
+    bucksSeen:document.getElementById('hBucksSeen')?.value.trim()||'',
+    predScore:document.getElementById('hPredScore')?.value||'',
+    notes:document.getElementById('hNotes')?.value.trim()||''
+  };
+  if(eHId){const i=S.huntLog.findIndex(x=>x.id===eHId);if(i>=0){h.id=eHId;S.huntLog[i]=h;}eHId=null;}
+  else S.huntLog.push(h);
+  save();closeModal('huntModal');renderHL();renderHLStats();
+}
+function editHunt(id){
+  eHId=id;const h=S.huntLog.find(x=>x.id===id);if(!h)return;
+  buildHuntForm();
+  document.getElementById('huntMT').textContent='Edit Sit';
+  document.getElementById('huntSB').textContent='Save Changes';
+  document.getElementById('huntModal').classList.add('open');
+  setTimeout(()=>{
+    const sv=(elId,v)=>{const el=document.getElementById(elId);if(el)el.value=v||'';};
+    sv('hDate',h.date);sv('hYear',h.year);sv('hCam',h.camId);sv('hSeason',h.season);
+    sv('hTimeIn',h.timeIn);sv('hTimeOut',h.timeOut);sv('hWind',h.wind);sv('hWindSpd',h.windSpd);
+    sv('hTemp',h.temp);sv('hPress',h.pressure);sv('hResult',h.result);
+    sv('hBucksSeen',h.bucksSeen);sv('hPredScore',h.predScore);sv('hNotes',h.notes);
+    const ws=document.getElementById('huntWxStatus');if(ws){ws.textContent='Editing existing sit.';ws.style.color='var(--t3)';}
+  },50);
+}
+function delHunt(id){
+  const h=S.huntLog.find(x=>x.id===id);
+  if(!confirm('Delete this sit on '+(h?.date||'')+' ?'))return;
+  S.huntLog=S.huntLog.filter(x=>x.id!==id);
+  save();renderHL();renderHLStats();
 }
 
 // INIT
