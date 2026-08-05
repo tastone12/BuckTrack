@@ -59,7 +59,7 @@ textarea.f{resize:vertical;min-height:60px}
 .dc{padding:14px 16px}.dc.s2{grid-column:span 2}
 .ct{font-size:13px;font-weight:700;color:var(--t)}
 .cs{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);margin-top:1px;margin-bottom:12px}
-.hbars{display:flex;gap:2px;align-items:flex-end;height:60px;margin-bottom:5px}
+.hbars{display:flex;gap:2px;align-items:flex-end;height:36px;margin-bottom:4px}
 .hbar{flex:1;background:var(--gl);border:1px solid var(--gb);border-bottom:none;border-radius:2px 2px 0 0;min-height:2px}
 .hbar.pk{background:var(--rm);border-color:var(--red)}.hbar.hi{background:var(--gm);border-color:var(--green)}
 .hlbl{display:flex;justify-content:space-between;font-size:9px;color:var(--t3);font-weight:600}
@@ -761,12 +761,12 @@ function renderDB(){
 
     // Row 5: Movement chart + Buck status
     '<div class="dg">'+
-      '<div class="card dc s2">'+
+      '<div class="card dc">'+
         '<div class="ct">Movement by Hour</div><div class="cs">All sightings · Red = peak</div>'+
         '<div class="hbars">'+hBs+'</div>'+
-        '<div class="hlbl"><span>12AM</span><span>3AM</span><span>6AM</span><span>9AM</span><span>12PM</span><span>3PM</span><span>6PM</span><span>9PM</span><span>11PM</span></div>'+
+        '<div class="hlbl"><span>12AM</span><span>6AM</span><span>12PM</span><span>6PM</span><span>11PM</span></div>'+
       '</div>'+
-      '<div style="display:flex;flex-direction:column;gap:8px">'+buckCards+(buckCards?'':'<div style="color:var(--t3);font-size:12px">No bucks added yet.</div>')+'</div>'+
+      '<div class="dc s2" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0">'+buckCards+(buckCards?'':'<div style="color:var(--t3);font-size:12px">No bucks added yet.</div>')+'</div>'+
     '</div>'+
 
     // Row 6: Pressure overlay + Recent sightings
