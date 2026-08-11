@@ -823,6 +823,125 @@ function renderPat(){
   ct.innerHTML='<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:12px">Camera-by-Camera Analysis</div>'+cCards;
 }
 
+// ── Where to be recommendation ──────────────────────────────
+// For nocturnal/low-daylight bucks: figures out WHERE to intercept them
+// Based on: which cameras they hit, at what time, heading direction
+// Logic: if buck is at Camera X at 10 PM heading NW, he's coming FROM SE
+// To catch in daylight, set up SE of Camera X before last light
+function whereToBeRec(buck, bs){
+  const opp={N:'S',S:'N',E:'W',W:'E',NE:'SW',SW:'NE',NW:'SE',SE:'NW'};
+  const dlPct=daylightPct(bs);
+  const profile=buckTimeProfile(bs);
+
+  // Only generate for nocturnal/low-daylight bucks
+  if(dlPct===null||dlPct>=50)return null;
+
+  const timed=bs.filter(s=>s.time);
+  if(timed.length<2)return null;
+
+  // Split sightings into dark (after last light) and near-legal (within 2hrs of legal light)
+  const darkSights=timed.filter(s=>!isLegalLight(s.time,s.date));
+  const nearLegal=timed.filter(s=>{
+    if(!s.time||!s.date)return false;
+    const[h,m]=s.time.split(':').map(Number);
+    const dec=h+m/60;
+    const ll=legalLight(s.date);
+    // Within 2 hours of legal light window
+    return(dec>=ll.rise-2&&dec<ll.rise)||(dec>ll.set&&dec<=ll.set+2);
+  });
+
+  // Find most common camera + heading for dark sightings
+  const camC={};darkSights.forEach(s=>{if(s.camId)camC[s.camId]=(camC[s.camId]||0)+1;});
+  const topDarkCamId=Object.entries(camC).sort((a,b)=>b[1]-a[1])[0]?.[0];
+  const topDarkCam=topDarkCamId?S.cameras.find(c=>c.id===topDarkCamId):null;
+
+  // Most common heading in dark sightings
+  const headC={};darkSights.forEach(s=>{if(s.buckHeading)headC[s.buckHeading]=(headC[s.buckHeading]||0)+1;});
+  const topHead=Object.entries(headC).sort((a,b)=>b[1]-a[1])[0]?.[0];
+
+  // Most common time of dark sightings
+  const darkTimes=darkSights.filter(s=>s.time).map(s=>{const[h,m]=s.time.split(':').map(Number);return h+m/60;});
+  const avgDarkHour=darkTimes.length?darkTimes.reduce((a,b)=>a+b)/darkTimes.length:null;
+
+  // Best wind for this buck overall
+  const wC={};bs.forEach(s=>{if(s.windDir)wC[s.windDir]=(wC[s.windDir]||0)+1;});
+  const topWind=Object.entries(wC).sort((a,b)=>b[1]-a[1])[0]?.[0];
+
+  // Build the recommendation
+  let rec={};
+  rec.daylightPct=dlPct;
+  rec.ghostLabel=dlPct<10?'almost entirely nocturnal':dlPct<25?'mostly nocturnal':'primarily after dark';
+  rec.darkCam=topDarkCam;
+  rec.darkHeading=topHead;
+  rec.fromDirection=topHead?opp[topHead]:null;
+  rec.avgDarkTime=avgDarkHour?fmtDecHour(avgDarkHour):null;
+  rec.bestWind=topWind;
+
+  // The intercept: if he's at Camera X at 10 PM heading NW
+  // He came FROM the SE — so set up SE of Camera X
+  // Earlier in the evening = closer to camera; much earlier = farther along his route
+  if(topDarkCam&&topHead){
+    const ll=legalLight(); // use current month
+    const lastLight=ll.set;
+    const intercept=avgDarkHour?Math.max(0,(avgDarkHour-lastLight)*60):60; // mins after last light
+    let distanceHint='';
+    if(intercept<30)distanceHint='just outside legal light — he may be staging very close to '+topDarkCam.name;
+    else if(intercept<90)distanceHint='roughly 30-60 minutes of travel from '+topDarkCam.name;
+    else distanceHint='well before '+topDarkCam.name+' — he covers significant ground after dark';
+    rec.distanceHint=distanceHint;
+    rec.interceptDir=rec.fromDirection;
+  }
+
+  // Near-legal sightings — if any, use them to triangulate better
+  if(nearLegal.length>=1){
+    const nlCamC={};nearLegal.forEach(s=>{if(s.camId)nlCamC[s.camId]=(nlCamC[s.camId]||0)+1;});
+    const nlCamId=Object.entries(nlCamC).sort((a,b)=>b[1]-a[1])[0]?.[0];
+    rec.nearLegalCam=nlCamId?S.cameras.find(c=>c.id===nlCamId):null;
+    rec.nearLegalCount=nearLegal.length;
+  }
+
+  return rec;
+}
+
+function buildWhereToBeHtml(buck, bs, rec){
+  if(!rec)return'';
+  const opp={N:'S',S:'N',E:'W',W:'E',NE:'SW',SW:'NE',NW:'SE',SE:'NW'};
+  let html='<div style="background:linear-gradient(135deg,#2a1a0e,#3a2a1a);border-radius:8px;padding:14px 16px;margin-bottom:12px;border:1px solid rgba(255,200,100,.15)">';
+  html+='<div style="font-size:11px;font-weight:700;color:#c8a050;margin-bottom:8px;letter-spacing:.08em;text-transform:uppercase">&#127758; Where to Be — Intercept Plan</div>';
+
+  // Ghost status
+  html+='<div style="font-size:13px;color:rgba(255,255,255,.9);margin-bottom:10px;line-height:1.6">';
+  html+='<strong>'+buck.name+'</strong> is '+rec.ghostLabel+' &#8212; only <strong>'+rec.daylightPct+'%</strong> of sightings fall within legal shooting hours. ';
+
+  if(rec.darkCam&&rec.darkHeading){
+    html+='He is showing up at <strong>'+rec.darkCam.name+'</strong>';
+    if(rec.avgDarkTime)html+=' around <strong>'+rec.avgDarkTime+'</strong>';
+    html+=' heading <strong>'+rec.darkHeading+'</strong>, meaning he is coming <strong>from the '+rec.fromDirection+'</strong>. ';
+    html+='To catch him in legal light, set up <strong>'+rec.fromDirection+' of '+rec.darkCam.name+'</strong> &#8212; ';
+    html+=rec.distanceHint+'. ';
+  }
+
+  if(rec.bestWind){
+    html+='Set up on a <strong>'+rec.bestWind+' wind</strong> so your scent pushes away from his approach.';
+  }
+
+  html+='</div>';
+
+  // Near-legal sightings callout
+  if(rec.nearLegalCam){
+    html+='<div style="background:rgba(255,200,100,.1);border-radius:6px;padding:8px 10px;font-size:12px;color:rgba(255,230,150,.9)">';
+    html+='&#9888;&#65039; <strong>'+rec.nearLegalCount+' near-legal sighting'+(rec.nearLegalCount>1?'s':'')+' at '+rec.nearLegalCam.name+'</strong> — this camera fires within 2 hours of legal light. ';
+    html+='Consider hunting here first before pushing deeper into his route.';
+    html+='</div>';
+  }
+
+  // Legal light window for context
+  const ll=legalLight();
+  html+='<div style="margin-top:8px;font-size:11px;color:rgba(255,255,255,.4)">Legal light this time of year: '+ll.riseDisplay+' – '+ll.setDisplay+'</div>';
+  html+='</div>';
+  return html;
+}
+
 function renderBP(sg,ct){
   const bwd=S.bucks.filter(b=>sg.some(s=>s.buckId===b.id));
   if(!bwd.length){ct.innerHTML='<div class="empty"><div style="font-size:32px;opacity:.3">&#129420;</div><div style="font-size:14px;font-weight:600;color:var(--t2)">No buck data yet</div><div style="font-size:12px;color:var(--t3);line-height:1.5;max-width:240px">Log sightings and assign them to specific bucks.</div></div>';return;}
@@ -852,7 +971,14 @@ function renderBP(sg,ct){
     if(tw&&th&&tC2)sum+=' Best intercept: '+tC2.name+' on a '+tw[0]+' wind'+(tC2.facing?', facing '+tC2.facing:'')+'. Set up to cut him off heading '+th[0]+'.';
     const wS=wd.length?wd[0][0]+' wind produces the most movement ('+pct(wd[0][1],bs.filter(s=>s.windDir).length)+'%). '+(wd.length>1?'Also active on '+wd[1][0]+' wind.':''):'';
     const cT=Object.entries(cC).sort((a,b)=>b[1]-a[1]).map(([cid,cnt])=>{const cam=S.cameras.find(c=>c.id===cid);const cbs=bs.filter(s=>s.camId===cid);const cw2=tE(cbs.map(s=>s.windDir));const ch=tE(cbs.map(s=>s.buckHeading));const cph=new Array(24).fill(0);cbs.forEach(s=>{if(s.time)cph[parseInt(s.time)]++;});const mCP=Math.max(...cph);const cpI=mCP>0?cph.indexOf(mCP):-1;return'<div class="bpci"><div class="bpcn"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+(cam?.color||'#ccc')+';margin-right:4px"></span>'+(cam?.name||'Unknown')+' <span style="color:var(--t3);font-weight:400">('+cnt+'x)</span></div><div class="bpcd">'+(cpI>=0?ft(cpI+':00'):'')+(cw2?' - '+cw2[0]:'')+(ch?' - '+ch[0]:'')+(cam?.facing?' - faces '+cam.facing:'')+'</div></div>';}).join('');
-    return'<div class="bpc"><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--b)"><div style="font-size:28px">'+(buck.emoji||'&#129420;')+'</div><div style="flex:1"><div style="font-size:16px;font-weight:800">'+buck.name+'</div><div style="font-size:11px;color:var(--t3)">'+bs.length+' sightings'+(buck.age?' - Est. '+buck.age:'')+'</div></div><button data-bid="'+buck.id+'" onclick="editBuck(this.dataset.bid)" style="background:var(--gm);color:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer">Edit</button></div>'+(sum?'<div class="bpms"><div class="bpmt">Movement Profile</div><div class="bpmx">'+sum+'</div></div>':'')+'<div class="bpg"><div class="bps"><div class="bpsl">Peak Movement</div><div class="bpsv" style="font-size:13px">'+(pkW||'--')+'</div></div><div class="bps"><div class="bpsl">Best Wind</div><div class="bpsv" style="font-size:13px">'+(tw?tw[0]+' ('+pct(tw[1],bs.filter(s=>s.windDir).length)+'%)':'--')+'</div></div><div class="bps"><div class="bpsl">Temp Sweet Spot</div><div class="bpsv" style="font-size:13px">'+(sw&&sw[1]>0?sw[0]:'--')+'</div></div><div class="bps"><div class="bpsl">Travel Direction</div><div class="bpsv" style="font-size:13px">'+(th?'Heading '+th[0]+' ('+pct(th[1],bs.filter(s=>s.buckHeading).length)+'%)':'--')+'</div></div><div class="bps"><div class="bpsl">Rut Activity</div><div class="bpsv" style="font-size:13px">'+(tr?tr[0]:'--')+'</div></div><div class="bps"><div class="bpsl">Behavior</div><div class="bpsv" style="font-size:13px">'+(tb2?tb2[0]:'--')+'</div></div></div><div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:8px">Wind Breakdown</div><div class="bpwg">'+wBs+'</div>'+(wS?'<div style="font-size:12px;color:var(--t2);margin-bottom:12px;line-height:1.5;background:var(--bg);border-radius:5px;padding:8px 10px">'+wS+'</div>':'')+'<div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:6px">Movement by Hour</div><div style="display:flex;align-items:flex-end;height:52px;gap:1px;margin-bottom:4px">'+hBs+'</div><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--t3);margin-bottom:12px"><span>12AM</span><span>3AM</span><span>6AM</span><span>9AM</span><span>12PM</span><span>3PM</span><span>6PM</span><span>9PM</span><span>11PM</span></div><div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:8px">Camera Trail</div><div class="bpct">'+cT+'</div></div>';
+    // Daylight % and intercept plan
+    const dlP=daylightPct(bs);
+    const ll=legalLight(bs[0]?.date);
+    const wtbRec=dlP!==null&&dlP<50?whereToBeRec(buck,bs):null;
+    const wtbHtml=wtbRec?buildWhereToBeHtml(buck,bs,wtbRec):'';
+    const dlColor=dlP===null?'var(--bs)':dlP>=60?'var(--gm)':dlP>=30?'#b45309':'var(--rm)';
+    const dlLabel=dlP===null?'No time data':dlP+'% in legal light';
+        return'<div class="bpc"><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--b)"><div style="font-size:28px">'+(buck.emoji||'&#129420;')+'</div><div style="flex:1"><div style="font-size:16px;font-weight:800">'+buck.name+'</div><div style="font-size:11px;color:var(--t3)">'+bs.length+' sightings'+(buck.age?' - Est. '+buck.age:'')+'</div><div style=\"margin-top:4px\"><span style=\"font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;background:\'\'+dlColor+\'\">\'\'+dlLabel+\'</span><span style=\"font-size:10px;color:var(--t3);margin-left:8px\">Legal: \'\'+ll.riseDisplay+\' â \'\'+ll.setDisplay+\'</span></div></div><button data-bid="'+buck.id+'" onclick="editBuck(this.dataset.bid)" style="background:var(--gm);color:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer">Edit</button></div>'+wtbHtml+(sum?'<div class="bpms"><div class="bpmt">Movement Profile</div><div class="bpmx">'+sum+'</div></div>':'')+'<div class="bpg"><div class="bps"><div class="bpsl">Peak Movement</div><div class="bpsv" style="font-size:13px">'+(pkW||'--')+'</div></div><div class="bps"><div class="bpsl">Best Wind</div><div class="bpsv" style="font-size:13px">'+(tw?tw[0]+' ('+pct(tw[1],bs.filter(s=>s.windDir).length)+'%)':'--')+'</div></div><div class="bps"><div class="bpsl">Temp Sweet Spot</div><div class="bpsv" style="font-size:13px">'+(sw&&sw[1]>0?sw[0]:'--')+'</div></div><div class="bps"><div class="bpsl">Travel Direction</div><div class="bpsv" style="font-size:13px">'+(th?'Heading '+th[0]+' ('+pct(th[1],bs.filter(s=>s.buckHeading).length)+'%)':'--')+'</div></div><div class="bps"><div class="bpsl">Rut Activity</div><div class="bpsv" style="font-size:13px">'+(tr?tr[0]:'--')+'</div></div><div class="bps"><div class="bpsl">Behavior</div><div class="bpsv" style="font-size:13px">'+(tb2?tb2[0]:'--')+'</div></div></div><div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:8px">Wind Breakdown</div><div class="bpwg">'+wBs+'</div>'+(wS?'<div style="font-size:12px;color:var(--t2);margin-bottom:12px;line-height:1.5;background:var(--bg);border-radius:5px;padding:8px 10px">'+wS+'</div>':'')+'<div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:6px">Movement by Hour</div><div style="display:flex;align-items:flex-end;height:52px;gap:1px;margin-bottom:4px">'+hBs+'</div><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--t3);margin-bottom:12px"><span>12AM</span><span>3AM</span><span>6AM</span><span>9AM</span><span>12PM</span><span>3PM</span><span>6PM</span><span>9PM</span><span>11PM</span></div><div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:8px">Camera Trail</div><div class="bpct">'+cT+'</div></div>';
   }).join('');
   ct.innerHTML=cards;
 }
@@ -910,22 +1036,83 @@ function tempTrend(dayIdx){
   return'stable';
 }
 
+// ── Legal light helper — Cable, WI (46.25°N) ────────────────
+// Returns {rise, set} in decimal hours (e.g. 6.5 = 6:30 AM)
+// Legal shooting = 30 min before sunrise to 30 min after sunset
+// Based on monthly averages for lat 46.25°N
+function legalLight(dateStr){
+  const month = dateStr ? new Date(dateStr+'T12:00:00').getMonth() : new Date().getMonth();
+  // [sunrise, sunset] in decimal hours, local time
+  const table = [
+    [7.58, 16.42], // Jan
+    [7.17, 17.25], // Feb
+    [6.42, 18.00], // Mar
+    [6.50, 19.75], // Apr (DST)
+    [5.83, 20.42], // May
+    [5.42, 20.92], // Jun
+    [5.50, 20.83], // Jul
+    [6.08, 20.17], // Aug
+    [6.75, 19.17], // Sep
+    [7.42, 18.08], // Oct
+    [7.08, 16.83], // Nov (post DST)
+    [7.58, 16.33], // Dec
+  ];
+  const [rise, set] = table[month];
+  return {
+    rise: rise - 0.5,   // 30 min before sunrise
+    set:  set  + 0.5,   // 30 min after sunset
+    riseDisplay: fmtDecHour(rise - 0.5),
+    setDisplay:  fmtDecHour(set  + 0.5),
+    sunriseDisplay: fmtDecHour(rise),
+    sunsetDisplay:  fmtDecHour(set)
+  };
+}
+function fmtDecHour(h){
+  const hr = Math.floor(h);
+  const mn = Math.round((h - hr) * 60);
+  return ft(hr + ':' + String(mn).padStart(2,'0'));
+}
+function isLegalLight(timeStr, dateStr){
+  if(!timeStr) return false;
+  const [h,m] = timeStr.split(':').map(Number);
+  const decHour = h + m/60;
+  const ll = legalLight(dateStr);
+  return decHour >= ll.rise && decHour <= ll.set;
+}
+function legalLightSightings(sightings){
+  return sightings.filter(s => isLegalLight(s.time, s.date));
+}
+
 // ── Time-of-day profile helper ───────────────────────────────
-// Returns buck's dominant movement window: 'dawn','dusk','midday','nocturnal','mixed'
+// Classifies buck movement using ALL sightings for nocturnal detection
+// but legal-light sightings for huntable pattern
 function buckTimeProfile(bs){
   const timed=bs.filter(s=>s.time);
-  if(timed.length<3)return'mixed';
-  const dawn=timed.filter(s=>{const h=parseInt(s.time);return h>=4&&h<=9;}).length;
-  const dusk=timed.filter(s=>{const h=parseInt(s.time);return h>=16&&h<=21;}).length;
-  const mid=timed.filter(s=>{const h=parseInt(s.time);return h>=10&&h<=15;}).length;
-  const noc=timed.filter(s=>{const h=parseInt(s.time);return h>=22||h<=3;}).length;
-  const max=Math.max(dawn,dusk,mid,noc);
-  const pct=v=>Math.round(v/timed.length*100);
+  if(!timed.length)return'mixed';
+  // First check: what % are in legal light at all?
+  const legalSights=timed.filter(s=>isLegalLight(s.time,s.date));
+  const legalPct=Math.round(legalSights.length/timed.length*100);
+  // If less than 25% in legal light — this buck is nocturnal
+  if(legalPct<25&&timed.length>=4)return'nocturnal';
+  // Otherwise classify based on legal-light sightings only
+  const lt=legalSights.length>=2?legalSights:timed;
+  const dawn=lt.filter(s=>{const h=parseInt(s.time);return h>=4&&h<=9;}).length;
+  const dusk=lt.filter(s=>{const h=parseInt(s.time);return h>=15&&h<=21;}).length;
+  const mid=lt.filter(s=>{const h=parseInt(s.time);return h>=10&&h<=14;}).length;
+  const max=Math.max(dawn,dusk,mid);
+  const pct=v=>lt.length?Math.round(v/lt.length*100):0;
   if(max===dawn&&pct(dawn)>=40)return'dawn';
   if(max===dusk&&pct(dusk)>=40)return'dusk';
-  if(noc>dawn&&noc>dusk)return'nocturnal';
-  if(mid>dawn&&mid>dusk)return'midday';
+  if(mid>dawn&&mid>dusk&&pct(mid)>=35)return'midday';
   return'mixed';
+}
+
+// Returns daylight % for a buck (% of timed sightings in legal light)
+function daylightPct(bs){
+  const timed=bs.filter(s=>s.time);
+  if(!timed.length)return null;
+  const legal=timed.filter(s=>isLegalLight(s.time,s.date));
+  return Math.round(legal.length/timed.length*100);
 }
 
 // ── Main per-buck scoring function (4 factors) ───────────────
@@ -945,17 +1132,17 @@ function sDFB(buck,w8,ta,dayIdx,wSpd){
   }
 
   // ── 2. Time of day / huntability (30%) ──────────────────
-  // Second highest — when this buck moves determines if you can intercept him
-  // Dawn or dusk movers = huntable. Nocturnal/midday = harder.
+  // Based on legal-light sightings only — nocturnal = low score
   const timedSights=bs.filter(s=>s.time);
   if(timedSights.length>=2){
+    const dlPct=daylightPct(bs);
     const profile=buckTimeProfile(bs);
     let timeScore=0;
-    if(profile==='dawn')timeScore=90;      // classic — best sits are early
-    else if(profile==='dusk')timeScore=85; // evening feed pattern — very huntable
-    else if(profile==='mixed')timeScore=65;// moves throughout — huntable
-    else if(profile==='midday')timeScore=35;// tough to intercept legally
-    else if(profile==='nocturnal')timeScore=10;// mostly after dark — very hard
+    if(profile==='nocturnal'||dlPct<25)timeScore=10; // ghost — almost never in legal light
+    else if(profile==='dawn')timeScore=90;            // classic dawn — very huntable
+    else if(profile==='dusk')timeScore=85;            // evening feed — very huntable
+    else if(profile==='mixed')timeScore=65;           // moves throughout legal hours
+    else if(profile==='midday')timeScore=40;          // tough window but still legal
     totalScore+=timeScore*0.30;
     totalWeight+=0.30;
   }
@@ -1282,7 +1469,7 @@ function renderLog(){
   tb.innerHTML=sg.map(x=>{
     const bk=S.bucks.find(b=>b.id===x.buckId);const cm=S.cameras.find(c=>c.id===x.camId);
     return'<tr style="cursor:pointer" data-sid="'+x.id+'" ondblclick="editSighting(this.dataset.sid)">'+
-      '<td><div class="tm">'+x.date+'</div><div class="tm" style="color:var(--t3)">'+(x.time?ft(x.time):'')+'</div></td>'+
+      '<td><div class="tm">'+x.date+'</div><div class="tm" style="color:var(--t3)">'+(x.time?ft(x.time)+(isLegalLight(x.time,x.date)?'':' &#127769;'):'')+'</div></td>'+
       '<td style="font-weight:600">'+(bk?(bk.emoji||'&#129420;')+' '+bk.name:'Unknown')+'</td>'+
       '<td><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:7px;height:7px;border-radius:50%;background:'+(cm?.color||'#ccc')+';display:inline-block"></span>'+(cm?.name||'Unknown')+'</span></td>'+
       '<td class="tm">'+(x.year||'--')+'</td><td class="tm">'+(x.season||'--')+'</td>'+
