@@ -823,6 +823,187 @@ function renderPat(){
   ct.innerHTML='<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:12px">Camera-by-Camera Analysis</div>'+cCards;
 }
 
+// ── Behavior intelligence engine ────────────────────────────
+const RUT_BEHAVIORS=['Nose to ground','Chasing','Tending doe'];
+const HIGH_VALUE_BEHAVIORS=['Scraping','Rubbing','Bedded','Staging','Alert'];
+
+function behaviorBreakdown(bs){
+  const counts={};
+  bs.forEach(s=>{if(s.buckBehavior){counts[s.buckBehavior]=(counts[s.buckBehavior]||0)+1;}});
+  return Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+}
+
+// Returns array of high-value callouts for a buck
+function behaviorCallouts(buck, bs){
+  const callouts=[];
+  const opp={N:'S',S:'N',E:'W',W:'E',NE:'SW',SW:'NE',NW:'SE',SE:'NW'};
+
+  // ── Scrape visits ─────────────────────────────────────────
+  const scrapeSights=bs.filter(s=>s.buckBehavior==='Scraping');
+  if(scrapeSights.length>=1){
+    // Group by camera
+    const camC={};
+    scrapeSights.forEach(s=>{if(s.camId)camC[s.camId]=(camC[s.camId]||0)+1;});
+    const topCamId=Object.entries(camC).sort((a,b)=>b[1]-a[1])[0]?.[0];
+    const topCam=topCamId?S.cameras.find(c=>c.id===topCamId):null;
+    // Best wind at scrape
+    const wC={};scrapeSights.forEach(s=>{if(s.windDir)wC[s.windDir]=(wC[s.windDir]||0)+1;});
+    const topWind=Object.entries(wC).sort((a,b)=>b[1]-a[1])[0]?.[0];
+    // Legal light scrape visits
+    const legalScrapes=legalLightSightings(scrapeSights);
+    // Avg time
+    const times=legalLightSightings(scrapeSights).filter(s=>s.time).map(s=>{const[h,m]=s.time.split(':').map(Number);return h+m/60;});
+    const avgT=times.length?fmtDecHour(times.reduce((a,b)=>a+b)/times.length):null;
+    callouts.push({
+      type:'scrape',
+      priority:1,
+      icon:'🔨',
+      title:'Active Scrape'+(topCam?' at '+topCam.name:''),
+      count:scrapeSights.length,
+      legalCount:legalScrapes.length,
+      topCam,topWind,avgT,
+      headline:buck.name+' has visited '+(topCam?topCam.name+' ':'')+scrapeSights.length+'x while scraping'+(legalScrapes.length?' ('+legalScrapes.length+' in legal light)':''),
+      action:topCam&&topWind?'On the next '+topWind+' wind, hunt '+topCam.name+(avgT?' — he works it around '+avgT:'')+'.'
+        :topCam?'Hunt '+topCam.name+' to catch him on the scrape.':'Log camera location for setup recommendation.',
+      windMatch:topWind
+    });
+  }
+
+  // ── Rub visits ────────────────────────────────────────────
+  const rubSights=bs.filter(s=>s.buckBehavior==='Rubbing');
+  if(rubSights.length>=2){
+    const camC={};rubSights.forEach(s=>{if(s.camId)camC[s.camId]=(camC[s.camId]||0)+1;});
+    const topCamId=Object.entries(camC).sort((a,b)=>b[1]-a[1])[0]?.[0];
+    const topCam=topCamId?S.cameras.find(c=>c.id===topCamId):null;
+    callouts.push({
+      type:'rub',
+      priority:2,
+      icon:'🌲',
+      title:'Rub Line'+(topCam?' near '+topCam.name:''),
+      count:rubSights.length,
+      headline:buck.name+' has been caught rubbing '+rubSights.length+'x — active rub line confirmed.',
+      action:topCam?'Rub line near '+topCam.name+' — consider a setup downwind of this location.':'Camera data needed for precise setup.',
+      windMatch:null
+    });
+  }
+
+  // ── Bedding sightings ─────────────────────────────────────
+  const beddingSights=bs.filter(s=>s.buckBehavior==='Bedded');
+  if(beddingSights.length>=1){
+    const camC={};beddingSights.forEach(s=>{if(s.camId)camC[s.camId]=(camC[s.camId]||0)+1;});
+    const topCamId=Object.entries(camC).sort((a,b)=>b[1]-a[1])[0]?.[0];
+    const topCam=topCamId?S.cameras.find(c=>c.id===topCamId):null;
+    // Times
+    const times=beddingSights.filter(s=>s.time).map(s=>{const[h,m]=s.time.split(':').map(Number);return h+m/60;});
+    const avgT=times.length?fmtDecHour(times.reduce((a,b)=>a+b)/times.length):null;
+    callouts.push({
+      type:'bedding',
+      priority:1,
+      icon:'🛏',
+      title:'Bedding Location Confirmed'+(topCam?' — near '+topCam.name:''),
+      count:beddingSights.length,
+      headline:'Bedding sighting'+(beddingSights.length>1?'s ('+beddingSights.length+'x)':'')+' confirmed'+(topCam?' near '+topCam.name:'')+(avgT?' around '+avgT:'')+'.',
+      action:'This changes your whole approach. Every stand near this area needs to be set up with a wind that keeps your scent away from '+(topCam?topCam.name:'this location')+'. Do NOT bump him here — approach from downwind only.',
+      windMatch:null,
+      critical:true
+    });
+  }
+
+  // ── Staging behavior ──────────────────────────────────────
+  const stagingSights=bs.filter(s=>s.buckBehavior==='Staging');
+  if(stagingSights.length>=2){
+    const camC={};stagingSights.forEach(s=>{if(s.camId)camC[s.camId]=(camC[s.camId]||0)+1;});
+    const topCamId=Object.entries(camC).sort((a,b)=>b[1]-a[1])[0]?.[0];
+    const topCam=topCamId?S.cameras.find(c=>c.id===topCamId):null;
+    const times=legalLightSightings(stagingSights).filter(s=>s.time).map(s=>{const[h,m]=s.time.split(':').map(Number);return h+m/60;});
+    const avgT=times.length?fmtDecHour(times.reduce((a,b)=>a+b)/times.length):null;
+    callouts.push({
+      type:'staging',
+      priority:2,
+      icon:'⏸',
+      title:'Staging Area'+(topCam?' at '+topCam.name:''),
+      count:stagingSights.length,
+      headline:buck.name+' is staging near '+(topCam?topCam.name:'a known location')+' before committing — '+(avgT?'typically around '+avgT+'.':'pattern confirmed.'),
+      action:'Set up BETWEEN his staging area and his destination. He is being cautious here — scent control and entry route are critical.',
+      windMatch:null
+    });
+  }
+
+  // ── Alert / Spooked ───────────────────────────────────────
+  const alertSights=bs.filter(s=>s.buckBehavior==='Alert');
+  if(alertSights.length>=2){
+    const camC={};alertSights.forEach(s=>{if(s.camId)camC[s.camId]=(camC[s.camId]||0)+1;});
+    const topCamId=Object.entries(camC).sort((a,b)=>b[1]-a[1])[0]?.[0];
+    const topCam=topCamId?S.cameras.find(c=>c.id===topCamId):null;
+    const winds=alertSights.filter(s=>s.windDir).map(s=>s.windDir);
+    const wC={};winds.forEach(w=>{wC[w]=(wC[w]||0)+1;});
+    const topWind=Object.entries(wC).sort((a,b)=>b[1]-a[1])[0]?.[0];
+    callouts.push({
+      type:'alert',
+      priority:1,
+      icon:'⚠️',
+      title:'Stand Alert'+(topCam?' — '+topCam.name+' may be compromised':''),
+      count:alertSights.length,
+      headline:buck.name+' has been spooked or on alert '+(topCam?'at '+topCam.name+' ':'')+'on '+alertSights.length+' occasions'+(topWind?' (often on '+topWind+' wind)':'')+'.',
+      action:'This stand'+(topCam?' ('+topCam.name+')':'')+(topWind?' on a '+topWind+' wind':'')+' may have a scent or noise problem. Reconsider your approach route and wind requirements here.',
+      windMatch:topWind,
+      warning:true
+    });
+  }
+
+  // ── Feeding pattern ───────────────────────────────────────
+  const feedSights=legalLightSightings(bs.filter(s=>s.buckBehavior==='Feeding'));
+  if(feedSights.length>=3){
+    const camC={};feedSights.forEach(s=>{if(s.camId)camC[s.camId]=(camC[s.camId]||0)+1;});
+    const topCamId=Object.entries(camC).sort((a,b)=>b[1]-a[1])[0]?.[0];
+    const topCam=topCamId?S.cameras.find(c=>c.id===topCamId):null;
+    const times=feedSights.filter(s=>s.time).map(s=>{const[h,m]=s.time.split(':').map(Number);return h+m/60;});
+    const avgT=times.length?fmtDecHour(times.reduce((a,b)=>a+b)/times.length):null;
+    const wC={};feedSights.forEach(s=>{if(s.windDir)wC[s.windDir]=(wC[s.windDir]||0)+1;});
+    const topWind=Object.entries(wC).sort((a,b)=>b[1]-a[1])[0]?.[0];
+    callouts.push({
+      type:'feeding',
+      priority:2,
+      icon:'🌾',
+      title:'Feeding Pattern'+(topCam?' at '+topCam.name:''),
+      count:feedSights.length,
+      headline:buck.name+' has been caught feeding in legal light '+(topCam?'at '+topCam.name+' ':'')+'on '+feedSights.length+' occasions'+(avgT?', typically around '+avgT:'')+'.',
+      action:'Food source setup'+(topCam?' at '+topCam.name:'')+(topWind?' on a '+topWind+' wind':'')+'. Set up between his entry point and the food — do not hunt the food source directly.',
+      windMatch:topWind
+    });
+  }
+
+  return callouts.sort((a,b)=>a.priority-b.priority);
+}
+
+function buildBehaviorCalloutHtml(callouts){
+  if(!callouts.length)return'';
+  let html='<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">';
+  callouts.forEach(c=>{
+    const bg=c.critical?'rgba(100,20,20,.35)':c.warning?'rgba(180,80,0,.2)':'rgba(61,122,42,.12)';
+    const border=c.critical?'rgba(200,50,50,.4)':c.warning?'rgba(200,120,0,.4)':'rgba(100,180,60,.3)';
+    const titleColor=c.critical?'#ff9090':c.warning?'#ffc060':'#c8d8a0';
+    html+='<div style="background:'+bg+';border:1px solid '+border+';border-radius:7px;padding:12px 14px">';
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">';
+    html+='<div style="font-size:13px;font-weight:800;color:'+titleColor+'">'+c.icon+' '+c.title+'</div>';
+    html+='<div style="font-size:11px;color:rgba(255,255,255,.4);font-weight:600">'+c.count+'x logged</div>';
+    html+='</div>';
+    html+='<div style="font-size:12px;color:rgba(255,255,255,.8);margin-bottom:6px;line-height:1.5">'+c.headline+'</div>';
+    html+='<div style="font-size:12px;color:rgba(255,255,255,.6);line-height:1.5;border-top:1px solid rgba(255,255,255,.08);padding-top:6px">'+
+      '<span style="font-size:10px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:.07em;text-transform:uppercase;margin-right:6px">Setup</span>'+
+      c.action+'</div>';
+    html+='</div>';
+  });
+  html+='</div>';
+  return html;
+}
+
+// Scrape intelligence for Predict tab
+function scrapeMatchesDay(buck, bs, wind8){
+  const scrapeSights=bs.filter(s=>s.buckBehavior==='Scraping'&&s.windDir===wind8);
+  return scrapeSights.length;
+}
+
 // ── Where to be recommendation ──────────────────────────────
 function whereToBeRec(buck, bs){
   const opp={N:'S',S:'N',E:'W',W:'E',NE:'SW',SW:'NE',NW:'SE',SE:'NW'};
@@ -1053,7 +1234,47 @@ function renderBP(sg,ct){
     const wtbHtml=wtbRec?buildWhereToBeHtml(buck,bs,wtbRec):'';
     const dlColor=dlP===null?'var(--bs)':dlP>=60?'var(--gm)':dlP>=30?'#b45309':'var(--rm)';
     const dlLabel=dlP===null?'No time data':dlP+'% in legal light';
-        return'<div class="bpc"><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--b)"><div style="font-size:28px">'+(buck.emoji||'&#129420;')+'</div><div style="flex:1"><div style="font-size:16px;font-weight:800">'+buck.name+'</div><div style="font-size:11px;color:var(--t3)">'+bs.length+' sightings'+(buck.age?' - Est. '+buck.age:'')+'</div><div style=\"margin-top:4px\"><span style=\"font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;background:\'\'+dlColor+\'\">\'\'+dlLabel+\'</span><span style=\"font-size:10px;color:var(--t3);margin-left:8px\">Legal: \'\'+ll.riseDisplay+\' â \'\'+ll.setDisplay+\'</span></div></div><button data-bid="'+buck.id+'" onclick="editBuck(this.dataset.bid)" style="background:var(--gm);color:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer">Edit</button></div>'+wtbHtml+(sum?'<div class="bpms"><div class="bpmt">Movement Profile</div><div class="bpmx">'+sum+'</div></div>':'')+'<div class="bpg"><div class="bps"><div class="bpsl">Peak Movement</div><div class="bpsv" style="font-size:13px">'+(pkW||'--')+'</div></div><div class="bps"><div class="bpsl">Best Wind</div><div class="bpsv" style="font-size:13px">'+(tw?tw[0]+' ('+pct(tw[1],bs.filter(s=>s.windDir).length)+'%)':'--')+'</div></div><div class="bps"><div class="bpsl">Temp Sweet Spot</div><div class="bpsv" style="font-size:13px">'+(sw&&sw[1]>0?sw[0]:'--')+'</div></div><div class="bps"><div class="bpsl">Travel Direction</div><div class="bpsv" style="font-size:13px">'+(th?'Heading '+th[0]+' ('+pct(th[1],bs.filter(s=>s.buckHeading).length)+'%)':'--')+'</div></div><div class="bps"><div class="bpsl">Rut Activity</div><div class="bpsv" style="font-size:13px">'+(tr?tr[0]:'--')+'</div></div><div class="bps"><div class="bpsl">Behavior</div><div class="bpsv" style="font-size:13px">'+(tb2?tb2[0]:'--')+'</div></div></div><div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:8px">Wind Breakdown</div><div class="bpwg">'+wBs+'</div>'+(wS?'<div style="font-size:12px;color:var(--t2);margin-bottom:12px;line-height:1.5;background:var(--bg);border-radius:5px;padding:8px 10px">'+wS+'</div>':'')+'<div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:6px">Movement by Hour</div><div style="display:flex;align-items:flex-end;height:52px;gap:1px;margin-bottom:4px">'+hBs+'</div><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--t3);margin-bottom:12px"><span>12AM</span><span>3AM</span><span>6AM</span><span>9AM</span><span>12PM</span><span>3PM</span><span>6PM</span><span>9PM</span><span>11PM</span></div><div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:8px">Camera Trail</div><div class="bpct">'+cT+'</div></div>';
+        return'<div class="bpc"><div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--b)"><div style="font-size:28px">'+(buck.emoji||'&#129420;')+'</div><div style="flex:1"><div style="font-size:16px;font-weight:800">'+buck.name+'</div><div style="font-size:11px;color:var(--t3)">'+bs.length+' sightings'+(buck.age?' - Est. '+buck.age:'')+'</div><div style=\"margin-top:4px\"><span style=\"font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px;background:\'\'+dlColor+\'\">\'\'+dlLabel+\'</span><span style=\"font-size:10px;color:var(--t3);margin-left:8px\">Legal: \'\'+ll.riseDisplay+\' â \'\'+ll.setDisplay+\'</span></div></div><button data-bid="'+buck.id+'" onclick="editBuck(this.dataset.bid)" style="background:var(--gm);color:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer">Edit</button></div>'+wtbHtml+(sum?'<div class="bpms"><div class="bpmt">Movement Profile</div><div class="bpmx">'+sum+'</div></div>':'')+'<div class="bpg"><div class="bps"><div class="bpsl">Peak Movement</div><div class="bpsv" style="font-size:13px">'+(pkW||'--')+'</div></div><div class="bps"><div class="bpsl">Best Wind</div><div class="bpsv" style="font-size:13px">'+(tw?tw[0]+' ('+pct(tw[1],bs.filter(s=>s.windDir).length)+'%)':'--')+'</div></div><div class="bps"><div class="bpsl">Temp Sweet Spot</div><div class="bpsv" style="font-size:13px">'+(sw&&sw[1]>0?sw[0]:'--')+'</div></div><div class="bps"><div class="bpsl">Travel Direction</div><div class="bpsv" style="font-size:13px">'+(th?'Heading '+th[0]+' ('+pct(th[1],bs.filter(s=>s.buckHeading).length)+'%)':'--')+'</div></div><div class="bps"><div class="bpsl">Rut Activity</div><div class="bpsv" style="font-size:13px">'+(tr?tr[0]:'--')+'</div></div><div class="bps"><div class="bpsl">Behavior</div><div class="bpsv" style="font-size:13px">'+(tb2?tb2[0]:'--')+'</div></div></div><div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:8px">Wind Breakdown</div><div class="bpwg">'+wBs+'</div>'+(wS?'<div style="font-size:12px;color:var(--t2);margin-bottom:12px;line-height:1.5;background:var(--bg);border-radius:5px;padding:8px 10px">'+wS+'</div>':'')+'<div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:6px">Movement by Hour</div><div style="display:flex;align-items:flex-end;height:52px;gap:1px;margin-bottom:4px">'+hBs+'</div><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--t3);margin-bottom:12px"><span>12AM</span><span>3AM</span><span>6AM</span><span>9AM</span><span>12PM</span><span>3PM</span><span>6PM</span><span>9PM</span><span>11PM</span></div><div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin-bottom:8px">Camera Trail</div><div class="bpct">'+cT+'</div>'+
+
+      // Behavior breakdown
+      (()=>{
+        const behav=behaviorBreakdown(bs);
+        if(!behav.length)return'';
+        const total=behav.reduce((a,b)=>a+b[1],0);
+        const bIco={'Feeding':'&#127806;','Travelling':'&#10145;','Staging':'&#9208;','Scraping':'&#128296;',
+          'Rubbing':'&#127794;','Nose to ground':'&#128067;','Chasing':'&#128168;','Tending doe':'&#10084;',
+          'Sparring':'&#9876;','Bedded':'&#128716;','Alert':'&#9888;&#65039;'};
+        let h='<div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin:12px 0 8px">Behavior Breakdown</div>';
+        h+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">';
+        behav.forEach(function(entry){
+          const beh=entry[0],cnt=entry[1];
+          const pct=Math.round(cnt/total*100);
+          const isRut=RUT_BEHAVIORS.includes(beh);
+          const isHV=HIGH_VALUE_BEHAVIORS.includes(beh);
+          const bg=isRut?'var(--rl)':isHV?'var(--gl)':'var(--bg)';
+          const brd=isRut?'var(--rb)':isHV?'var(--gb)':'var(--b)';
+          const col=isRut?'var(--red)':isHV?'var(--green)':'var(--t2)';
+          h+='<div style="background:'+bg+';border:1px solid '+brd+';border-radius:6px;padding:5px 10px;text-align:center">';
+          h+='<div style="font-size:12px">'+(bIco[beh]||'')+'</div>';
+          h+='<div style="font-size:11px;font-weight:700;color:'+col+'">'+beh+'</div>';
+          h+='<div style="font-size:10px;color:var(--t3)">'+cnt+'x &middot; '+pct+'%</div>';
+          h+='</div>';
+        });
+        h+='</div>';
+        return h;
+      })()+
+
+      // Behavioral intelligence callouts
+      (()=>{
+        const callouts=behaviorCallouts(buck,bs);
+        if(!callouts.length)return'';
+        return'<div style="background:linear-gradient(135deg,#1a2e1c,#253020);border-radius:8px;padding:14px 16px;margin-top:4px">'+
+          '<div style="font-size:10px;font-weight:700;color:#c8d8a0;letter-spacing:.09em;text-transform:uppercase;margin-bottom:10px">&#127919; Behavioral Intelligence</div>'+
+          buildBehaviorCalloutHtml(callouts)+
+        '</div>';
+      })()+
+
+    '</div>';
   }).join('');
   ct.innerHTML=cards;
 }
@@ -1343,6 +1564,14 @@ function renderFS(){
     if(best.topCam)detail+='Best camera: <strong>'+best.topCam.name+'</strong>. ';
     if(best.pkStr)detail+='Be there by <strong>'+best.pkStr+'</strong>. ';
     if(best.topHead)detail+='Set up to cut him off heading <strong>'+best.topHead+'</strong>. ';
+    // Scrape intelligence in hero
+    const heroBS=predFil().filter(s=>s.buckId===best.buck.id);
+    const heroScrapeHits=scrapeMatchesDay(best.buck,heroBS,best.d.w8);
+    const heroScrapeSights=heroBS.filter(s=>s.buckBehavior==='Scraping');
+    const heroScrapeCamC={};heroScrapeSights.forEach(s=>{if(s.camId)heroScrapeCamC[s.camId]=(heroScrapeCamC[s.camId]||0)+1;});
+    const heroScrapeCamId=Object.entries(heroScrapeCamC).sort((a,b)=>b[1]-a[1])[0]?.[0];
+    const heroScrapeCam=heroScrapeCamId?S.cameras.find(c=>c.id===heroScrapeCamId):null;
+    if(heroScrapeHits>=1&&heroScrapeCam)detail+='&#128296; <strong>Scrape wind match</strong> — he has worked the scrape at '+heroScrapeCam.name+' on '+best.d.wLong+' wind '+heroScrapeHits+'x. This is a high-percentage setup. ';
     if(heroProfileLabel)detail+=heroProfileLabel+' ';
     detail+=heroTrendLabel;
     const wxLine=best.d.icon+' '+best.d.tMx+'°/'+best.d.tMn+'° · '+best.d.wLong+' '+best.d.wSpd+'mph'+(best.d.pr>0.1?' · 🌧 '+best.d.pr.toFixed(1)+'"':'');
@@ -1434,12 +1663,20 @@ function renderFS(){
         vd=score>=55?'hunt':score>=30?'maybe':'poor';
         vl=score>=55?'&#129001; HUNT':score>=30?'&#129000; MAYBE':'&#128997; PASS';
         const hasWindData=bs.filter(s=>s.windDir).length>0;
+        // Scrape match on today's wind?
+        const scrapeHits=scrapeMatchesDay(buck,bs,d.w8);
+        const scrapeSights=bs.filter(s=>s.buckBehavior==='Scraping');
+        const scrapeCamC={};scrapeSights.forEach(s=>{if(s.camId)scrapeCamC[s.camId]=(scrapeCamC[s.camId]||0)+1;});
+        const topScrapeCamId=Object.entries(scrapeCamC).sort((a,b)=>b[1]-a[1])[0]?.[0];
+        const topScrapeCam=topScrapeCamId?S.cameras.find(c=>c.id===topScrapeCamId):null;
+        const hasScrapeMatch=scrapeHits>=1;
         if(vd==='hunt'||vd==='maybe'){
           const parts=[];
           if(topCam)parts.push(topCam.name);
           if(pkStr)parts.push(pkStr);
           if(topHead2)parts.push('heading '+topHead2);
           detailLine=parts.join(' · ')||'Partial match';
+          if(hasScrapeMatch&&topScrapeCam)detailLine+=' · &#128296; scrape wind match';
         } else {
           detailLine=!hasWindData?'No wind data yet':'Poor conditions';
         }
@@ -1700,7 +1937,7 @@ function buildSF(){
   if(b.pressure?.enabled!==false)wx.push('<div><label class="fl2">Pressure (inHg)</label><input type="number" id="sPress" class="f" step="0.01" placeholder="Auto-filled"></div>');
   for(let i=0;i<wx.length;i+=2)html+='<div class="f2">'+wx[i]+(wx[i+1]||'<div></div>')+'</div>';
   if(b.rut?.enabled!==false)html+='<div class="f2"><div><label class="fl2">Rut Stage</label><select id="sRut" class="f"><option value="">Unknown</option>'+rO+'</select></div><div><label class="fl2">&nbsp;</label><button onclick="fetchWx()" style="width:100%;background:var(--gl);border:1px solid var(--gb);color:var(--green);font-size:12px;font-weight:600;padding:8px;border-radius:5px;cursor:pointer">Refresh Weather</button></div></div>';
-  html+='<div class="f2"><div><label class="fl2">Buck Heading</label><select id="sBH" class="f"><option value="">Unknown</option><option value="N">N</option><option value="NE">NE</option><option value="E">E</option><option value="SE">SE</option><option value="S">S</option><option value="SW">SW</option><option value="W">W</option><option value="NW">NW</option></select></div><div><label class="fl2">Buck Behavior</label><select id="sBBe" class="f"><option value="">Unknown</option><option value="Feeding">Feeding</option><option value="Travelling">Travelling</option><option value="Nose to ground">Nose to ground</option><option value="Chasing">Chasing</option><option value="Tending doe">Tending doe</option><option value="Sparring">Sparring</option><option value="Scraping">Scraping</option><option value="Rubbing">Rubbing</option><option value="Bedded">Bedded</option><option value="Alert">Alert/Spooked</option></select></div></div>';
+  html+='<div class="f2"><div><label class="fl2">Buck Heading</label><select id="sBH" class="f"><option value="">Unknown</option><option value="N">N</option><option value="NE">NE</option><option value="E">E</option><option value="SE">SE</option><option value="S">S</option><option value="SW">SW</option><option value="W">W</option><option value="NW">NW</option></select></div><div><label class="fl2">Buck Behavior</label><select id="sBBe" class="f"><option value="">Unknown</option><option value="Feeding">Feeding</option><option value="Travelling">Travelling</option><option value="Staging">Staging</option><option value="Scraping">Scraping</option><option value="Rubbing">Rubbing</option><option value="Nose to ground">Nose to ground (rut)</option><option value="Chasing">Chasing (rut)</option><option value="Tending doe">Tending doe (rut)</option><option value="Sparring">Sparring</option><option value="Bedded">Bedded</option><option value="Alert">Alert / Spooked</option></select></div></div>';
   for(let i=0;i<cf.length;i+=2){const pair=[cf[i],cf[i+1]].filter(Boolean);html+='<div class="f2">'+pair.map(f=>'<div><label class="fl2">'+f.label+'</label>'+bCFI(f)+'</div>').join('')+(pair.length===1?'<div></div>':'')+'</div>';}
   if(b.notes?.enabled!==false)html+='<div class="fr3"><label class="fl2">Behavior / Notes</label><textarea id="sNotes" class="f" placeholder="e.g. Feeding, nose to ground, moving NW..."></textarea></div>';
   body.innerHTML=html;setTimeout(fetchWx,100);
