@@ -824,123 +824,198 @@ function renderPat(){
 }
 
 // ── Where to be recommendation ──────────────────────────────
-// For nocturnal/low-daylight bucks: figures out WHERE to intercept them
-// Based on: which cameras they hit, at what time, heading direction
-// Logic: if buck is at Camera X at 10 PM heading NW, he's coming FROM SE
-// To catch in daylight, set up SE of Camera X before last light
 function whereToBeRec(buck, bs){
   const opp={N:'S',S:'N',E:'W',W:'E',NE:'SW',SW:'NE',NW:'SE',SE:'NW'};
   const dlPct=daylightPct(bs);
-  const profile=buckTimeProfile(bs);
-
-  // Only generate for nocturnal/low-daylight bucks
-  if(dlPct===null||dlPct>=50)return null;
-
   const timed=bs.filter(s=>s.time);
-  if(timed.length<2)return null;
+  if(!timed.length)return null;
 
-  // Split sightings into dark (after last light) and near-legal (within 2hrs of legal light)
-  const darkSights=timed.filter(s=>!isLegalLight(s.time,s.date));
-  const nearLegal=timed.filter(s=>{
-    if(!s.time||!s.date)return false;
+  // Classify each sighting
+  const legalSights  = timed.filter(s=>isLegalLight(s.time,s.date));
+  const darkSights   = timed.filter(s=>!isLegalLight(s.time,s.date));
+  const nearLegal    = darkSights.filter(s=>{
     const[h,m]=s.time.split(':').map(Number);
     const dec=h+m/60;
     const ll=legalLight(s.date);
-    // Within 2 hours of legal light window
     return(dec>=ll.rise-2&&dec<ll.rise)||(dec>ll.set&&dec<=ll.set+2);
   });
+  const trueNight    = darkSights.filter(s=>!nearLegal.includes(s));
 
-  // Find most common camera + heading for dark sightings
-  const camC={};darkSights.forEach(s=>{if(s.camId)camC[s.camId]=(camC[s.camId]||0)+1;});
-  const topDarkCamId=Object.entries(camC).sort((a,b)=>b[1]-a[1])[0]?.[0];
-  const topDarkCam=topDarkCamId?S.cameras.find(c=>c.id===topDarkCamId):null;
+  // ── Per-camera breakdown ─────────────────────────────────
+  // For each camera: count dark, near-legal, legal sightings + heading breakdown
+  const camData={};
+  timed.forEach(s=>{
+    if(!s.camId)return;
+    if(!camData[s.camId])camData[s.camId]={
+      cam:S.cameras.find(c=>c.id===s.camId),
+      legal:[],nearLegal:[],dark:[],all:[]
+    };
+    const d=camData[s.camId];
+    d.all.push(s);
+    if(legalSights.includes(s))d.legal.push(s);
+    else if(nearLegal.includes(s))d.nearLegal.push(s);
+    else d.dark.push(s);
+  });
 
-  // Most common heading in dark sightings
-  const headC={};darkSights.forEach(s=>{if(s.buckHeading)headC[s.buckHeading]=(headC[s.buckHeading]||0)+1;});
-  const topHead=Object.entries(headC).sort((a,b)=>b[1]-a[1])[0]?.[0];
-
-  // Most common time of dark sightings
-  const darkTimes=darkSights.filter(s=>s.time).map(s=>{const[h,m]=s.time.split(':').map(Number);return h+m/60;});
-  const avgDarkHour=darkTimes.length?darkTimes.reduce((a,b)=>a+b)/darkTimes.length:null;
-
-  // Best wind for this buck overall
+  // Best wind overall
   const wC={};bs.forEach(s=>{if(s.windDir)wC[s.windDir]=(wC[s.windDir]||0)+1;});
   const topWind=Object.entries(wC).sort((a,b)=>b[1]-a[1])[0]?.[0];
 
-  // Build the recommendation
-  let rec={};
-  rec.daylightPct=dlPct;
-  rec.ghostLabel=dlPct<10?'almost entirely nocturnal':dlPct<25?'mostly nocturnal':'primarily after dark';
-  rec.darkCam=topDarkCam;
-  rec.darkHeading=topHead;
-  rec.fromDirection=topHead?opp[topHead]:null;
-  rec.avgDarkTime=avgDarkHour?fmtDecHour(avgDarkHour):null;
-  rec.bestWind=topWind;
+  // ── Primary intercept camera = most near-legal sightings ──
+  // If tie, prefer the one with most legal sightings
+  const camArr=Object.values(camData).filter(d=>d.cam);
+  camArr.sort((a,b)=>{
+    const nlDiff=b.nearLegal.length-a.nearLegal.length;
+    if(nlDiff!==0)return nlDiff;
+    return b.legal.length-a.legal.length;
+  });
 
-  // The intercept: if he's at Camera X at 10 PM heading NW
-  // He came FROM the SE — so set up SE of Camera X
-  // Earlier in the evening = closer to camera; much earlier = farther along his route
-  if(topDarkCam&&topHead){
-    const ll=legalLight(); // use current month
-    const lastLight=ll.set;
-    const intercept=avgDarkHour?Math.max(0,(avgDarkHour-lastLight)*60):60; // mins after last light
-    let distanceHint='';
-    if(intercept<30)distanceHint='just outside legal light — he may be staging very close to '+topDarkCam.name;
-    else if(intercept<90)distanceHint='roughly 30-60 minutes of travel from '+topDarkCam.name;
-    else distanceHint='well before '+topDarkCam.name+' — he covers significant ground after dark';
-    rec.distanceHint=distanceHint;
-    rec.interceptDir=rec.fromDirection;
+  const primaryCam=camArr[0]||null;
+  // Staging camera = most true-night sightings (where he comes FROM)
+  const stagingCam=[...camArr].sort((a,b)=>b.dark.length-a.dark.length)[0]||null;
+
+  // ── Heading analysis per camera ──────────────────────────
+  function headingBreakdown(sights){
+    const hC={};
+    sights.forEach(s=>{if(s.buckHeading)hC[s.buckHeading]=(hC[s.buckHeading]||0)+1;});
+    const total=sights.filter(s=>s.buckHeading).length;
+    return Object.entries(hC)
+      .sort((a,b)=>b[1]-a[1])
+      .map(([dir,cnt])=>({dir,cnt,pct:Math.round(cnt/total*100)}));
   }
 
-  // Near-legal sightings — if any, use them to triangulate better
-  if(nearLegal.length>=1){
-    const nlCamC={};nearLegal.forEach(s=>{if(s.camId)nlCamC[s.camId]=(nlCamC[s.camId]||0)+1;});
-    const nlCamId=Object.entries(nlCamC).sort((a,b)=>b[1]-a[1])[0]?.[0];
-    rec.nearLegalCam=nlCamId?S.cameras.find(c=>c.id===nlCamId):null;
-    rec.nearLegalCount=nearLegal.length;
+  // ── Avg time per camera group ─────────────────────────────
+  function avgTime(sights){
+    const times=sights.filter(s=>s.time).map(s=>{const[h,m]=s.time.split(':').map(Number);return h+m/60;});
+    if(!times.length)return null;
+    return times.reduce((a,b)=>a+b)/times.length;
   }
 
-  return rec;
+  return{
+    dlPct, camData, camArr, primaryCam, stagingCam,
+    topWind, opp,
+    legalSights, nearLegal, darkSights, trueNight,
+    headingBreakdown, avgTime,
+    totalTimed: timed.length
+  };
 }
 
 function buildWhereToBeHtml(buck, bs, rec){
-  if(!rec)return'';
-  const opp={N:'S',S:'N',E:'W',W:'E',NE:'SW',SW:'NE',NW:'SE',SE:'NW'};
-  let html='<div style="background:linear-gradient(135deg,#2a1a0e,#3a2a1a);border-radius:8px;padding:14px 16px;margin-bottom:12px;border:1px solid rgba(255,200,100,.15)">';
-  html+='<div style="font-size:11px;font-weight:700;color:#c8a050;margin-bottom:8px;letter-spacing:.08em;text-transform:uppercase">&#127758; Where to Be — Intercept Plan</div>';
+  if(!rec||!rec.primaryCam)return'';
+  const{dlPct,camArr,primaryCam,stagingCam,topWind,opp,nearLegal,darkSights,legalSights,headingBreakdown,avgTime,totalTimed}=rec;
 
-  // Ghost status
-  html+='<div style="font-size:13px;color:rgba(255,255,255,.9);margin-bottom:10px;line-height:1.6">';
-  html+='<strong>'+buck.name+'</strong> is '+rec.ghostLabel+' &#8212; only <strong>'+rec.daylightPct+'%</strong> of sightings fall within legal shooting hours. ';
+  let html='<div style="background:linear-gradient(135deg,#2a1a0e,#3a2a1a);border-radius:8px;padding:16px 18px;margin-bottom:12px;border:1px solid rgba(200,160,80,.2)">';
+  html+='<div style="font-size:10px;font-weight:700;color:#c8a050;margin-bottom:10px;letter-spacing:.09em;text-transform:uppercase">&#127758; Intercept Plan — '+buck.name+'</div>';
 
-  if(rec.darkCam&&rec.darkHeading){
-    html+='He is showing up at <strong>'+rec.darkCam.name+'</strong>';
-    if(rec.avgDarkTime)html+=' around <strong>'+rec.avgDarkTime+'</strong>';
-    html+=' heading <strong>'+rec.darkHeading+'</strong>, meaning he is coming <strong>from the '+rec.fromDirection+'</strong>. ';
-    html+='To catch him in legal light, set up <strong>'+rec.fromDirection+' of '+rec.darkCam.name+'</strong> &#8212; ';
-    html+=rec.distanceHint+'. ';
-  }
-
-  if(rec.bestWind){
-    html+='Set up on a <strong>'+rec.bestWind+' wind</strong> so your scent pushes away from his approach.';
-  }
-
+  // Daylight summary line
+  const ghostLabel=dlPct<10?'Almost entirely nocturnal':dlPct<25?'Mostly nocturnal':dlPct<50?'Primarily after dark':'Partially nocturnal';
+  html+='<div style="font-size:13px;color:rgba(255,255,255,.85);margin-bottom:14px;line-height:1.6">';
+  html+='<strong>'+ghostLabel+'</strong> — <strong>'+dlPct+'%</strong> of timed sightings fall within legal shooting hours ('+legalSights.length+' of '+totalTimed+' sightings).';
   html+='</div>';
 
-  // Near-legal sightings callout
-  if(rec.nearLegalCam){
-    html+='<div style="background:rgba(255,200,100,.1);border-radius:6px;padding:8px 10px;font-size:12px;color:rgba(255,230,150,.9)">';
-    html+='&#9888;&#65039; <strong>'+rec.nearLegalCount+' near-legal sighting'+(rec.nearLegalCount>1?'s':'')+' at '+rec.nearLegalCam.name+'</strong> — this camera fires within 2 hours of legal light. ';
-    html+='Consider hunting here first before pushing deeper into his route.';
+  // ── Per-camera stat cards ─────────────────────────────────
+  html+='<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">';
+  camArr.forEach(d=>{
+    if(!d.cam)return;
+    const isPrimary=d===primaryCam;
+    const isStaging=d===stagingCam&&d!==primaryCam;
+    const allH=headingBreakdown(d.all);
+    const nlH=headingBreakdown(d.nearLegal);
+    const topDir=nlH[0]||allH[0]||null;
+    const sitDir=topDir?opp[topDir.dir]:null;
+    const avgt=avgTime([...d.nearLegal,...d.dark]);
+    const avgLegal=avgTime(d.legal);
+
+    html+='<div style="background:rgba(255,255,255,'+(isPrimary?'.08':'.04')+');border:1px solid rgba(255,255,255,'+(isPrimary?'.15':'.07')+');border-radius:6px;padding:12px 14px">';
+
+    // Camera header
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+    html+='<div style="display:flex;align-items:center;gap:8px">';
+    html+='<div style="width:10px;height:10px;border-radius:50%;background:'+(d.cam.color||'#888')+';flex-shrink:0"></div>';
+    html+='<div style="font-size:13px;font-weight:800;color:#fff">'+d.cam.name+'</div>';
+    if(isPrimary)html+='<span style="font-size:10px;font-weight:700;background:#c8a050;color:#1a1000;padding:1px 7px;border-radius:8px;margin-left:4px">PRIMARY INTERCEPT</span>';
+    if(isStaging)html+='<span style="font-size:10px;font-weight:700;background:rgba(255,255,255,.2);color:rgba(255,255,255,.7);padding:1px 7px;border-radius:8px;margin-left:4px">STAGING</span>';
+    html+='</div>';
+    html+='<div style="display:flex;gap:8px;font-size:11px">';
+    html+='<span style="color:var(--gm);font-weight:700">'+d.legal.length+' legal</span>';
+    html+='<span style="color:#c8a050;font-weight:700">'+d.nearLegal.length+' near-legal</span>';
+    html+='<span style="color:rgba(255,255,255,.4)">'+d.dark.length+' dark</span>';
+    html+='</div>';
+    html+='</div>';
+
+    // Heading breakdown
+    if(allH.length){
+      html+='<div style="margin-bottom:8px">';
+      html+='<div style="font-size:10px;color:rgba(255,255,255,.5);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px">Heading breakdown (all sightings at this camera)</div>';
+      html+='<div style="display:flex;flex-wrap:wrap;gap:6px">';
+      allH.forEach(({dir,cnt,pct})=>{
+        const isTop=dir===allH[0].dir;
+        html+='<div style="background:rgba(255,255,255,'+(isTop?'.12':'.06')+');border-radius:5px;padding:5px 10px;text-align:center">';
+        html+='<div style="font-size:14px;font-weight:800;color:'+(isTop?'#c8d8a0':'rgba(255,255,255,.7)')+'">'+dir+'</div>';
+        html+='<div style="font-size:10px;color:rgba(255,255,255,.5)">'+cnt+'x · '+pct+'%</div>';
+        html+='</div>';
+      });
+      html+='</div>';
+    }
+
+    // Near-legal heading breakdown if different
+    if(d.nearLegal.length>=2&&nlH.length){
+      html+='<div style="margin-top:6px;margin-bottom:8px">';
+      html+='<div style="font-size:10px;color:#c8a050;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px">Heading during near-legal hours specifically</div>';
+      html+='<div style="display:flex;flex-wrap:wrap;gap:6px">';
+      nlH.forEach(({dir,cnt,pct})=>{
+        const isTop=dir===nlH[0].dir;
+        html+='<div style="background:rgba(200,160,80,'+(isTop?'.2':'.1')+');border:1px solid rgba(200,160,80,.2);border-radius:5px;padding:5px 10px;text-align:center">';
+        html+='<div style="font-size:14px;font-weight:800;color:'+(isTop?'#c8d8a0':'rgba(255,200,100,.7)')+'">'+dir+'</div>';
+        html+='<div style="font-size:10px;color:rgba(200,160,80,.7)">'+cnt+'x · '+pct+'%</div>';
+        html+='</div>';
+      });
+      html+='</div>';
+    }
+
+    // The recommendation
+    if(topDir&&sitDir){
+      html+='<div style="margin-top:8px;padding:8px 10px;background:rgba(200,160,80,.12);border-left:3px solid #c8a050;border-radius:0 5px 5px 0">';
+      html+='<div style="font-size:12px;color:#c8d8a0;font-weight:700">';
+      html+='He is heading <strong>'+topDir.dir+'</strong> ('+topDir.pct+'% of the time) at this camera — ';
+      html+='<strong>sit '+sitDir+' of '+d.cam.name+'</strong> to intercept him before he gets there.';
+      if(avgt!==null)html+=' Average arrival: <strong>'+fmtDecHour(avgt)+'</strong>.';
+      if(avgLegal!==null)html+=' Legal-light average: <strong>'+fmtDecHour(avgLegal)+'</strong>.';
+      html+='</div>';
+      html+='</div>';
+    }
+
+    html+='</div>'; // end camera card
+  });
+  html+='</div>'; // end camArr loop
+
+  // ── Overall recommendation ────────────────────────────────
+  const primH=headingBreakdown([...primaryCam.nearLegal,...primaryCam.legal]);
+  const primTopDir=primH[0]||null;
+  const primSitDir=primTopDir?opp[primTopDir.dir]:null;
+
+  if(primSitDir){
+    html+='<div style="background:rgba(200,160,80,.15);border:1px solid rgba(200,160,80,.3);border-radius:6px;padding:12px 14px;margin-bottom:10px">';
+    html+='<div style="font-size:11px;font-weight:700;color:#c8a050;margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase">Bottom Line</div>';
+    html+='<div style="font-size:13px;color:rgba(255,255,255,.9);line-height:1.7">';
+    html+='Your best play is <strong>'+primSitDir+' of '+primaryCam.cam.name+'</strong>';
+    if(topWind)html+=' on a <strong>'+topWind+' wind</strong>';
+    html+='. ';
+    if(stagingCam&&stagingCam!==primaryCam){
+      html+='He appears to stage near <strong>'+stagingCam.cam.name+'</strong> after dark before making his move. ';
+      html+='Getting between <strong>'+stagingCam.cam.name+'</strong> and <strong>'+primaryCam.cam.name+'</strong> could be the key to catching him in legal light.';
+    }
+    html+='</div>';
     html+='</div>';
   }
 
-  // Legal light window for context
+  // Legal light context
   const ll=legalLight();
-  html+='<div style="margin-top:8px;font-size:11px;color:rgba(255,255,255,.4)">Legal light this time of year: '+ll.riseDisplay+' – '+ll.setDisplay+'</div>';
+  html+='<div style="font-size:11px;color:rgba(255,255,255,.35)">Legal shooting light this time of year: '+ll.riseDisplay+' – '+ll.setDisplay+'</div>';
   html+='</div>';
   return html;
 }
+
 
 function renderBP(sg,ct){
   const bwd=S.bucks.filter(b=>sg.some(s=>s.buckId===b.id));
@@ -1294,46 +1369,94 @@ function renderFS(){
     return bwd.map(buck=>{
       const bs=predFil().filter(s=>s.buckId===buck.id);
       const score=sDFB(buck,d.w8,d.tAv,d.i,d.wSpd);
-      const cS={};S.cameras.forEach(cam=>{const c=bs.filter(s=>s.camId===cam.id&&s.windDir===d.w8).length;if(c)cS[cam.id]=c;});
+      const dlP=daylightPct(bs);
+      const isNocturnal=dlP!==null&&dlP<25;
+      const profile=buckTimeProfile(bs);
+      const opp={N:'S',S:'N',E:'W',W:'E',NE:'SW',SW:'NE',NW:'SE',SE:'NW'};
+
+      // Best camera — prefer legal-light sightings on this wind
+      const legalOnWind=legalLightSightings(bs).filter(s=>s.windDir===d.w8);
+      const allOnWind=bs.filter(s=>s.windDir===d.w8);
+      const useSet=legalOnWind.length>=2?legalOnWind:allOnWind;
+      const cS={};useSet.forEach(s=>{if(s.camId)cS[s.camId]=(cS[s.camId]||0)+1;});
       const topCamId=Object.entries(cS).sort((a,b)=>b[1]-a[1])[0]?.[0];
       const topCam=topCamId?S.cameras.find(c=>c.id===topCamId):null;
-      const hc2=new Array(24).fill(0);bs.filter(s=>s.windDir===d.w8).forEach(s=>{if(s.time)hc2[parseInt(s.time)]++;});
+
+      // Peak time — LEGAL LIGHT ONLY
+      const legalTimed=legalLightSightings(bs).filter(s=>s.windDir===d.w8&&s.time);
+      const hc2=new Array(24).fill(0);
+      legalTimed.forEach(s=>{hc2[parseInt(s.time)]++;});
       const mH2=Math.max(...hc2);let pkStr='';
-      if(mH2>0){const pk=hc2.reduce((a,c,i)=>{if(c>=mH2*0.7&&c>0)a.push(i);return a;},[]);if(pk.length)pkStr=ft(pk[0]+':00');}
-      const hw=bs.filter(s=>s.windDir===d.w8&&s.buckHeading).map(s=>s.buckHeading);
-      const topHead=hw.length?hw.reduce((a,b,i,ar)=>ar.filter(v=>v===a).length>=ar.filter(v=>v===b).length?a:b,hw[0]):null;
-      const vd=score>=55?'hunt':score>=30?'maybe':'poor';
-      const vl=score>=55?'🟢 HUNT':score>=30?'🟡 MAYBE':'🔴 PASS';
-      const hasWindData=bs.filter(s=>s.windDir).length>0;
-      const profile=buckTimeProfile(bs);
-      const profileLabel={dawn:'Dawn mover',dusk:'Dusk mover',midday:'Midday mover',nocturnal:'Nocturnal',mixed:'Moves anytime'}[profile]||'';
-      const trend=pressureTrend(d.i);
-      const trendLabel=trend==='rising'?'↑ Pressure rising':trend==='falling'?'↓ Pressure falling':'→ Pressure stable';
-      const tTrend=tempTrend(d.i);
-      const tempTrendLabel=tTrend==='falling'?'↓ Temp falling':tTrend==='rising'?'↑ Temp rising':'→ Temp stable';
-      let detailLine='';
-      if(vd==='hunt'||vd==='maybe'){
-        const parts=[];
-        if(topCam)parts.push(topCam.name);
-        if(pkStr)parts.push(pkStr);
-        if(topHead)parts.push('heading '+topHead);
-        detailLine=parts.join(' · ')||'Partial match';
-      } else {
-        detailLine=!hasWindData?'No wind data logged yet':'Poor conditions';
+      if(mH2>0){
+        const pk=hc2.reduce((a,c,i)=>{if(c>=mH2*0.7&&c>0)a.push(i);return a;},[]);
+        if(pk.length){
+          const ll=legalLight(d.dt?d.dt.toISOString().split('T')[0]:null);
+          const legalPks=pk.filter(h=>h>=Math.floor(ll.rise)&&h<=Math.ceil(ll.set));
+          if(legalPks.length)pkStr=ft(legalPks[0]+':00');
+          else if(pk.length)pkStr=ft(pk[0]+':00'); // fallback
+        }
       }
-      // Score breakdown subtitle
-      const breakdown=profileLabel+(trend&&bs.filter(s=>s.pressure).length>=2?' · '+trendLabel:'')+' · '+tempTrendLabel;
-      return'<div class="fbrow '+vd+'">'+
-        '<div class="fbrow-emoji">'+(buck.emoji||'🦌')+'</div>'+
+
+      // Top heading — legal light only
+      const hw=legalLightSightings(bs).filter(s=>s.windDir===d.w8&&s.buckHeading).map(s=>s.buckHeading);
+      const topHead2=hw.length?hw.reduce((a,b,i,ar)=>ar.filter(v=>v===a).length>=ar.filter(v=>v===b).length?a:b,hw[0]):null;
+
+      const trend=pressureTrend(d.i);
+      const trendLabel=trend==='rising'?'&#8593; Pressure rising':trend==='falling'?'&#8595; Pressure falling':'&#8594; Pressure stable';
+      const tTrend=tempTrend(d.i);
+      const tempTrendLabel=tTrend==='falling'?'&#8595; Temp falling':tTrend==='rising'?'&#8593; Temp rising':'&#8594; Temp stable';
+      const profileLabel={dawn:'Dawn',dusk:'Dusk',midday:'Midday',nocturnal:'&#127769; Nocturnal',mixed:'All day'}[profile]||'';
+      const breakdown=profileLabel+(trend&&bs.filter(s=>s.pressure).length>=2?' &#183; '+trendLabel:'')+'  &#183; '+tempTrendLabel;
+
+      let vd,vl,detailLine,extraStyle='';
+
+      if(isNocturnal){
+        // Nocturnal buck — show intercept tip instead of HUNT/PASS
+        vd='maybe';
+        vl='&#127769; INTERCEPT';
+        extraStyle='border-color:rgba(200,160,80,.35);background:rgba(200,160,80,.07)';
+        // Find best near-legal camera
+        const nlSights=bs.filter(s=>{
+          if(!s.time||!s.date)return false;
+          const[h,m]=s.time.split(':').map(Number);const dec=h+m/60;
+          const ll=legalLight(s.date);
+          return(dec>=ll.rise-2&&dec<ll.rise)||(dec>ll.set&&dec<=ll.set+2);
+        });
+        const nlCamC={};nlSights.forEach(s=>{if(s.camId)nlCamC[s.camId]=(nlCamC[s.camId]||0)+1;});
+        const nlTopId=Object.entries(nlCamC).sort((a,b)=>b[1]-a[1])[0]?.[0];
+        const nlCam=nlTopId?S.cameras.find(c=>c.id===nlTopId):topCam;
+        const nlHeads=nlSights.filter(s=>s.buckHeading).map(s=>s.buckHeading);
+        const nlTopHead=nlHeads.length?nlHeads.reduce((a,b,i,ar)=>ar.filter(v=>v===a).length>=ar.filter(v=>v===b).length?a:b,nlHeads[0]):topHead2;
+        const sitDir=nlTopHead?opp[nlTopHead]:null;
+        detailLine=sitDir&&nlCam?sitDir+' of '+nlCam.name+(dlP!==null?' ('+dlP+'% daylight)':''):
+          'See Patterns for intercept plan';
+      } else {
+        vd=score>=55?'hunt':score>=30?'maybe':'poor';
+        vl=score>=55?'&#129001; HUNT':score>=30?'&#129000; MAYBE':'&#128997; PASS';
+        const hasWindData=bs.filter(s=>s.windDir).length>0;
+        if(vd==='hunt'||vd==='maybe'){
+          const parts=[];
+          if(topCam)parts.push(topCam.name);
+          if(pkStr)parts.push(pkStr);
+          if(topHead2)parts.push('heading '+topHead2);
+          detailLine=parts.join(' · ')||'Partial match';
+        } else {
+          detailLine=!hasWindData?'No wind data yet':'Poor conditions';
+        }
+      }
+
+      return'<div class="fbrow '+vd+'" style="'+extraStyle+'">'  +
+        '<div class="fbrow-emoji">'+(buck.emoji||'&#129420;')+'</div>'+
         '<div class="fbrow-info">'+
           '<div class="fbrow-name">'+buck.name+'</div>'+
           '<div class="fbrow-detail">'+detailLine+'</div>'+
           (breakdown?'<div style="font-size:10px;color:var(--t3);margin-top:2px">'+breakdown+'</div>':'')+
         '</div>'+
-        '<div class="fbrow-badge '+vd+'">'+vl+' '+score+'%</div>'+
+        '<div class="fbrow-badge '+(isNocturnal?'maybe':vd)+'" style="'+(isNocturnal?'background:#3a2a0a;color:#c8a050;':'')+'">'+vl+' '+score+'%</div>'+
       '</div>';
     }).join('');
   }
+
 
   // ── Build HTML ────────────────────────────────────────────
   let html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">'+
