@@ -507,7 +507,7 @@ tr:hover td{background:var(--gl)}
   </div>
 </div>
 <script>
-const DS={cameras:[],bucks:[],sightings:[],huntLog:[],huntLog:[],huntLog:[],huntLog:[],propertySettings:{name:'',hunter:'T-Stone',lat:46.2504,lon:-91.07529},fieldSettings:{builtins:{season:{label:'Season',enabled:true,options:['Summer','Fall','Rut','Late Season']},temp:{label:'Temperature (F)',enabled:true},windDir:{label:'Wind Direction',enabled:true},windSpeed:{label:'Wind Speed (mph)',enabled:true},pressure:{label:'Barometric Pressure (inHg)',enabled:true},rut:{label:'Rut Stage',enabled:true,options:['Pre-Rut','Seeking','Peak Rut','Lock-Down','Post-Rut']},notes:{label:'Behavior / Notes',enabled:true}},custom:[]}};
+const DS={cameras:[],bucks:[],sightings:[],huntLog:[],propertySettings:{name:'',hunter:'T-Stone',lat:46.2504,lon:-91.07529},fieldSettings:{builtins:{season:{label:'Season',enabled:true,options:['Summer','Fall','Rut','Late Season']},temp:{label:'Temperature (F)',enabled:true},windDir:{label:'Wind Direction',enabled:true},windSpeed:{label:'Wind Speed (mph)',enabled:true},pressure:{label:'Barometric Pressure (inHg)',enabled:true},rut:{label:'Rut Stage',enabled:true,options:['Pre-Rut','Seeking','Peak Rut','Lock-Down','Post-Rut']},notes:{label:'Behavior / Notes',enabled:true}},custom:[]}};
 let S=JSON.parse(JSON.stringify(DS));
 let gS='',gY='';
 function save(){try{localStorage.setItem('bt_v2',JSON.stringify(S));}catch(e){}}
@@ -518,12 +518,14 @@ function load(){
   if(!S.fieldSettings.builtins)S.fieldSettings.builtins=JSON.parse(JSON.stringify(DS.fieldSettings.builtins));
   if(!S.fieldSettings.custom)S.fieldSettings.custom=[];
   Object.keys(DS.fieldSettings.builtins).forEach(k=>{if(!S.fieldSettings.builtins[k])S.fieldSettings.builtins[k]=JSON.parse(JSON.stringify(DS.fieldSettings.builtins[k]));});
-  if(!S.cameras)S.cameras=[];if(!S.bucks)S.bucks=[];if(!S.sightings)S.sightings=[];if(!S.huntLog)S.huntLog=[];if(!S.huntLog)S.huntLog=[];if(!S.huntLog)S.huntLog=[];if(!S.huntLog)S.huntLog=[];}}
+  if(!S.cameras)S.cameras=[];if(!S.bucks)S.bucks=[];if(!S.sightings)S.sightings=[];if(!S.huntLog)S.huntLog=[];}}
   catch(e){S=JSON.parse(JSON.stringify(DS));}
 }
 function fil(){return S.sightings.filter(s=>{if(gS&&s.season!==gS)return false;if(gY&&(s.year||'')!==gY)return false;return true;});}
 // predFil: same as fil() but always strips Rut sightings — rut behavior is not year-to-year repeatable
 function predFil(){return fil().filter(s=>s.season!=='Rut');}
+const RUT_LABELS=['Pre-Rut','Seeking','Peak Rut','Lock-Down','Post-Rut'];
+const SEASONS=['Summer','Fall','Rut','Late Season'];
 // ── Legal light helper — Cable, WI (46.25°N) ────────────────
 function legalLight(dateStr){
   const month=dateStr?new Date(dateStr+'T12:00:00').getMonth():new Date().getMonth();
@@ -878,7 +880,7 @@ function renderPat(){
 
 // ── Movement Circuit Detection ───────────────────────────────
 function detectCircuits(buck, bs){
-  const WINDOW_HRS=5,MIN_CAMS=2,MIN_RUNS=2;
+  const WINDOW_HRS=7,MIN_CAMS=2,MIN_RUNS=2;
   const byDate={};
   bs.forEach(s=>{
     if(!s.date||!s.time||!s.camId)return;
@@ -1164,79 +1166,62 @@ function scrapeMatchesDay(buck, bs, wind8){
 function whereToBeRec(buck, bs){
   const opp={N:'S',S:'N',E:'W',W:'E',NE:'SW',SW:'NE',NW:'SE',SE:'NW'};
   const dlPct=daylightPct(bs);
-  const timed=bs.filter(s=>s.time);
+  const timed=bs.filter(s=>s.time&&s.date);
   if(!timed.length)return null;
 
-  // Classify each sighting
   const legalSights  = timed.filter(s=>isLegalLight(s.time,s.date));
   const darkSights   = timed.filter(s=>!isLegalLight(s.time,s.date));
   const nearLegal    = darkSights.filter(s=>{
-    const[h,m]=s.time.split(':').map(Number);
-    const dec=h+m/60;
+    const[h,m]=s.time.split(':').map(Number);const dec=h+m/60;
     const ll=legalLight(s.date);
     return(dec>=ll.rise-2&&dec<ll.rise)||(dec>ll.set&&dec<=ll.set+2);
   });
-  const trueNight    = darkSights.filter(s=>!nearLegal.includes(s));
+  const trueNight=darkSights.filter(s=>!nearLegal.includes(s));
 
-  // ── Per-camera breakdown ─────────────────────────────────
-  // For each camera: count dark, near-legal, legal sightings + heading breakdown
+  // Per-camera breakdown with weighted scores
   const camData={};
   timed.forEach(s=>{
     if(!s.camId)return;
     if(!camData[s.camId])camData[s.camId]={
       cam:S.cameras.find(c=>c.id===s.camId),
-      legal:[],nearLegal:[],dark:[],all:[]
+      legal:[],nearLegal:[],dark:[],all:[],score:0
     };
-    const d=camData[s.camId];
-    d.all.push(s);
-    if(legalSights.includes(s))d.legal.push(s);
-    else if(nearLegal.includes(s))d.nearLegal.push(s);
-    else d.dark.push(s);
+    const d=camData[s.camId];d.all.push(s);
+    if(legalSights.includes(s)){d.legal.push(s);d.score+=4;}
+    else if(nearLegal.includes(s)){d.nearLegal.push(s);d.score+=2;}
+    else{d.dark.push(s);d.score+=1;}
   });
 
-  // Best wind overall
   const wC={};bs.forEach(s=>{if(s.windDir)wC[s.windDir]=(wC[s.windDir]||0)+1;});
   const topWind=Object.entries(wC).sort((a,b)=>b[1]-a[1])[0]?.[0];
 
-  // ── Primary intercept camera = most near-legal sightings ──
-  // If tie, prefer the one with most legal sightings
+  // Primary intercept = highest daylight-weighted score; tie → most legal
   const camArr=Object.values(camData).filter(d=>d.cam);
   camArr.sort((a,b)=>{
-    const nlDiff=b.nearLegal.length-a.nearLegal.length;
-    if(nlDiff!==0)return nlDiff;
+    if(b.score!==a.score)return b.score-a.score;
     return b.legal.length-a.legal.length;
   });
 
   const primaryCam=camArr[0]||null;
-  // Staging camera = most true-night sightings (where he comes FROM)
   const stagingCam=[...camArr].sort((a,b)=>b.dark.length-a.dark.length)[0]||null;
 
-  // ── Heading analysis per camera ──────────────────────────
   function headingBreakdown(sights){
     const hC={};
     sights.forEach(s=>{if(s.buckHeading)hC[s.buckHeading]=(hC[s.buckHeading]||0)+1;});
     const total=sights.filter(s=>s.buckHeading).length;
-    return Object.entries(hC)
-      .sort((a,b)=>b[1]-a[1])
-      .map(([dir,cnt])=>({dir,cnt,pct:Math.round(cnt/total*100)}));
+    return Object.entries(hC).sort((a,b)=>b[1]-a[1]).map(([dir,cnt])=>({dir,cnt,pct:Math.round(cnt/total*100)}));
   }
 
-  // ── Avg time per camera group ─────────────────────────────
   function avgTime(sights){
     const times=sights.filter(s=>s.time).map(s=>{const[h,m]=s.time.split(':').map(Number);return h+m/60;});
     if(!times.length)return null;
     return times.reduce((a,b)=>a+b)/times.length;
   }
 
-  return{
-    dlPct, camData, camArr, primaryCam, stagingCam,
-    topWind, opp,
-    legalSights, nearLegal, darkSights, trueNight,
-    headingBreakdown, avgTime,
-    totalTimed: timed.length
-  };
+  return{dlPct,camData,camArr,primaryCam,stagingCam,topWind,opp,
+    legalSights,nearLegal,darkSights,trueNight,headingBreakdown,avgTime,
+    totalTimed:timed.length};
 }
-
 function buildWhereToBeHtml(buck, bs, rec){
   if(!rec)return'';
   const{dlPct,camArr,primaryCam,stagingCam,topWind,opp,nearLegal,darkSights,legalSights,headingBreakdown,avgTime,totalTimed}=rec;
@@ -1616,20 +1601,67 @@ function sDFB(buck,w8,ta,dayIdx,wSpd,bsIn){
   const bs=bsIn?bsIn:fil().filter(s=>s.season!=='Rut'&&s.buckId===buck.id);
   if(bs.length<2)return 0;
   let totalScore=0,totalWeight=0;
-  // Wind direction (35%)
-  const windSights=bs.filter(s=>s.windDir);
-  if(windSights.length>=1){const windMatch=Math.round(windSights.filter(s=>s.windDir===w8).length/windSights.length*100);totalScore+=windMatch*0.35;totalWeight+=0.35;}
+
+  // Wind direction (35%) — daylight sightings weighted 4x, near-legal 2x, dark 1x
+  const windSights=bs.filter(s=>s.windDir&&s.time&&s.date);
+  if(windSights.length>=1){
+    let matchW=0,totalW=0;
+    windSights.forEach(s=>{
+      const ll=legalLight(s.date);
+      const[h,m]=s.time.split(':').map(Number);const dec=h+m/60;
+      let w=1;
+      if(dec>=ll.rise&&dec<=ll.set)w=4;
+      else if((dec>=ll.rise-2&&dec<ll.rise)||(dec>ll.set&&dec<=ll.set+2))w=2;
+      totalW+=w;
+      if(s.windDir===w8)matchW+=w;
+    });
+    const windMatch=totalW>0?Math.round(matchW/totalW*100):0;
+    totalScore+=windMatch*0.35;totalWeight+=0.35;
+  }
+
   // Time of day (30%)
-  const timedSights=bs.filter(s=>s.time);
-  if(timedSights.length>=2){const dlP=daylightPct(bs);const profile=buckTimeProfile(bs);let timeScore=0;if(profile==='nocturnal'||dlP<25)timeScore=10;else if(profile==='dawn')timeScore=90;else if(profile==='dusk')timeScore=85;else if(profile==='mixed')timeScore=65;else if(profile==='midday')timeScore=40;totalScore+=timeScore*0.30;totalWeight+=0.30;}
+  const timedSights=bs.filter(s=>s.time&&s.date);
+  if(timedSights.length>=2){
+    const dlP=daylightPct(bs);const profile=buckTimeProfile(bs);
+    let timeScore=0;
+    if(profile==='nocturnal'||dlP<25)timeScore=10;
+    else if(profile==='dawn')timeScore=90;
+    else if(profile==='dusk')timeScore=85;
+    else if(profile==='mixed')timeScore=65;
+    else if(profile==='midday')timeScore=40;
+    totalScore+=timeScore*0.30;totalWeight+=0.30;
+  }
+
   // Pressure trend (25%)
   const pressSights=bs.filter(s=>s.pressure&&Number(s.pressure)>0);
-  if(pressSights.length>=2&&dayIdx!=null){const trend=pressureTrend(dayIdx);let pressScore=50;if(trend==='rising')pressScore=85;else if(trend==='stable')pressScore=55;else if(trend==='falling')pressScore=30;totalScore+=pressScore*0.25;totalWeight+=0.25;}
+  if(pressSights.length>=2&&dayIdx!=null){
+    const trend=pressureTrend(dayIdx);
+    let pressScore=50;
+    if(trend==='rising')pressScore=85;
+    else if(trend==='stable')pressScore=55;
+    else if(trend==='falling')pressScore=30;
+    totalScore+=pressScore*0.25;totalWeight+=0.25;
+  }
+
   // Temp trend (10%)
-  if(dayIdx!=null){const trend=tempTrend(dayIdx);let tempScore=50;if(trend==='falling')tempScore=90;else if(trend==='stable')tempScore=55;else if(trend==='rising')tempScore=25;totalScore+=tempScore*0.10;totalWeight+=0.10;}
+  if(dayIdx!=null){
+    const trend=tempTrend(dayIdx);
+    let tempScore=50;
+    if(trend==='falling')tempScore=90;
+    else if(trend==='stable')tempScore=55;
+    else if(trend==='rising')tempScore=25;
+    totalScore+=tempScore*0.10;totalWeight+=0.10;
+  }
+
   if(totalWeight===0)return 0;
   let rawScore=Math.round(totalScore/totalWeight);
-  if(wSpd!=null){let pen=0;if(wSpd>=30)pen=25;else if(wSpd>=20)pen=15;else if(wSpd>=12)pen=7;rawScore=Math.max(0,rawScore-pen);}
+  if(wSpd!=null){
+    let pen=0;
+    if(wSpd>=30)pen=25;
+    else if(wSpd>=20)pen=15;
+    else if(wSpd>=12)pen=7;
+    rawScore=Math.max(0,rawScore-pen);
+  }
   return rawScore;
 }
 function sDay(w8,ta,dayIdx,wSpd){
@@ -1744,12 +1776,28 @@ function renderFS(){
       const isNocturnal=dlP!==null&&dlP<25;
       const profile=buckTimeProfile(bs);
       const opp={N:'S',S:'N',E:'W',W:'E',NE:'SW',SW:'NE',NW:'SE',SE:'NW'};
-      // Best camera — legal light first
-      const legalOnWind=legalLightSightings(bs).filter(s=>s.windDir===d.w8);
-      const allOnWind=bs.filter(s=>s.windDir===d.w8);
-      const useSet=legalOnWind.length>=2?legalOnWind:allOnWind;
-      const cS={};useSet.forEach(s=>{if(s.camId)cS[s.camId]=(cS[s.camId]||0)+1;});
-      const topCamId=Object.entries(cS).sort((a,b)=>b[1]-a[1])[0]?.[0];
+      // Best camera — daylight sightings weighted 4x, near-legal 2x, dark 1x
+      const camWts={};
+      bs.filter(s=>s.camId&&s.windDir===d.w8&&s.time&&s.date).forEach(s=>{
+        const ll=legalLight(s.date);
+        const[h,m]=s.time.split(':').map(Number);const dec=h+m/60;
+        let w=1;
+        if(dec>=ll.rise&&dec<=ll.set)w=4;
+        else if((dec>=ll.rise-2&&dec<ll.rise)||(dec>ll.set&&dec<=ll.set+2))w=2;
+        camWts[s.camId]=(camWts[s.camId]||0)+w;
+      });
+      // fallback: all sightings if no wind-matched ones
+      if(!Object.keys(camWts).length){
+        bs.filter(s=>s.camId&&s.time&&s.date).forEach(s=>{
+          const ll=legalLight(s.date);
+          const[h,m]=s.time.split(':').map(Number);const dec=h+m/60;
+          let w=1;
+          if(dec>=ll.rise&&dec<=ll.set)w=4;
+          else if((dec>=ll.rise-2&&dec<ll.rise)||(dec>ll.set&&dec<=ll.set+2))w=2;
+          camWts[s.camId]=(camWts[s.camId]||0)+w;
+        });
+      }
+      const topCamId=Object.entries(camWts).sort((a,b)=>b[1]-a[1])[0]?.[0];
       const topCam=topCamId?S.cameras.find(c=>c.id===topCamId):null;
       // Peak time — legal light only
       const legalTimed=legalLightSightings(bs).filter(s=>s.windDir===d.w8&&s.time);
@@ -1780,8 +1828,15 @@ function renderFS(){
       if(isNocturnal){
         vd='maybe';vl='&#127769; INTERCEPT';extraStyle='border-color:rgba(200,160,80,.35);background:rgba(200,160,80,.07)';
         const nlSights=bs.filter(s=>{if(!s.time||!s.date)return false;const[h,m]=s.time.split(':').map(Number);const dec=h+m/60;const ll=legalLight(s.date);return(dec>=ll.rise-2&&dec<ll.rise)||(dec>ll.set&&dec<=ll.set+2);});
-        const nlCamC={};nlSights.forEach(s=>{if(s.camId)nlCamC[s.camId]=(nlCamC[s.camId]||0)+1;});
-        const nlTopId=Object.entries(nlCamC).sort((a,b)=>b[1]-a[1])[0]?.[0];
+        // Near-legal camera: prefer nearest to legal light window
+        const nlCamW={};nlSights.forEach(s=>{
+          if(!s.camId||!s.date)return;
+          const ll=legalLight(s.date);
+          const[h,m]=s.time.split(':').map(Number);const dec=h+m/60;
+          const dist=Math.min(Math.abs(dec-ll.rise),Math.abs(dec-ll.set));
+          nlCamW[s.camId]=(nlCamW[s.camId]||0)+(1/(dist+0.1));
+        });
+        const nlTopId=Object.entries(nlCamW).sort((a,b)=>b[1]-a[1])[0]?.[0];
         const nlCam=nlTopId?S.cameras.find(c=>c.id===nlTopId):topCam;
         const nlHeads=nlSights.filter(s=>s.buckHeading).map(s=>s.buckHeading);
         const nlTopHead=nlHeads.length?nlHeads.reduce((a,b,i,ar)=>ar.filter(v=>v===a).length>=ar.filter(v=>v===b).length?a:b,nlHeads[0]):topHead2;
