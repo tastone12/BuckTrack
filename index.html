@@ -383,6 +383,8 @@ tr:hover td{background:var(--gl)}
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="ab gr" onclick="exportCSV()">&#11015; Export CSV</button>
         <button class="ab sl" onclick="backupJSON()">&#11015; Backup JSON</button>
+        <button class="ab gr" onclick="document.getElementById('importFile').click()">&#11014; Import JSON</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
         <button class="ab re" onclick="clearAll()">&#10005; Clear All Data</button>
       </div>
     </div>
@@ -2231,6 +2233,29 @@ function backupJSON(){
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:'application/json'}));
   a.download='camptrack-backup.json';a.click();
+}
+function importJSON(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.bucks||!data.cameras||!data.sightings){
+        alert('Invalid backup file — please use a CampTrack JSON backup.');
+        return;
+      }
+      if(!confirm('This will restore '+data.sightings.length+' sightings, '+data.bucks.length+' bucks, and '+data.cameras.length+' cameras. Continue?'))return;
+      S=data;
+      if(!S.huntLog)S.huntLog=[];
+      if(!S.propertySettings)S.propertySettings=DS.propertySettings;
+      if(!S.fieldSettings)S.fieldSettings=JSON.parse(JSON.stringify(DS.fieldSettings));
+      save();
+      go('dash');
+      alert('✓ Data restored successfully!');
+    }catch(err){alert('Could not read file: '+err.message);}
+  };
+  reader.readAsText(file);
+  input.value='';
 }
 function clearAll(){
   if(!confirm('Delete ALL data? Cannot be undone.'))return;
