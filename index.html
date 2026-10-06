@@ -512,16 +512,41 @@ tr:hover td{background:var(--gl)}
 const DS={cameras:[],bucks:[],sightings:[],huntLog:[],propertySettings:{name:'',hunter:'T-Stone',lat:46.2504,lon:-91.07529},fieldSettings:{builtins:{season:{label:'Season',enabled:true,options:['Summer','Fall','Rut','Late Season']},temp:{label:'Temperature (F)',enabled:true},windDir:{label:'Wind Direction',enabled:true},windSpeed:{label:'Wind Speed (mph)',enabled:true},pressure:{label:'Barometric Pressure (inHg)',enabled:true},rut:{label:'Rut Stage',enabled:true,options:['Pre-Rut','Seeking','Peak Rut','Lock-Down','Post-Rut']},notes:{label:'Behavior / Notes',enabled:true}},custom:[]}};
 let S=JSON.parse(JSON.stringify(DS));
 let gS='',gY='';
-function save(){try{localStorage.setItem('bt_v2',JSON.stringify(S));}catch(e){}}
+function save(){
+  try{localStorage.setItem('bt_v2',JSON.stringify(S));}catch(e){}
+  // Auto-backup: store a rolling backup in localStorage so you can recover even if bt_v2 gets wiped
+  try{
+    const bk={ts:Date.now(),data:JSON.stringify(S)};
+    localStorage.setItem('bt_v2_autobackup',JSON.stringify(bk));
+  }catch(e){}
+}
 function load(){
-  try{const r=localStorage.getItem('bt_v2');if(r){S=JSON.parse(r);
-  if(!S.propertySettings)S.propertySettings=DS.propertySettings;
-  if(!S.fieldSettings)S.fieldSettings=JSON.parse(JSON.stringify(DS.fieldSettings));
-  if(!S.fieldSettings.builtins)S.fieldSettings.builtins=JSON.parse(JSON.stringify(DS.fieldSettings.builtins));
-  if(!S.fieldSettings.custom)S.fieldSettings.custom=[];
-  Object.keys(DS.fieldSettings.builtins).forEach(k=>{if(!S.fieldSettings.builtins[k])S.fieldSettings.builtins[k]=JSON.parse(JSON.stringify(DS.fieldSettings.builtins[k]));});
-  if(!S.cameras)S.cameras=[];if(!S.bucks)S.bucks=[];if(!S.sightings)S.sightings=[];if(!S.huntLog)S.huntLog=[];}}
-  catch(e){S=JSON.parse(JSON.stringify(DS));}
+  function applyDefaults(obj){
+    if(!obj.propertySettings)obj.propertySettings=DS.propertySettings;
+    if(!obj.fieldSettings)obj.fieldSettings=JSON.parse(JSON.stringify(DS.fieldSettings));
+    if(!obj.fieldSettings.builtins)obj.fieldSettings.builtins=JSON.parse(JSON.stringify(DS.fieldSettings.builtins));
+    if(!obj.fieldSettings.custom)obj.fieldSettings.custom=[];
+    Object.keys(DS.fieldSettings.builtins).forEach(k=>{if(!obj.fieldSettings.builtins[k])obj.fieldSettings.builtins[k]=JSON.parse(JSON.stringify(DS.fieldSettings.builtins[k]));});
+    if(!obj.cameras)obj.cameras=[];if(!obj.bucks)obj.bucks=[];if(!obj.sightings)obj.sightings=[];if(!obj.huntLog)obj.huntLog=[];
+    return obj;
+  }
+  try{
+    const r=localStorage.getItem('bt_v2');
+    if(r){S=applyDefaults(JSON.parse(r));}
+    else{
+      // bt_v2 missing — try auto-backup
+      const bk=localStorage.getItem('bt_v2_autobackup');
+      if(bk){
+        const parsed=JSON.parse(bk);
+        if(parsed.data){
+          S=applyDefaults(JSON.parse(parsed.data));
+          // Restore to bt_v2 immediately
+          localStorage.setItem('bt_v2',JSON.stringify(S));
+          setTimeout(()=>alert('⚠️ Your data was restored from an auto-backup. Please go to Settings → Backup JSON to save a copy now!'),1000);
+        }
+      }
+    }
+  }catch(e){S=JSON.parse(JSON.stringify(DS));}
 }
 function fil(){return S.sightings.filter(s=>{if(gS&&s.season!==gS)return false;if(gY&&(s.year||'')!==gY)return false;return true;});}
 // predFil: same as fil() but always strips Rut sightings — rut behavior is not year-to-year repeatable
@@ -1585,7 +1610,6 @@ function renderBP(sg,ct){
 
   ct.innerHTML=cards;
 }
-n
 
 async function loadFC(){
   const body=document.getElementById('predictBody');if(!body)return;
