@@ -395,6 +395,11 @@ tr:hover td{background:var(--gl)}
         <div id="rutOptList" style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px"></div>
         <div style="display:flex;gap:8px"><input type="text" id="newRutOpt" class="f" placeholder="New option..." style="flex:1"><button class="btn-g" style="padding:6px 12px;font-size:12px" onclick="addOpt('rut')">+ Add</button></div>
       </div>
+      <div class="oe" id="behaviorEditor">
+        <div style="font-size:12px;font-weight:700;color:var(--t);margin-bottom:8px">Edit Buck Behavior Options</div>
+        <div id="behaviorOptList" style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px"></div>
+        <div style="display:flex;gap:8px"><input type="text" id="newBehaviorOpt" class="f" placeholder="New behavior..." style="flex:1"><button class="btn-g" style="padding:6px 12px;font-size:12px" onclick="addOpt('behavior')">+ Add</button></div>
+      </div>
       <div style="font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin:14px 0 8px">Custom Fields</div>
       <div id="customFieldsList" style="margin-bottom:12px"></div>
       <div style="background:var(--bg);border:1px solid var(--b);border-radius:6px;padding:14px">
@@ -539,7 +544,7 @@ tr:hover td{background:var(--gl)}
   </div>
 </div>
 <script>
-const DS={cameras:[],bucks:[],sightings:[],huntLog:[],propertySettings:{name:'',hunter:'T-Stone',lat:46.2504,lon:-91.07529},fieldSettings:{builtins:{season:{label:'Season',enabled:true,options:['Summer','Fall','Rut','Late Season']},temp:{label:'Temperature (F)',enabled:true},windDir:{label:'Wind Direction',enabled:true},windSpeed:{label:'Wind Speed (mph)',enabled:true},pressure:{label:'Barometric Pressure (inHg)',enabled:true},rut:{label:'Rut Stage',enabled:true,options:['Pre-Rut','Seeking','Peak Rut','Lock-Down','Post-Rut']},notes:{label:'Behavior / Notes',enabled:true}},custom:[]}};
+const DS={cameras:[],bucks:[],sightings:[],huntLog:[],propertySettings:{name:'',hunter:'T-Stone',lat:46.2504,lon:-91.07529},fieldSettings:{builtins:{season:{label:'Season',enabled:true,options:['Summer','Fall','Rut','Late Season']},temp:{label:'Temperature (F)',enabled:true},windDir:{label:'Wind Direction',enabled:true},windSpeed:{label:'Wind Speed (mph)',enabled:true},pressure:{label:'Barometric Pressure (inHg)',enabled:true},rut:{label:'Rut Stage',enabled:true,options:['Pre-Rut','Seeking','Peak Rut','Lock-Down','Post-Rut']},behavior:{label:'Buck Behavior',enabled:true,options:['Feeding','Travelling','Nose to ground','Chasing','Tending doe','Sparring','Scraping','Rubbing','Bedded','Alert/Spooked']},notes:{label:'Behavior / Notes',enabled:true}},custom:[]}};
 let S=JSON.parse(JSON.stringify(DS));
 let gS='',gY='';
 function save(){
@@ -2181,6 +2186,7 @@ function rBF(){
     {key:'windSpeed',desc:'Wind speed (mph)'},
     {key:'pressure',desc:'Barometric pressure'},
     {key:'rut',desc:'Rut stage indicator',he:true},
+    {key:'behavior',desc:'Buck behavior dropdown',he:true},
     {key:'notes',desc:'Free-text notes'}
   ];
   el.innerHTML=dfs.map(({key,desc,he})=>{
@@ -2212,7 +2218,14 @@ function rCF(){
   }).join('');
 }
 
-function togOE(key){const eI=key==='season'?'seasonEditor':'rutEditor';const lI=key==='season'?'seasonOptList':'rutOptList';['seasonEditor','rutEditor'].forEach(id=>{if(id!==eI)document.getElementById(id).style.display='none';});const ed=document.getElementById(eI);ed.style.display=ed.style.display==='none'||!ed.style.display?'block':'none';rOL(key,lI);}
+function togOE(key){
+  const edMap={season:'seasonEditor',rut:'rutEditor',behavior:'behaviorEditor'};
+  const lMap={season:'seasonOptList',rut:'rutOptList',behavior:'behaviorOptList'};
+  const eI=edMap[key]||key+'Editor';const lI=lMap[key]||key+'OptList';
+  Object.values(edMap).forEach(id=>{if(id!==eI){const el=document.getElementById(id);if(el)el.style.display='none';}});
+  const ed=document.getElementById(eI);if(ed)ed.style.display=ed.style.display==='none'||!ed.style.display?'block':'none';
+  rOL(key,lI);
+}
 function rOL(k,lI){
   const o=S.fieldSettings.builtins[k]?.options||[];
   document.getElementById(lI).innerHTML=o.map((x,i)=>
@@ -2223,8 +2236,9 @@ function rOL(k,lI){
   ).join('');
 }
 function addOpt(k){
-  const iI=k==='season'?'newSeasonOpt':'newRutOpt';
-  const lI=k==='season'?'seasonOptList':'rutOptList';
+  const iMap={season:'newSeasonOpt',rut:'newRutOpt',behavior:'newBehaviorOpt'};
+  const lMap={season:'seasonOptList',rut:'rutOptList',behavior:'behaviorOptList'};
+  const iI=iMap[k]||'new'+k+'Opt';const lI=lMap[k]||k+'OptList';
   const input=document.getElementById(iI);if(!input||!input.value.trim())return;
   if(!S.fieldSettings.builtins[k])S.fieldSettings.builtins[k]={};
   if(!S.fieldSettings.builtins[k].options)S.fieldSettings.builtins[k].options=[];
@@ -2234,7 +2248,8 @@ function addOpt(k){
 function upOpt(k,i,v){S.fieldSettings.builtins[k].options[i]=v;save();}
 function delOpt(k,i){
   S.fieldSettings.builtins[k].options.splice(i,1);save();
-  rOL(k,k==='season'?'seasonOptList':'rutOptList');popF();
+  const lMap={season:'seasonOptList',rut:'rutOptList',behavior:'behaviorOptList'};
+  rOL(k,lMap[k]||k+'OptList');popF();
 }
 function togBI(key,checked){
   if(!S.fieldSettings.builtins[key])S.fieldSettings.builtins[key]={};
@@ -2356,7 +2371,8 @@ function buildSF(){
   if(b.pressure?.enabled!==false)wx.push('<div><label class=\"fl2\">Pressure (inHg)</label><input type=\"number\" id=\"sPress\" class=\"f\" step=\"0.01\" placeholder=\"Auto-filled\"></div>');
   for(let i=0;i<wx.length;i+=2)html+='<div class=\"f2\">'+wx[i]+(wx[i+1]||'<div></div>')+'</div>';
   if(b.rut?.enabled!==false)html+='<div class=\"f2\"><div><label class=\"fl2\">Rut Stage</label><select id=\"sRut\" class=\"f\"><option value=\"\">Unknown</option>'+rO+'</select></div><div><label class=\"fl2\">&nbsp;</label><button onclick=\"fetchWx()\" style=\"width:100%;background:var(--gl);border:1px solid var(--gb);color:var(--green);font-size:12px;font-weight:600;padding:8px;border-radius:5px;cursor:pointer\">Refresh Weather</button></div></div>';
-  html+='<div class=\"f2\"><div><label class=\"fl2\">Buck Heading</label><select id=\"sBH\" class=\"f\"><option value=\"\">Unknown</option><option value=\"N\">N</option><option value=\"NE\">NE</option><option value=\"E\">E</option><option value=\"SE\">SE</option><option value=\"S\">S</option><option value=\"SW\">SW</option><option value=\"W\">W</option><option value=\"NW\">NW</option></select></div><div><label class=\"fl2\">Buck Behavior</label><select id=\"sBBe\" class=\"f\"><option value=\"\">Unknown</option><option value=\"Feeding\">Feeding</option><option value=\"Travelling\">Travelling</option><option value=\"Nose to ground\">Nose to ground</option><option value=\"Chasing\">Chasing</option><option value=\"Tending doe\">Tending doe</option><option value=\"Sparring\">Sparring</option><option value=\"Scraping\">Scraping</option><option value=\"Rubbing\">Rubbing</option><option value=\"Bedded\">Bedded</option><option value=\"Alert\">Alert/Spooked</option></select></div></div>';
+  const bhO=(b.behavior?.options||[]).map(o=>'<option value=\"'+o+'\">'+o+'</option>').join('');
+  if(b.behavior?.enabled!==false)html+='<div class=\"f2\"><div><label class=\"fl2\">Buck Heading</label><select id=\"sBH\" class=\"f\"><option value=\"\">Unknown</option><option value=\"N\">N</option><option value=\"NE\">NE</option><option value=\"E\">E</option><option value=\"SE\">SE</option><option value=\"S\">S</option><option value=\"SW\">SW</option><option value=\"W\">W</option><option value=\"NW\">NW</option></select></div><div><label class=\"fl2\">Buck Behavior</label><select id=\"sBBe\" class=\"f\"><option value=\"\">Unknown</option>'+bhO+'</select></div></div>';
   for(let i=0;i<cf.length;i+=2){const pair=[cf[i],cf[i+1]].filter(Boolean);html+='<div class=\"f2\">'+pair.map(f=>'<div><label class=\"fl2\">'+f.label+'</label>'+bCFI(f)+'</div>').join('')+(pair.length===1?'<div></div>':'')+'</div>';}
   if(b.notes?.enabled!==false)html+='<div class=\"fr3\"><label class=\"fl2\">Behavior / Notes</label><textarea id=\"sNotes\" class=\"f\" placeholder=\"e.g. Feeding, nose to ground, moving NW...\"></textarea></div>';
   body.innerHTML=html;setTimeout(fetchWx,100);
