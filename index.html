@@ -595,7 +595,7 @@ function legalLight(dateStr){
   const[rise,set]=table[month];
   return{rise:rise-0.5,set:set+0.5,riseDisplay:fmtDecHour(rise-0.5),setDisplay:fmtDecHour(set+0.5),sunriseDisplay:fmtDecHour(rise),sunsetDisplay:fmtDecHour(set)};
 }
-function fmtDecHour(h){const hr=Math.floor(h);const mn=Math.round((h-hr)*60);return ft(hr+':'+String(mn).padStart(2,'0'));}
+function fmtDecHour(h){let hr=Math.floor(h);let mn=Math.round((h-hr)*60);if(mn>=60){mn=0;hr+=1;}if(hr>=24)hr=0;return ft(hr+':'+String(mn).padStart(2,'0'));}
 function isLegalLight(timeStr,dateStr){
   if(!timeStr)return false;
   const[h,m]=timeStr.split(':').map(Number);const dec=h+m/60;
@@ -1071,9 +1071,8 @@ function behaviorCallouts(buck, bs){
     const topWind=Object.entries(wC).sort((a,b)=>b[1]-a[1])[0]?.[0];
     // Legal light scrape visits
     const legalScrapes=legalLightSightings(scrapeSights);
-    // Avg time
-    const times=legalLightSightings(scrapeSights).filter(s=>s.time).map(s=>{const[h,m]=s.time.split(':').map(Number);return h+m/60;});
-    const avgT=times.length?fmtDecHour(times.reduce((a,b)=>a+b)/times.length):null;
+    // Peak window
+    const avgT=(function(){const ll=legalLightSightings(scrapeSights).filter(s=>s.time);if(!ll.length)return null;const bins=new Array(24).fill(0);ll.forEach(s=>{bins[parseInt(s.time.split(':')[0])]++;});const mx=Math.max(...bins);if(!mx)return null;const pk=bins.reduce((a,c,i)=>c>=mx*0.7&&c>0?[...a,i]:a,[]);return ft(pk[0]+':00')+(pk.length>1&&pk[pk.length-1]!==pk[0]?' – '+ft(pk[pk.length-1]+':00'):'');})();
     callouts.push({
       type:'scrape',
       priority:1,
@@ -1113,9 +1112,8 @@ function behaviorCallouts(buck, bs){
     const camC={};beddingSights.forEach(s=>{if(s.camId)camC[s.camId]=(camC[s.camId]||0)+1;});
     const topCamId=Object.entries(camC).sort((a,b)=>b[1]-a[1])[0]?.[0];
     const topCam=topCamId?S.cameras.find(c=>c.id===topCamId):null;
-    // Times
-    const times=beddingSights.filter(s=>s.time).map(s=>{const[h,m]=s.time.split(':').map(Number);return h+m/60;});
-    const avgT=times.length?fmtDecHour(times.reduce((a,b)=>a+b)/times.length):null;
+    // Peak window
+    const avgT=(function(){const all=beddingSights.filter(s=>s.time);if(!all.length)return null;const bins=new Array(24).fill(0);all.forEach(s=>{bins[parseInt(s.time.split(':')[0])]++;});const mx=Math.max(...bins);if(!mx)return null;const pk=bins.reduce((a,c,i)=>c>=mx*0.7&&c>0?[...a,i]:a,[]);return ft(pk[0]+':00')+(pk.length>1&&pk[pk.length-1]!==pk[0]?' – '+ft(pk[pk.length-1]+':00'):'');})();
     callouts.push({
       type:'bedding',
       priority:1,
@@ -1135,8 +1133,7 @@ function behaviorCallouts(buck, bs){
     const camC={};stagingSights.forEach(s=>{if(s.camId)camC[s.camId]=(camC[s.camId]||0)+1;});
     const topCamId=Object.entries(camC).sort((a,b)=>b[1]-a[1])[0]?.[0];
     const topCam=topCamId?S.cameras.find(c=>c.id===topCamId):null;
-    const times=legalLightSightings(stagingSights).filter(s=>s.time).map(s=>{const[h,m]=s.time.split(':').map(Number);return h+m/60;});
-    const avgT=times.length?fmtDecHour(times.reduce((a,b)=>a+b)/times.length):null;
+    const avgT=(function(){const ll=legalLightSightings(stagingSights).filter(s=>s.time);if(!ll.length)return null;const bins=new Array(24).fill(0);ll.forEach(s=>{bins[parseInt(s.time.split(':')[0])]++;});const mx=Math.max(...bins);if(!mx)return null;const pk=bins.reduce((a,c,i)=>c>=mx*0.7&&c>0?[...a,i]:a,[]);return ft(pk[0]+':00')+(pk.length>1&&pk[pk.length-1]!==pk[0]?' – '+ft(pk[pk.length-1]+':00'):'');})();
     callouts.push({
       type:'staging',
       priority:2,
@@ -1177,8 +1174,7 @@ function behaviorCallouts(buck, bs){
     const camC={};feedSights.forEach(s=>{if(s.camId)camC[s.camId]=(camC[s.camId]||0)+1;});
     const topCamId=Object.entries(camC).sort((a,b)=>b[1]-a[1])[0]?.[0];
     const topCam=topCamId?S.cameras.find(c=>c.id===topCamId):null;
-    const times=feedSights.filter(s=>s.time).map(s=>{const[h,m]=s.time.split(':').map(Number);return h+m/60;});
-    const avgT=times.length?fmtDecHour(times.reduce((a,b)=>a+b)/times.length):null;
+    const avgT=(function(){const ll=feedSights.filter(s=>s.time);if(!ll.length)return null;const bins=new Array(24).fill(0);ll.forEach(s=>{bins[parseInt(s.time.split(':')[0])]++;});const mx=Math.max(...bins);if(!mx)return null;const pk=bins.reduce((a,c,i)=>c>=mx*0.7&&c>0?[...a,i]:a,[]);return ft(pk[0]+':00')+(pk.length>1&&pk[pk.length-1]!==pk[0]?' – '+ft(pk[pk.length-1]+':00'):'');})();
     const wC={};feedSights.forEach(s=>{if(s.windDir)wC[s.windDir]=(wC[s.windDir]||0)+1;});
     const topWind=Object.entries(wC).sort((a,b)=>b[1]-a[1])[0]?.[0];
     callouts.push({
@@ -1274,19 +1270,31 @@ function whereToBeRec(buck, bs){
     return Object.entries(hC).sort((a,b)=>b[1]-a[1]).map(([dir,cnt])=>({dir,cnt,pct:Math.round(cnt/total*100)}));
   }
 
-  function avgTime(sights){
-    const times=sights.filter(s=>s.time).map(s=>{const[h,m]=s.time.split(':').map(Number);return h+m/60;});
-    if(!times.length)return null;
-    return times.reduce((a,b)=>a+b)/times.length;
+  function peakWindow(sights){
+    // Bin legal-light sightings by hour, find most active 1-hr slot
+    const ll=sights.filter(s=>s.time&&s.date).filter(s=>{const lg=legalLight(s.date);const[h,m]=s.time.split(':').map(Number);const dec=h+m/60;return dec>=lg.rise&&dec<=lg.set;});
+    if(!ll.length){
+      // Fall back to all timed sightings if no legal-light
+      const all=sights.filter(s=>s.time);
+      if(!all.length)return null;
+      const bins=new Array(24).fill(0);all.forEach(s=>{bins[parseInt(s.time.split(':')[0])]++;});
+      const mx=Math.max(...bins);if(!mx)return null;
+      const pk=bins.reduce((a,c,i)=>c>=mx*0.7&&c>0?[...a,i]:a,[]);
+      return ft(pk[0]+':00')+(pk.length>1&&pk[pk.length-1]!==pk[0]?' – '+ft(pk[pk.length-1]+':00'):'');
+    }
+    const bins=new Array(24).fill(0);ll.forEach(s=>{bins[parseInt(s.time.split(':')[0])]++;});
+    const mx=Math.max(...bins);if(!mx)return null;
+    const pk=bins.reduce((a,c,i)=>c>=mx*0.7&&c>0?[...a,i]:a,[]);
+    return ft(pk[0]+':00')+(pk.length>1&&pk[pk.length-1]!==pk[0]?' – '+ft(pk[pk.length-1]+':00'):'');
   }
 
   return{dlPct,camData,camArr,primaryCam,stagingCam,topWind,opp,
-    legalSights,nearLegal,darkSights,trueNight,headingBreakdown,avgTime,
+    legalSights,nearLegal,darkSights,trueNight,headingBreakdown,peakWindow,
     totalTimed:timed.length};
 }
 function buildWhereToBeHtml(buck, bs, rec){
   if(!rec)return'';
-  const{dlPct,camArr,primaryCam,stagingCam,topWind,opp,nearLegal,darkSights,legalSights,headingBreakdown,avgTime,totalTimed}=rec;
+  const{dlPct,camArr,primaryCam,stagingCam,topWind,opp,nearLegal,darkSights,legalSights,headingBreakdown,peakWindow,totalTimed}=rec;
   if(!primaryCam)return'';
 
   let html='';
@@ -1308,8 +1316,8 @@ function buildWhereToBeHtml(buck, bs, rec){
     const nlH=headingBreakdown(d.nearLegal);
     const topDir=nlH[0]||allH[0]||null;
     const sitDir=topDir?opp[topDir.dir]:null;
-    const avgt=avgTime([...d.nearLegal,...d.dark]);
-    const avgLegal=avgTime(d.legal);
+    const avgt=peakWindow([...d.legal,...d.nearLegal]);
+    const avgLegal=peakWindow(d.legal);
     const borderColor=isPrimary?'var(--gb)':isStaging?'var(--b)':'var(--b)';
     const bgColor=isPrimary?'var(--green-light)':'var(--surface)';
 
@@ -1367,8 +1375,8 @@ function buildWhereToBeHtml(buck, bs, rec){
     if(topDir&&sitDir){
       html+='<div style="background:var(--gl);border:1px solid var(--gb);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--green);font-weight:600;line-height:1.5">';
       html+='Heading <strong>'+topDir.dir+'</strong> ('+topDir.pct+'%) &rarr; <strong>Sit '+sitDir+' of '+d.cam.name+'</strong>';
-      if(avgt!==null)html+=' &middot; Avg arrival: <strong>'+fmtDecHour(avgt)+'</strong>';
-      if(avgLegal!==null&&d.legal.length)html+=' &middot; Legal-light avg: <strong>'+fmtDecHour(avgLegal)+'</strong>';
+      if(avgt!==null)html+=' &middot; Peak window: <strong>'+avgt+'</strong>';
+      if(avgLegal!==null&&d.legal.length)html+=' &middot; Legal-light peak: <strong>'+avgLegal+'</strong>';
       html+='</div>';
     }
 
@@ -2019,91 +2027,6 @@ function renderFS(){
   body.innerHTML=html;
 }
 
-async function loadFC(){
-  const body=document.getElementById('predictBody');if(!body)return;
-  if(fd){renderFS();return;}
-  const lat=(S.propertySettings?.lat)||46.2504,lon=(S.propertySettings?.lon)||-91.07529;
-  try{
-    const url='https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,wind_direction_10m_dominant,precipitation_sum,weathercode&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Chicago&forecast_days=10';
-    fd=await (await fetch(url)).json();renderFS();
-  }catch(e){if(body)body.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px">Could not load forecast. Check your internet connection.</div>';}
-}
-function wDirL(d){return['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(d/22.5)%16];}
-function wDir8(d){const d8=['N','NE','E','SE','S','SW','W','NW'];return d8.reduce((b,x)=>{const a=y=>({N:0,NE:45,E:90,SE:135,S:180,SW:225,W:270,NW:315})[y];return Math.abs(((d-a(x))+540)%360-180)<Math.abs(((d-a(b))+540)%360-180)?x:b;},'N');}
-function wIco(c){if(c===0)return'&#9728;&#65039;';if(c<=2)return'&#9925;';if(c<=3)return'&#9729;&#65039;';if(c<=49)return'&#127787;&#65039;';if(c<=67)return'&#127783;&#65039;';if(c<=79)return'&#10052;&#65039;';if(c<=82)return'&#127783;&#65039;';if(c<=86)return'&#127784;&#65039;';return'&#9928;&#65039;';}
-function sDFB(buck,w8,ta,dayIdx,wSpd,bsIn){
-  const bs=bsIn?bsIn:fil().filter(s=>s.season!=='Rut'&&s.buckId===buck.id);
-  if(bs.length<2)return 0;
-  let totalScore=0,totalWeight=0;
-  const windSights=bs.filter(s=>s.windDir);
-  if(windSights.length>=1){const windMatch=Math.round(windSights.filter(s=>s.windDir===w8).length/windSights.length*100);totalScore+=windMatch*0.35;totalWeight+=0.35;}
-  const timedSights=bs.filter(s=>s.time);
-  if(timedSights.length>=2){const dlP=daylightPct(bs);const profile=buckTimeProfile(bs);let timeScore=0;if(profile==='nocturnal'||dlP<25)timeScore=10;else if(profile==='dawn')timeScore=90;else if(profile==='dusk')timeScore=85;else if(profile==='mixed')timeScore=65;else if(profile==='midday')timeScore=40;totalScore+=timeScore*0.30;totalWeight+=0.30;}
-  const pressSights=bs.filter(s=>s.pressure&&Number(s.pressure)>0);
-  if(pressSights.length>=2&&dayIdx!=null){const trend=pressureTrend(dayIdx);let pressScore=50;if(trend==='rising')pressScore=85;else if(trend==='stable')pressScore=55;else if(trend==='falling')pressScore=30;totalScore+=pressScore*0.25;totalWeight+=0.25;}
-  if(dayIdx!=null){const trend=tempTrend(dayIdx);let tempScore=50;if(trend==='falling')tempScore=90;else if(trend==='stable')tempScore=55;else if(trend==='rising')tempScore=25;totalScore+=tempScore*0.10;totalWeight+=0.10;}
-  if(totalWeight===0)return 0;
-  let rawScore=Math.round(totalScore/totalWeight);
-  if(wSpd!=null){let pen=0;if(wSpd>=30)pen=25;else if(wSpd>=20)pen=15;else if(wSpd>=12)pen=7;rawScore=Math.max(0,rawScore-pen);}
-  return rawScore;
-}
-function sDay(w8,ta,dayIdx,wSpd){
-  const filtered=predFil();
-  const bks=S.bucks.filter(b=>filtered.some(s=>s.buckId===b.id));if(!bks.length)return 0;
-  return Math.round(bks.map(b=>sDFB(b,w8,ta,dayIdx,wSpd,filtered.filter(s=>s.buckId===b.id))).reduce((a,b)=>a+b,0)/bks.length);
-}
-function renderFS(){
-  if(!fd)return;
-  const body=document.getElementById('predictBody');if(!body)return;
-  const dl=fd.daily,days=Math.min(dl.time.length,10);
-  const dn=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const bwd=S.bucks.filter(b=>fil().some(s=>s.buckId===b.id));
-  const dd=[];
-  for(let i=0;i<days;i++){
-    const dt=new Date(dl.time[i]+'T12:00:00');
-    const tMx=Math.round(dl.temperature_2m_max[i]),tMn=Math.round(dl.temperature_2m_min[i]),tAv=Math.round((tMx+tMn)/2);
-    const wD=dl.wind_direction_10m_dominant[i],wS=Math.round(dl.wind_speed_10m_max[i]);
-    const wL=wDirL(wD),w8=wDir8(wD),ico=wIco(dl.weathercode[i]),pr=dl.precipitation_sum[i]||0;
-    dd.push({dt,dn:dn[dt.getDay()],ds:(dt.getMonth()+1)+'/'+dt.getDate(),tMx,tMn,tAv,wL,wS,w8,ico,pr,os:sDay(w8,tAv)});
-  }
-  const mxS=Math.max(...dd.map(d=>d.os),1);
-  const fl=(gS||gY)?'<span style=\"background:var(--gl);border:1px solid var(--gb);border-radius:10px;padding:2px 10px;color:var(--green);font-weight:600;font-size:11px\">'+(gS||'')+(gS&&gY?' - ':'')+(gY||'')+'</span>':'<span style=\"font-size:11px;color:var(--t3)\">All seasons - All years</span>';
-  let html='<div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:10px\"><div style=\"font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3)\">10-Day Hunt Forecast - Cable, WI</div>'+fl+'</div>';
-  html+='<div class=\"fg2\">';
-  dd.forEach(d=>{
-    const iB=d.os>=mxS*0.85&&d.os>30&&bwd.length>0,isG=!iB&&d.os>=mxS*0.6&&d.os>15&&bwd.length>0;
-    const sc=d.os>=55?'hi':d.os>=30?'me':'lo';
-    html+='<div class=\"fc\"><div class=\"fh '+(iB?'best':isG?'good':'')+'\">';
-    html+='<div class=\"fdn\">'+d.dn+'</div><div class=\"fdd\">'+d.ds+'</div>';
-    html+='<div class=\"fdi\">'+d.ico+'</div><div class=\"fdt\">'+d.tMx+'&deg;/'+d.tMn+'&deg;</div>';
-    html+='<div class=\"fdw\">&#128168; '+d.wL+' '+d.wS+'mph</div>';
-    if(d.pr>0.1)html+='<div class=\"fdp\">&#127783; '+d.pr.toFixed(1)+'\"</div>';
-    if(bwd.length>0)html+='<div class=\"fsb '+sc+'\">'+(d.os>0?d.os+'% match':'No data')+'</div>';
-    html+='</div>';
-    if(!bwd.length){html+='<div style=\"font-size:10px;color:var(--t3);text-align:center;padding:6px\">Log sightings to unlock</div>';}
-    else{
-      bwd.forEach(buck=>{
-        const bs=fil().filter(s=>s.buckId===buck.id);
-        const sc2=sDFB(buck,d.w8,d.tAv);
-        const cS={};S.cameras.forEach(cam=>{const c=bs.filter(s=>s.camId===cam.id&&s.windDir===d.w8).length;if(c)cS[cam.id]=c;});
-        const tCI=Object.entries(cS).sort((a,b)=>b[1]-a[1])[0]?.[0];const tCam=tCI?S.cameras.find(c=>c.id===tCI):null;
-        const hc2=new Array(24).fill(0);bs.filter(s=>s.windDir===d.w8).forEach(s=>{if(s.time)hc2[parseInt(s.time)]++;});
-        const mH2=Math.max(...hc2);let pkS='';
-        if(mH2>0){const pk=hc2.reduce((a,c,i)=>{if(c>=mH2*0.7&&c>0)a.push(i);return a;},[]);if(pk.length)pkS=ft(pk[0]+':00');}
-        const hw=bs.filter(s=>s.windDir===d.w8&&s.buckHeading).map(s=>s.buckHeading);
-        const th2=hw.length?hw.reduce((a,b,i,ar)=>ar.filter(v=>v===a).length>=ar.filter(v=>v===b).length?a:b,hw[0]):null;
-        const vd=sc2>=55?'hunt':sc2>=30?'maybe':'poor';
-        const vl=sc2>=55?'HUNT':sc2>=30?'MAYBE':'PASS';
-        const det=vd==='hunt'?(tCam?tCam.name:'Best cam')+(pkS?' - '+pkS:'')+(th2?' - '+th2:''):vd==='maybe'?(tCam?tCam.name+' partial':'partial'):'Poor conditions';
-        const bc=sc2>=55?'var(--gm)':sc2>=30?'#b45309':'var(--bs)';
-        html+='<div class=\"fbc '+vd+'\"><div style=\"display:flex;align-items:center;gap:5px;margin-bottom:2px\"><div style=\"font-size:16px\">'+(buck.emoji||'&#129420;')+'</div><div style=\"flex:1;min-width:0\"><div class=\"fbn\">'+buck.name+'</div><div class=\"fbv '+vd+'\">'+vl+' '+sc2+'%</div></div></div><div class=\"fbd\">'+det+'</div><div class=\"fbb\"><div class=\"fbbf\" style=\"width:'+Math.min(sc2,100)+'%;background:'+bc+'\"></div></div></div>';
-      });
-    }
-    html+='</div>';
-  });
-  html+='</div>';
-  body.innerHTML=html;
-}
 
 // LOG
 function popLF(){
