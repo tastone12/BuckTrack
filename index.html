@@ -1896,9 +1896,9 @@ function renderFS(){
       const topHead2=hw.length?hw.reduce((a,b,i,ar)=>ar.filter(v=>v===a).length>=ar.filter(v=>v===b).length?a:b,hw[0]):null;
       const trend=pressureTrend(d.i);
       const tTrend=tempTrend(d.i);
-      const trendLabel=trend==='rising'?'&#8593; Pressure rising':trend==='falling'?'&#8595; Pressure falling':'&#8594; Pressure stable';
-      const tempTrendLabel=tTrend==='falling'?'&#8595; Temp falling':tTrend==='rising'?'&#8593; Temp rising':'&#8594; Temp stable';
-      const profileLabel={dawn:'Dawn',dusk:'Dusk',midday:'Midday',nocturnal:'&#127769; Nocturnal',mixed:'All day'}[profile]||'';
+      const trendLabel=trend==='rising'?'Pressure rising — good sign':trend==='falling'?'Pressure dropping':'Pressure steady';
+      const tempTrendLabel=tTrend==='falling'?'Temps dropping':tTrend==='rising'?'Temps rising':'Temps stable';
+      const profileLabel={dawn:'Moves at dawn',dusk:'Moves at dusk',midday:'Moves midday',nocturnal:'Moves after dark',mixed:'Moves throughout the day'}[profile]||'';
       const breakdown=profileLabel+(trend&&bs.filter(s=>s.pressure).length>=2?' &#183; '+trendLabel:'')+'  &#183; '+tempTrendLabel;
       // Scrape match
       const scrapeHits=scrapeMatchesDay(buck,bs,d.w8);
@@ -1926,7 +1926,7 @@ function renderFS(){
         const nlHeads=nlSights.filter(s=>s.buckHeading).map(s=>s.buckHeading);
         const nlTopHead=nlHeads.length?nlHeads.reduce((a,b,i,ar)=>ar.filter(v=>v===a).length>=ar.filter(v=>v===b).length?a:b,nlHeads[0]):topHead2;
         const sitDir=nlTopHead?opp[nlTopHead]:null;
-        detailLine=sitDir&&nlCam?sitDir+' of '+nlCam.name+(dlP!==null?' ('+dlP+'% daylight)':''):'See Patterns for intercept plan';
+        detailLine=sitDir&&nlCam?'Set up '+sitDir+' of '+nlCam.name+' — he\'s moving after dark'+(dlP!==null&&dlP>0?' ('+dlP+'% in daylight)':''):'Check Patterns tab for intercept plan';
       } else {
         vd=score>=55?'hunt':score>=30?'maybe':'poor';
         vl=score>=55?'&#129001; HUNT':score>=30?'&#129000; MAYBE':'&#128997; PASS';
@@ -1935,14 +1935,14 @@ function renderFS(){
           const parts=[];
           if(topCam)parts.push(topCam.name);
           if(pkStr)parts.push(pkStr);
-          if(topHead2)parts.push('heading '+topHead2);
+          if(topHead2)parts.push('typically heading '+topHead2);
           detailLine=parts.join(' · ')||'Partial match';
-          if(scrapeHits>=1&&topScrapeCam)detailLine+=' · &#128296; scrape wind match';
+          if(scrapeHits>=1&&topScrapeCam)detailLine+=' · 🔨 scrape wind lines up';
         } else {
-          detailLine=!hasWindData?'No wind data yet':'Poor conditions';
+          detailLine=!hasWindData?'Log wind direction in sightings to improve predictions':'Wind or conditions don\'t match his pattern';
         }
       }
-      const circuitLine=circuitMatches.length?'<div style="font-size:10px;color:var(--green);font-weight:600;margin-top:2px">&#128260; '+circuitMatches[0].cams.map(c=>c.name).join(' \u2192 ')+'</div>':'';
+      const circuitLine=circuitMatches.length?'<div style="font-size:10px;color:var(--green);font-weight:600;margin-top:2px">&#128260; Known route: '+circuitMatches[0].cams.map(c=>c.name).join(' \u2192 ')+'</div>':'';
       return'<div class="fbrow '+(isNocturnal?'maybe':vd)+'" style="'+extraStyle+'">'+
         '<div class="fbrow-emoji">'+(buck.emoji||'&#129420;')+'</div>'+
         '<div class="fbrow-info">'+
