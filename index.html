@@ -1770,7 +1770,7 @@ function renderFS(){
 
   // ── Best Sit Hero Card ───────────────────────────────────
   function buildHero(){
-    if(!hasData)return'<div style="background:linear-gradient(135deg,#1a2e1c,#253020);border-radius:var(--r);padding:18px 20px;margin-bottom:4px;border:1px solid rgba(255,255,255,.08);text-align:center"><div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px">Best Sit This Week</div><div style="font-size:14px;color:rgba(255,255,255,.7)">Log sightings to unlock predictions</div></div>';
+    if(!hasData)return'<div style="background:linear-gradient(135deg,#1a2e1c,#253020);border-radius:var(--r);padding:18px 20px;margin-bottom:4px;border:1px solid rgba(255,255,255,.08);text-align:center"><div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:6px">Best Sit This Week</div><div style="font-size:14px;color:rgba(255,255,255,.7)">Log sightings to unlock hunt predictions</div><div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:6px">Weather forecast below is always available</div></div>';
     const candidates=[];
     dd.forEach(d=>{
       bwd.forEach(buck=>{
@@ -1845,7 +1845,7 @@ function renderFS(){
 
   // ── Per-buck card for each day ───────────────────────────
   function buckCard(d){
-    if(!hasData)return'<div style="font-size:12px;color:var(--t3);padding:4px 0">Log sightings to unlock</div>';
+    if(!hasData)return'';
     return bwd.map(buck=>{
       const bs=pf.filter(s=>s.buckId===buck.id);
       const score=sDFB(buck,d.w8,d.tAv,d.i,d.wSpd,bs);
@@ -1972,8 +1972,9 @@ function renderFS(){
           (d.pr>0.1?'<div class="fcard-precip">&#127783; '+d.pr.toFixed(1)+'" precip</div>':'')+
         '</div>'+
         '<div class="fcard-score">'+
-          '<div class="fcard-pct '+pctCls+'">'+(hasData?d.os+'%':'—')+'</div>'+
-          '<div class="fcard-match">match</div>'+
+          (hasData?'<div class="fcard-pct '+pctCls+'">'+d.os+'%</div><div class="fcard-match">match</div>':'')+
+          (!hasData?'<div style="font-size:10px;color:var(--t3);text-align:right">no data</div>':'')+
+          ''+
         '</div>'+
       '</div>'+
       '<div class="fcard-bucks">'+buckCard(d)+'</div>'+
