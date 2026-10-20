@@ -1656,19 +1656,27 @@ function renderBP(sg,ct){
 
 async function loadFC(){
   const body=document.getElementById('predictBody');if(!body)return;
-  if(fd){try{renderFS();}catch(e){console.error('renderFS error:',e);body.innerHTML='<div style="color:var(--red);font-size:13px;padding:20px">Forecast render error: '+e.message+'</div>';}return;}
+  if(fd){try{renderFS();}catch(e){console.error('renderFS error:',e);body.innerHTML='<div style="color:var(--red);font-size:13px;padding:20px">Render error: '+e.message+'</div>';}return;}
   body.innerHTML='<div class="flo"><div class="sp"></div>Loading 10-day forecast for Cable, WI...</div>';
   const lat=(S.propertySettings?.lat)||46.2504,lon=(S.propertySettings?.lon)||-91.07529;
+  const url='https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,wind_direction_10m_dominant,precipitation_sum,weathercode&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Chicago&forecast_days=10';
   try{
-    const url='https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,wind_direction_10m_dominant,precipitation_sum,weathercode&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Chicago&forecast_days=10';
-    const resp=await fetch(url);
-    if(!resp.ok)throw new Error('HTTP '+resp.status);
+    const controller=new AbortController();
+    const timer=setTimeout(()=>controller.abort(),8000);
+    let resp;
+    try{resp=await fetch(url,{signal:controller.signal,cache:'no-store'});}
+    finally{clearTimeout(timer);}
+    if(!resp.ok)throw new Error('Weather API returned HTTP '+resp.status);
     fd=await resp.json();
-    if(!fd||!fd.daily)throw new Error('Bad response from weather API');
-    try{renderFS();}catch(e){console.error('renderFS error:',e);body.innerHTML='<div style="color:var(--red);font-size:13px;padding:20px">Forecast render error: '+e.message+'<br><small>Check browser console (F12) for details.</small></div>';}
+    if(!fd||!fd.daily||!fd.daily.time||!fd.daily.time.length)throw new Error('Empty response from weather API');
+    try{renderFS();}catch(e){
+      console.error('renderFS error:',e);
+      body.innerHTML='<div style="color:var(--red);font-size:13px;padding:20px">Display error: '+e.message+'<br><small>Open F12 console for details.</small></div>';
+    }
   }catch(e){
     console.error('loadFC error:',e);
-    if(body)body.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px">&#9888;&#65039; Could not load forecast: '+e.message+'<br><br><button onclick="fd=null;loadFC()" style="background:var(--gm);color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px">Retry</button></div>';
+    const msg=e.name==='AbortError'?'Request timed out (8s) — check your internet connection.':e.message||'Unknown error';
+    body.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px">&#9888;&#65039; '+msg+'<br><br><button onclick="fd=null;loadFC()" style="background:var(--gm);color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-family:Inter,sans-serif">&#8635; Retry</button></div>';
   }
 }
 function wDirL(d){return['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(d/22.5)%16];}
