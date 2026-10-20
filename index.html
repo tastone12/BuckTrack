@@ -1656,12 +1656,20 @@ function renderBP(sg,ct){
 
 async function loadFC(){
   const body=document.getElementById('predictBody');if(!body)return;
-  if(fd){renderFS();return;}
+  if(fd){try{renderFS();}catch(e){console.error('renderFS error:',e);body.innerHTML='<div style="color:var(--red);font-size:13px;padding:20px">Forecast render error: '+e.message+'</div>';}return;}
+  body.innerHTML='<div class="flo"><div class="sp"></div>Loading 10-day forecast for Cable, WI...</div>';
   const lat=(S.propertySettings?.lat)||46.2504,lon=(S.propertySettings?.lon)||-91.07529;
   try{
     const url='https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+'&daily=temperature_2m_max,temperature_2m_min,wind_speed_10m_max,wind_direction_10m_dominant,precipitation_sum,weathercode&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America/Chicago&forecast_days=10';
-    fd=await (await fetch(url)).json();renderFS();
-  }catch(e){if(body)body.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px">Could not load forecast. Check your internet connection.</div>';}
+    const resp=await fetch(url);
+    if(!resp.ok)throw new Error('HTTP '+resp.status);
+    fd=await resp.json();
+    if(!fd||!fd.daily)throw new Error('Bad response from weather API');
+    try{renderFS();}catch(e){console.error('renderFS error:',e);body.innerHTML='<div style="color:var(--red);font-size:13px;padding:20px">Forecast render error: '+e.message+'<br><small>Check browser console (F12) for details.</small></div>';}
+  }catch(e){
+    console.error('loadFC error:',e);
+    if(body)body.innerHTML='<div style="color:var(--t3);font-size:13px;padding:20px">&#9888;&#65039; Could not load forecast: '+e.message+'<br><br><button onclick="fd=null;loadFC()" style="background:var(--gm);color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px">Retry</button></div>';
+  }
 }
 function wDirL(d){return['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'][Math.round(d/22.5)%16];}
 function wDir8(d){const d8=['N','NE','E','SE','S','SW','W','NW'];return d8.reduce((b,x)=>{const a=y=>({N:0,NE:45,E:90,SE:135,S:180,SW:225,W:270,NW:315})[y];return Math.abs(((d-a(x))+540)%360-180)<Math.abs(((d-a(b))+540)%360-180)?x:b;},'N');}
